@@ -18,3 +18,5 @@ Requiere:
     - usuario_dao para acceso a datos
     - validators para validaciones
 """
+
+import bcrypt

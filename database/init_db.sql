@@ -1,11 +1,26 @@
 -- ============================================
+-- Limpieza de Base de Datos
+-- ============================================
+DROP DATABASE IF EXISTS viajes_aventura;
+DROP USER IF EXISTS 'admin_aventura'@'localhost'
+
+-- ============================================
 -- Script de creación de Base de Datos
 -- Sistema de Reservas - Viajes Aventura
 -- ============================================
 
 -- Crear la base de datos
-DROP DATABASE IF EXISTS viajes_aventura;
-CREATE DATABASE viajes_aventura CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS viajes_aventura CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- ============================================
+-- Creación de usuario administrador con sus 
+-- privilegios corresopndientes.
+-- ============================================
+CREATE USER IF NOT EXISTS viajes_aventura'admin_aventura'@'localhost' IDENTIFIED BY 'Aventura123';
+GRANT ALL PRIVILEGES ON viajes_aventura.* TO 'admin_aventura'@'localhost';
+FLUSH PRIVILEGES;
+
+-- Seleccionar base de datos
 USE viajes_aventura;
 
 -- ============================================
@@ -42,7 +57,9 @@ CREATE TABLE Destinos (
 CREATE TABLE Actividades (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
-    costo_extra DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    descripcion TEXT,
+    duracion_horas INT NOT NULL,
+    precio_base DECIMAL(10,2) NOT NULL DEFAULT 0.00,
     destino_id INT NOT NULL,
     FOREIGN KEY (destino_id) REFERENCES Destinos(id) ON DELETE CASCADE,
     INDEX idx_destino (destino_id)
@@ -104,12 +121,14 @@ CREATE TABLE Reservas (
     id INT AUTO_INCREMENT PRIMARY KEY,
     fecha_reserva DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     estado ENUM('PENDIENTE', 'CONFIRMADA', 'CANCELADA', 'PAGADA') NOT NULL DEFAULT 'PENDIENTE',
-    monto_final DECIMAL(10,2) NOT NULL,
+    monto_total DECIMAL(10,2) NOT NULL,
+    numero_personas INT NOT NULL,
     usuario_id INT NOT NULL,
     paquete_id INT NOT NULL,
     FOREIGN KEY (usuario_id) REFERENCES Usuarios(id) ON DELETE CASCADE,
     FOREIGN KEY (paquete_id) REFERENCES Paquetes(id) ON DELETE CASCADE,
-    CHECK (monto_final >= 0),
+    CHECK (monto_total >= 0),
+    CHECK (numero_personas > 0),
     INDEX idx_usuario (usuario_id),
     INDEX idx_paquete (paquete_id),
     INDEX idx_estado (estado),
@@ -156,23 +175,23 @@ INSERT INTO Destinos (nombre, descripcion, costo_base) VALUES
 ('Tokio', 'Metrópolis moderna con tradición japonesa', 1800.00);
 
 -- Actividades de ejemplo
-INSERT INTO Actividades (nombre, costo_extra, destino_id) VALUES
+INSERT INTO Actividades (nombre, descripcion, duracion_horas, precio_base, destino_id) VALUES
 -- París
-('Tour Eiffel con cena', 150.00, 1),
-('Museo del Louvre', 80.00, 1),
-('Crucero por el Sena', 120.00, 1),
+('Tour Eiffel con cena', 'Visita guiada a la Torre Eiffel con cena romántica en restaurante panorámico', 4, 150.00, 1),
+('Museo del Louvre', 'Recorrido por las obras maestras del museo más famoso del mundo', 3, 80.00, 1),
+('Crucero por el Sena', 'Paseo en barco por el río Sena con vistas a monumentos parisinos', 2, 120.00, 1),
 -- Roma
-('Tour del Coliseo', 100.00, 2),
-('Visita al Vaticano', 90.00, 2),
-('Clase de cocina italiana', 110.00, 2),
+('Tour del Coliseo', 'Visita guiada al Coliseo Romano y Foro Romano con historiador', 3, 100.00, 2),
+('Visita al Vaticano', 'Recorrido por los Museos Vaticanos y Capilla Sixtina', 4, 90.00, 2),
+('Clase de cocina italiana', 'Aprende a preparar pasta fresca y platos tradicionales italianos', 3, 110.00, 2),
 -- Barcelona
-('Tour Sagrada Familia', 95.00, 3),
-('Park Güell', 70.00, 3),
-('Degustación de tapas', 85.00, 3),
+('Tour Sagrada Familia', 'Visita guiada a la obra maestra de Gaudí con acceso prioritario', 2, 95.00, 3),
+('Park Güell', 'Recorrido por el parque modernista diseñado por Antoni Gaudí', 2, 70.00, 3),
+('Degustación de tapas', 'Tour gastronómico por los mejores bares de tapas del barrio Gótico', 3, 85.00, 3),
 -- Tokio
-('Tour templos tradicionales', 130.00, 4),
-('Experiencia de sushi', 140.00, 4),
-('Visita Monte Fuji', 200.00, 4);
+('Tour templos tradicionales', 'Visita a templos históricos de Asakusa y jardines zen', 4, 130.00, 4),
+('Experiencia de sushi', 'Clase magistral de preparación de sushi con chef profesional', 2, 140.00, 4),
+('Visita Monte Fuji', 'Excursión de día completo al Monte Fuji y lago Kawaguchi', 8, 200.00, 4);
 
 -- Paquete de ejemplo
 INSERT INTO Paquetes (nombre, fecha_inicio, fecha_fin, precio_total, cupos_disponibles, politica_id) VALUES
@@ -222,19 +241,20 @@ SELECT
     r.id AS reserva_id,
     r.fecha_reserva,
     r.estado AS estado_reserva,
-    r.monto_final,
+    r.monto_total,
+    r.numero_personas,
     u.nombre AS cliente_nombre,
     u.email AS cliente_email,
     p.nombre AS paquete_nombre,
     p.fecha_inicio AS fecha_viaje_inicio,
     p.fecha_fin AS fecha_viaje_fin,
     COALESCE(SUM(pg.monto), 0) AS total_pagado,
-    (r.monto_final - COALESCE(SUM(pg.monto), 0)) AS saldo_pendiente
+    (r.monto_total - COALESCE(SUM(pg.monto), 0)) AS saldo_pendiente
 FROM Reservas r
 JOIN Usuarios u ON r.usuario_id = u.id
 JOIN Paquetes p ON r.paquete_id = p.id
 LEFT JOIN Pagos pg ON r.id = pg.reserva_id AND pg.estado = 'COMPLETADO'
-GROUP BY r.id, r.fecha_reserva, r.estado, r.monto_final, 
+GROUP BY r.id, r.fecha_reserva, r.estado, r.monto_total, r.numero_personas,
          u.nombre, u.email, p.nombre, p.fecha_inicio, p.fecha_fin;
 
 -- ============================================
@@ -299,5 +319,3 @@ SHOW TABLES;
 
 -- Verificar políticas de cancelación
 SELECT * FROM PoliticasCancelacion;
-
-SELECT 'Base de datos creada exitosamente' AS mensaje;

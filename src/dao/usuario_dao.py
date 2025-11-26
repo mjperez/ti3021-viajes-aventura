@@ -13,3 +13,4 @@ Métodos esperados:
     - listar_por_rol(rol): Retorna usuarios filtrados por rol
     - verificar_email_existe(email): Valida si el email ya está registrado
 """
+
