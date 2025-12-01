@@ -1,13 +1,15 @@
-"""DTO para Pago - Data Transfer Object
+from datetime import datetime
 
-Clase que representa los datos de un pago.
 
-Atributos esperados:
-    - id: int
-    - reserva_id: int (FK a Reservas)
-    - monto: decimal
-    - fecha_pago: datetime
-    - metodo: string ('efectivo', 'tarjeta_credito', 'tarjeta_debito', 'transferencia')
-    - estado: string ('pendiente', 'completado', 'fallido', 'reembolsado')
-    - referencia: string
-"""
+class PagoDTO:
+    # Clase que representa los datos de un pago.
+    def __init__(self, id:int, monto:float, fecha_pago:datetime, metodo:str, reserva_id:int, estado:str):
+        self.id=id
+        self.monto=monto
+        self.fecha_pago=fecha_pago
+        self.metodo=metodo
+        self.reserva_id=reserva_id
+        self.estado=estado
+    
+    def __repr__(self):
+        return (f"PagoDTO(id={self.id}, monto={self.monto}, metodo='{self.metodo}', estado='{self.estado}')")

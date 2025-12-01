@@ -45,7 +45,7 @@ CREATE TABLE Usuarios (
 CREATE TABLE Destinos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
-    descripcion TEXT,
+    descripcion TEXT NOT NULL,
     costo_base DECIMAL(10,2) NOT NULL,
     INDEX idx_nombre (nombre)
 ) ENGINE=InnoDB;

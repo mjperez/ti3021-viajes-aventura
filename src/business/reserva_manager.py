@@ -17,3 +17,24 @@ Requiere:
     - reserva_dao, paquete_dao
     - Manejo de transacciones para integridad de datos
 """
+
+# reserva_manager.py
+from src.utils.exceptions import ValidacionError
+from src.utils.validators import ESTADOS_RESERVA, validar_estado_reserva
+
+
+def cambiar_estado_reserva(reserva_id: int, nuevo_estado: str):
+    """Cambia el estado de una reserva"""
+    
+    # Validación
+    if not validar_estado_reserva(nuevo_estado):
+        raise ValidacionError(
+            f"Estado '{nuevo_estado}' inválido. "
+            f"Estados válidos: {', '.join(ESTADOS_RESERVA)}"
+        )
+    
+    # Lógica de negocio
+    # ... obtener reserva actual
+    # ... validar transición de estados
+    
+    # Actualizar en BD

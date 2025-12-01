@@ -19,3 +19,17 @@ Criterios de validación:
     - Password: mínimo 8 caracteres, mayúscula, minúscula, número
     - Fechas: formato YYYY-MM-DD o DD/MM/YYYY
 """
+
+# validators.py
+
+# Constantes para ENUM
+ESTADOS_RESERVA = ['PENDIENTE', 'CONFIRMADA', 'CANCELADA', 'PAGADA']
+METODOS_PAGO = ['EFECTIVO', 'TARJETA', 'TRANSFERENCIA']
+ESTADOS_PAGO = ['PENDIENTE', 'COMPLETADO', 'FALLIDO']
+ROLES_USUARIO = ['ADMIN', 'CLIENTE']
+
+def validar_estado_reserva(estado: str) -> bool:
+    """Valida que el estado de reserva sea válido"""
+    if not estado:
+        return False
+    return estado.upper() in ESTADOS_RESERVA
