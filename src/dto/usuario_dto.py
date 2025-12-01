@@ -13,7 +13,8 @@ Atributos esperados:
 """
 from datetime import datetime
 
-class UsuarioDAO():
+
+class UsuarioDTO():
     
     def __init__(self,id_usuario: int, email:str, pass_hash: str, rol: str, fecha_registro: datetime):
         self.id_usuario = id_usuario
