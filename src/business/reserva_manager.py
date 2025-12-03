@@ -18,9 +18,8 @@ Requiere:
     - Manejo de transacciones para integridad de datos
 """
 
-# reserva_manager.py
 from src.utils.exceptions import ValidacionError
-from src.utils.validators import ESTADOS_RESERVA, validar_estado_reserva
+from src.utils import ESTADOS_RESERVA, validar_estado_reserva
 
 
 def cambiar_estado_reserva(reserva_id: int, nuevo_estado: str):

@@ -3,6 +3,8 @@ import os
 import pymysql
 from dotenv import load_dotenv
 
+from src.utils import DB_CHARSET, DB_PORT_DEFAULT
+
 _instancia_conexion = None
 
 load_dotenv()
@@ -14,7 +16,7 @@ class Conexion():
         self.name = str(os.getenv("DB_NAME",""))
         self.user = str(os.getenv("DB_USER","root"))
         self.passwd = str(os.getenv("DB_PASSWORD",""))
-        self.port = int(os.getenv("DB_PORT", "3306"))
+        self.port = int(os.getenv("DB_PORT", str(DB_PORT_DEFAULT)))
 
         self.conn = None
     
@@ -27,7 +29,7 @@ class Conexion():
                     host=self.host, 
                     database=self.name,
                     port=self.port,
-                    charset='utf8mb4',
+                    charset=DB_CHARSET,
                     cursorclass=pymysql.cursors.DictCursor
                     )
             except pymysql.MySQLError as e:

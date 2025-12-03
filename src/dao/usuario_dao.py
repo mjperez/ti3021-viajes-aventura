@@ -102,7 +102,7 @@ class UsuarioDAO:
         filas = ejecutar_actualizacion(sql,params)
         return filas > 0
 
-    def listar_por_rol(self, rol): 
+    def listar_por_rol(self, rol:str) -> list[UsuarioDTO]: 
         sql = "SELECT * FROM Usuarios WHERE rol = %s"
         params = (rol,)
         usuarios = []
@@ -123,7 +123,7 @@ class UsuarioDAO:
 
         return usuarios
 
-    def verificar_email_existe(self, email): 
+    def verificar_email_existe(self, email:str) -> bool: 
         #Valida si el email ya está registrado
         sql = "SELECT * FROM Usuarios WHERE email = %s"
         params = (email,)

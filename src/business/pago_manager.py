@@ -16,3 +16,5 @@ Requiere:
     - pago_dao, reserva_dao
     - Manejo de transacciones para consistencia
 """
+
+from src.dao import PagoDAO, ReservaDAO

@@ -20,16 +20,67 @@ Criterios de validación:
     - Fechas: formato YYYY-MM-DD o DD/MM/YYYY
 """
 
-# validators.py
+import re  # librería expresiones regulares
+from itertools import cycle  # crea una lista infinita que se repite.
 
-# Constantes para ENUM
-ESTADOS_RESERVA = ['PENDIENTE', 'CONFIRMADA', 'CANCELADA', 'PAGADA']
-METODOS_PAGO = ['EFECTIVO', 'TARJETA', 'TRANSFERENCIA']
-ESTADOS_PAGO = ['PENDIENTE', 'COMPLETADO', 'FALLIDO']
-ROLES_USUARIO = ['ADMIN', 'CLIENTE']
+from src.utils import (
+    EMAIL_MAX_LENGTH,
+    ESTADOS_PAGO,
+    ESTADOS_RESERVA,
+    FORMATO_FECHA_CHILENO,
+    FORMATO_FECHA_ISO,
+    MAX_PERSONAS_RESERVA,
+    METODOS_PAGO,
+    MIN_MONTO,
+    MIN_PERSONAS_RESERVA,
+    MSG_ERROR_EMAIL_INVALIDO,
+    MSG_ERROR_PASSWORD_DEBIL,
+    MSG_ERROR_PERSONAS_INVALIDO,
+    NOMBRE_MAX_LENGTH,
+    PASSWORD_MIN_LENGTH,
+    REGEX_EMAIL,
+    REGEX_PASSWORD,
+    REGEX_RUT,
+    REGEX_TELEFONO_CHILE,
+    ROLES_USUARIO,
+)
+
 
 def validar_estado_reserva(estado: str) -> bool:
     """Valida que el estado de reserva sea válido"""
     if not estado:
         return False
     return estado.upper() in ESTADOS_RESERVA
+
+def validar_rut(rut: str) -> bool:
+    #Valida que el rut cumpla el formato esperado y la matemática de verificación
+    rut = rut.replace('.','').strip().upper() # se limpia rut si tiene puntos
+
+    if not re.match(REGEX_RUT,rut): # si el rut no tiene el formato correcto, no valida rut
+        return False
+    
+    try:
+        cuerpo, dv = rut.split('-') #intenta separar el cuerpo y el digito verificador
+    except ValueError: # si por alguna razon el string paso el regex sin que el guión existiera, esto lo detiene.
+        return False
+    
+    # Cálculo matematico del digito verificador
+    #Para validar el RUT, hay que multiplicar los números de derecha a izquierda por una serie que es 2, 3, 4, 5, 6, 7. Luego hay que sumar los multiplos y calcular el resto cuando se divide la suma en 11. Dependiendo del valor de 11 - resto, se puede saber que digito verificador se espera de ese rut en particular.
+
+    reverso = map(int, reversed(cuerpo)) # reversed devuelve un iterador reverso, map(int) convierte los numeros del iterador de str a int
+    factores = cycle(range(2,8)) # crea lista entre el 2 y el 7
+
+    suma = sum(d * f for d,f in zip(reverso,factores)) #zip es un iterador de tuplas, toma el primer digito del rut y el primer digito de la lista de factores y los junta. luego, d*f los multiplica y finalmente todas las parejas de multiplicación se suman.
+    
+    resto = suma % 11 # se obtiene el resto con modulo
+    dvCalculado = 11 - resto # se calcula el digito verificador
+
+    if dvCalculado == 11: # si el digito verificador calculado es 11, el digito verificador esperado es 0
+        dvEsperado = 0
+    elif dvCalculado == 10: # en cambio si es 10, el digito verificador esperado es la letra K
+        dvEsperado = 'K'
+    else: # si no es 'K' ni 0, es el número calculado en la resta de 11 - resto.
+        dvEsperado = str(dvCalculado)
+    
+    return dvEsperado == dv # si el digito verificador esperado es igual al digito verificador entregado por el usuario, retorna True. en caso contrario, False
+
