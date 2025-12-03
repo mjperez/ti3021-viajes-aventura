@@ -43,8 +43,10 @@ class Conexion():
                     user=self.user,
                     password=self.passwd, 
                     host=self.host, 
-                    db=self.name,
-                    port=self.port
+                    database=self.name,
+                    port=self.port,
+                    charset='utf8mb4',
+                    cursorclass=pymysql.cursors.DictCursor
                     )
             except pymysql.MySQLError as e:
                 print(f"Error en la conexión a la base de datos: {e}")
@@ -93,19 +95,19 @@ def _ejecutar_query(query: str, params=None, fetch_mode='all'):
     finally:
         cursor.close()    
 
-def ejecutar_consulta(query: str, params=None):
-    return _ejecutar_query(query, params, fetch_mode='all')
+def ejecutar_consulta(query: str, params=None) -> list[dict] | None:
+    return _ejecutar_query(query, params, fetch_mode='all') # type: ignore
 
 
-def ejecutar_consulta_uno(query: str, params=None):
-    return _ejecutar_query(query, params, fetch_mode='one')
+def ejecutar_consulta_uno(query: str, params=None) -> dict | None:
+    return _ejecutar_query(query, params, fetch_mode='one') # type: ignore
 
 
-def ejecutar_insercion(query: str, params=None):
+def ejecutar_insercion(query: str, params=None) -> int:
     """Ejecuta INSERT y retorna el ID insertado"""
-    return _ejecutar_query(query, params, fetch_mode='none')
+    return _ejecutar_query(query, params, fetch_mode='none') # type: ignore
 
 
-def ejecutar_actualizacion(query: str, params=None):
+def ejecutar_actualizacion(query: str, params=None) -> int:
     """Ejecuta UPDATE/DELETE y retorna filas afectadas"""
-    return _ejecutar_query(query, params, fetch_mode='none')
+    return _ejecutar_query(query, params, fetch_mode='none') # type: ignore

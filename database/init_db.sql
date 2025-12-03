@@ -2,7 +2,7 @@
 -- Limpieza de Base de Datos
 -- ============================================
 DROP DATABASE IF EXISTS viajes_aventura;
-DROP USER IF EXISTS 'admin_aventura'@'localhost'
+DROP USER IF EXISTS 'admin_aventura'@'localhost';
 
 -- ============================================
 -- Script de creación de Base de Datos
@@ -10,13 +10,13 @@ DROP USER IF EXISTS 'admin_aventura'@'localhost'
 -- ============================================
 
 -- Crear la base de datos
-CREATE DATABASE IF NOT EXISTS viajes_aventura CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE viajes_aventura;
 
 -- ============================================
 -- Creación de usuario administrador con sus 
 -- privilegios corresopndientes.
 -- ============================================
-CREATE USER IF NOT EXISTS viajes_aventura'admin_aventura'@'localhost' IDENTIFIED BY 'Aventura123';
+CREATE USER IF NOT EXISTS 'admin_aventura'@'localhost' IDENTIFIED BY 'Aventura123';
 GRANT ALL PRIVILEGES ON viajes_aventura.* TO 'admin_aventura'@'localhost';
 FLUSH PRIVILEGES;
 
@@ -261,8 +261,9 @@ GROUP BY r.id, r.fecha_reserva, r.estado, r.monto_total, r.numero_personas,
 -- Triggers para lógica de negocio
 -- ============================================
 
+DELIMITER $$
+
 -- Trigger: Reducir cupos al crear reserva confirmada
-DELIMITER //
 CREATE TRIGGER trg_reducir_cupos_reserva
 AFTER INSERT ON Reservas
 FOR EACH ROW
@@ -272,7 +273,7 @@ BEGIN
         SET cupos_disponibles = cupos_disponibles - 1
         WHERE id = NEW.paquete_id AND cupos_disponibles > 0;
     END IF;
-END//
+END$$
 
 -- Trigger: Restaurar cupos al cancelar reserva
 CREATE TRIGGER trg_restaurar_cupos_cancelacion
@@ -284,7 +285,7 @@ BEGIN
         SET cupos_disponibles = cupos_disponibles + 1
         WHERE id = NEW.paquete_id;
     END IF;
-END//
+END$$
 
 -- Trigger: Validar cupos antes de confirmar reserva
 CREATE TRIGGER trg_validar_cupos_antes_confirmar
@@ -303,7 +304,7 @@ BEGIN
             SET MESSAGE_TEXT = 'No hay cupos disponibles para este paquete';
         END IF;
     END IF;
-END//
+END$$
 
 DELIMITER ;
 

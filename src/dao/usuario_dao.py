@@ -1,16 +1,109 @@
-"""DAO para Usuario - Data Access Object
+# TODO:
+#listar_por_rol(rol): Retorna usuarios filtrados por rol
+#verificar_email_existe(email): Valida si el email ya está registrado
 
-Maneja todas las operaciones de base de datos relacionadas con Usuarios.
-Implementa operaciones CRUD.
+from src.config.db_connection import (
+    ejecutar_actualizacion,
+    ejecutar_consulta,
+    ejecutar_consulta_uno,
+    ejecutar_insercion,
+)
+from src.dto.usuario_dto import UsuarioDTO
 
-Métodos esperados:
-    - crear(usuario_dto): Inserta un nuevo usuario
-    - obtener_por_id(id): Busca usuario por ID
-    - obtener_por_email(email): Busca usuario por email (para login)
-    - actualizar(id, usuario_dto): Actualiza datos del usuario
-    - eliminar(id): Elimina un usuario (soft delete recomendado)
-    - listar_todos(): Retorna lista de todos los usuarios
-    - listar_por_rol(rol): Retorna usuarios filtrados por rol
-    - verificar_email_existe(email): Valida si el email ya está registrado
-"""
 
+class UsuarioDAO:
+    #Maneja todas las operaciones de base de datos relacionadas con Usuarios.
+    def __init__(self):
+        pass
+    
+    def crear(self, usuario_dto: UsuarioDTO) -> int:
+        # INSERT y retornar lastrowid
+        sql = "INSERT INTO Usuarios (email,password_hash, nombre, rol, fecha_registro) VALUES (%s,%s,%s,%s,%s)"
+
+        params = (
+            usuario_dto.email,
+            usuario_dto.password_hash,usuario_dto.nombre,
+            usuario_dto.rol,
+            usuario_dto.fecha_registro
+            )
+
+        return ejecutar_insercion(sql,params)
+        
+        
+    
+    def obtener_por_id(self, id: int) -> UsuarioDTO | None:
+        # SELECT por ID
+        sql = "SELECT * FROM Usuarios WHERE id=%s"
+        params=(id,)
+
+        usuario = ejecutar_consulta_uno(sql, params)
+
+        if usuario:
+            return UsuarioDTO(
+                id=usuario['id'],
+                email=usuario['email'],
+                password_hash=usuario['password_hash'],
+                nombre=usuario['nombre'],
+                rol=usuario['rol'],
+                fecha_registro=usuario['fecha_registro']
+            )
+
+        return None
+    
+    def obtener_por_email(self, email: str) -> UsuarioDTO | None:
+        # SELECT por email (para login)
+        sql = "SELECT * FROM Usuarios WHERE email=%s"
+        params=(email,)
+
+        usuario = ejecutar_consulta_uno(sql, params)
+
+        if usuario:
+            return UsuarioDTO(
+                id=usuario['id'],
+                email=usuario['email'],
+                password_hash=usuario['password_hash'],
+                nombre=usuario['nombre'],
+                rol=usuario['rol'],
+                fecha_registro=usuario['fecha_registro']
+            )
+        return None
+    
+    def listar_todos(self) -> list[UsuarioDTO]:
+        # SELECT * y retornar lista de DTOs
+        sql = "SELECT * FROM Usuarios"
+        rows = ejecutar_consulta(sql)
+        usuarios = []
+        
+        if not rows:
+            return []
+        
+        for r in rows:
+            usuarios.append(
+                UsuarioDTO(
+                    id=r['id'],
+                    email=r['email'],
+                    password_hash=r['password_hash'],
+                    nombre=r['nombre'],
+                    rol=r['rol'],
+                    fecha_registro=r['fecha_registro']
+                )
+            )
+
+        return usuarios
+    
+    def actualizar(self, usuario_dto: UsuarioDTO) -> bool:
+        # UPDATE y retornar True si tuvo éxito
+        sql = "UPDATE Usuarios SET email = %s, password_hash = %s, nombre = %s, rol = %s, fecha_registro = %s WHERE id = %s"
+        params= (usuario_dto.email, usuario_dto.password_hash, usuario_dto.nombre, usuario_dto.rol, usuario_dto.fecha_registro, usuario_dto.id)
+
+        filas = ejecutar_actualizacion(sql,params)
+        return filas > 0
+
+    
+    def eliminar(self, id: int) -> bool:
+        # DELETE y retornar True si tuvo éxito
+        sql = "DELETE FROM Usuarios WHERE id = %s"
+        params = (id,)
+
+        filas = ejecutar_actualizacion(sql,params)
+        return filas > 0
