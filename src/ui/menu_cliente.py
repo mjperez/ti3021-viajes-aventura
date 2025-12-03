@@ -3,8 +3,7 @@
 Interfaz para funciones del cliente en el sistema.
 Accesible para usuarios con rol 'cliente'.'''
 
-from utils.utils import limpiar_pantalla, pausar, validar_opcion
-
+from src.utils import limpiar_pantalla, pausar, validar_opcion
 
 def mostrar_menu_cliente(usuario):
     cliente_id = 0

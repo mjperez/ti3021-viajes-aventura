@@ -22,4 +22,4 @@ Opciones del menú:
     6. Gestionar Usuarios
     7. Cerrar Sesión
 """
-from utils.utils import limpiar_pantalla, pausar, validar_opcion
+from src.utils import limpiar_pantalla, pausar, validar_opcion
