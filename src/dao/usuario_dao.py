@@ -1,7 +1,3 @@
-# TODO:
-#listar_por_rol(rol): Retorna usuarios filtrados por rol
-#verificar_email_existe(email): Valida si el email ya está registrado
-
 from src.config.db_connection import (
     ejecutar_actualizacion,
     ejecutar_consulta,
@@ -28,8 +24,6 @@ class UsuarioDAO:
             )
 
         return ejecutar_insercion(sql,params)
-        
-        
     
     def obtener_por_id(self, id: int) -> UsuarioDTO | None:
         # SELECT por ID
@@ -107,3 +101,35 @@ class UsuarioDAO:
 
         filas = ejecutar_actualizacion(sql,params)
         return filas > 0
+
+    def listar_por_rol(self, rol): 
+        sql = "SELECT * FROM Usuarios WHERE rol = %s"
+        params = (rol,)
+        usuarios = []
+        rows = ejecutar_consulta(sql,params)                
+        
+        if not rows:
+            return []
+        
+        for r in rows:
+            usuarios.append(UsuarioDTO(
+                id=r['id'],
+                email=r['email'],
+                password_hash=r['password_hash'],
+                nombre=r['nombre'],
+                rol=r['rol'],
+                fecha_registro=r['fecha_registro']
+            ))
+
+        return usuarios
+
+    def verificar_email_existe(self, email): 
+        #Valida si el email ya está registrado
+        sql = "SELECT * FROM Usuarios WHERE email = %s"
+        params = (email,)
+
+        usuario = ejecutar_consulta_uno(sql,params)
+
+        if not usuario:
+            return False
+        return True

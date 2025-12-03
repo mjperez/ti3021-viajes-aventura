@@ -1,12 +1,35 @@
-"""DAO para Actividad - Data Access Object
+from src.config.db_connection import (
+    ejecutar_actualizacion,
+    ejecutar_consulta,
+    ejecutar_consulta_uno,
+    ejecutar_insercion,
+)
+from src.dto.actividad_dto import ActividadDTO
 
-Maneja todas las operaciones de base de datos relacionadas con Actividades.
 
-Métodos esperados:
-    - crear(actividad_dto): Inserta una nueva actividad
-    - obtener_por_id(id): Busca actividad por ID
-    - actualizar(id, actividad_dto): Actualiza datos de la actividad
-    - eliminar(id): Elimina una actividad
-    - listar_todas(): Retorna lista de todas las actividades
-    - listar_por_destino(destino_id): Retorna actividades de un destino específico
-"""
+class ActividadDAO():
+    #Maneja todas las operaciones de base de datos relacionadas con Actividades.
+    
+    def crear(self, actividad_dto): 
+        #Inserta una nueva actividad
+        ...
+    
+    def obtener_por_id(self, id): 
+        #Busca actividad por ID
+        ...
+    
+    def actualizar(self, id, actividad_dto): 
+        #Actualiza datos de la actividad
+        ...
+    
+    def eliminar(self, id): 
+        #Elimina una actividad
+        ...
+    
+    def listar_todas(self): 
+        #Retorna lista de todas las actividades
+        ...
+    
+    def listar_por_destino(self, destino_id): 
+        #Retorna actividades de un destino específico
+        ...

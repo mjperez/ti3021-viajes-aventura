@@ -20,3 +20,5 @@ Requiere:
 """
 
 import bcrypt
+from dao.usuario_dao import UsuarioDAO
+import utils.validators

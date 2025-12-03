@@ -1,9 +1,8 @@
-"""Excepciones Personalizadas - Manejo de Errores
-
+"""
+Excepciones Personalizadas - Manejo de Errores
 Define excepciones personalizadas para el sistema.
 Facilita el manejo de errores específicos de la aplicación.
-
-Excepciones esperadas:"""
+"""
 
 class AutenticacionError(Exception):
     """Error en autenticación (login fallido, token inválido)"""
