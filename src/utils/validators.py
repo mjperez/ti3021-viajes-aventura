@@ -1,19 +1,5 @@
-"""Validadores - Utilidades de Validación
-
-Funciones para validar datos de entrada del usuario.
-Asegura la integridad de datos antes de procesarlos.
-
-Funciones esperadas:
-    - validar_email(email): Valida formato de email con regex
-    - validar_password(password): Valida requisitos de contraseña segura
-    - validar_numero_positivo(numero): Valida que sea número positivo
-    - validar_fecha(fecha_str): Valida formato de fecha
-    - validar_fecha_futura(fecha): Valida que la fecha sea futura
-    - validar_rango_fechas(fecha_inicio, fecha_fin): Valida rango válido
-    - validar_telefono(telefono): Valida formato de teléfono
-    - validar_enum(valor, opciones): Valida que el valor esté en lista permitida
-    - sanitizar_input(texto): Limpia entrada de caracteres peligrosos
-
+"""
+Funciones para validar datos de entrada del usuario. Asegura la integridad de datos antes de procesarlos.
 Criterios de validación:
     - Email: formato estándar (usuario@dominio.com)
     - Password: mínimo 8 caracteres, mayúscula, minúscula, número
@@ -21,6 +7,7 @@ Criterios de validación:
 """
 
 import re  # librería expresiones regulares
+from datetime import datetime
 from itertools import cycle  # crea una lista infinita que se repite.
 
 from src.utils import (
@@ -33,10 +20,6 @@ from src.utils import (
     METODOS_PAGO,
     MIN_MONTO,
     MIN_PERSONAS_RESERVA,
-    MSG_ERROR_EMAIL_INVALIDO,
-    MSG_ERROR_PASSWORD_DEBIL,
-    MSG_ERROR_PERSONAS_INVALIDO,
-    NOMBRE_MAX_LENGTH,
     PASSWORD_MIN_LENGTH,
     REGEX_EMAIL,
     REGEX_PASSWORD,
@@ -84,3 +67,81 @@ def validar_rut(rut: str) -> bool:
     
     return dvEsperado == dv # si el digito verificador esperado es igual al digito verificador entregado por el usuario, retorna True. en caso contrario, False
 
+def validar_email(email: str) -> bool:
+    #Valida formato de email con regex
+    if not email or len(email) > EMAIL_MAX_LENGTH:
+        return False
+    return re.match(REGEX_EMAIL, email) is not None
+
+def validar_password(password: str) -> bool:
+    #Valida requisitos de contraseña segura
+    if not password or len(password) < PASSWORD_MIN_LENGTH: # si password es vacio o de menor largo que el requerido, retorna falso
+        return False
+    return re.match(REGEX_PASSWORD,password) is not None # match devuelve none si no hay match en la comparacion.
+
+def validar_numero_positivo(numero: float) -> bool:
+    #Valida que sea número positivo
+    try:
+        return float(numero) > 0
+    except (ValueError,TypeError):
+        return False
+
+def validar_monto(monto:float) -> bool:
+    try:
+        return float(monto) >= MIN_MONTO
+    except (ValueError,TypeError):
+        return False
+    
+def validar_fecha(fecha_str:str, formato:str = "") -> bool:
+    #Valida formato de fecha
+    if not fecha_str:
+        return False
+    formatos = [formato] if formato else [FORMATO_FECHA_ISO,FORMATO_FECHA_CHILENO]
+
+    for f in formatos:
+        try:
+            datetime.strptime(fecha_str,f) # intenta validar formato ISO y luego chileno
+            return True
+        except ValueError: # si hay valueerror, sigue el ciclo for
+            continue
+    return False # si llega hasta aqui no tiene el formato valido.
+
+def validar_fecha_futura(fecha:datetime)-> bool:
+    #Valida que la fecha sea futura
+    return fecha > datetime.now()
+
+def validar_rango_fechas(fecha_inicio:datetime,fecha_fin:datetime)-> bool:
+    return fecha_fin > fecha_inicio
+
+def validar_telefono(telefono:str) -> bool:
+    if not telefono:
+        return False
+    return re.match(REGEX_TELEFONO_CHILE,telefono) is not None
+
+def validar_enum(valor:str,opciones:list) -> bool:
+    #valida que valor este en la lista de opciones
+    if not valor or not opciones:
+        return False
+    return valor.upper() in [str(opc).upper() for opc in opciones]
+
+def validar_estado_pago(estado:str)->bool:
+    return validar_enum(estado,ESTADOS_PAGO)
+
+def validar_metodo_pago(metodo:str)->bool:
+    return validar_enum(metodo,METODOS_PAGO)
+
+def validar_rol_usuario(rol:str)->bool:
+    return validar_enum(rol,ROLES_USUARIO)
+
+def validar_numero_personas(numero:int)-> bool:
+    try:
+        n = int(numero)
+        return MIN_PERSONAS_RESERVA <= n <= MAX_PERSONAS_RESERVA
+    except (ValueError,TypeError):
+        return False
+
+def sanitizar_input(texto:str) -> str:
+    #Limpia input de caracteres peligrosos para evitar SQL injection
+    if not texto:
+        return ""
+    return texto.strip().replace("'","").replace('"',"").replace(';','').replace('--','')

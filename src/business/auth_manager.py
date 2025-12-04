@@ -27,14 +27,17 @@ import bcrypt
 from src.dao.usuario_dao import UsuarioDAO
 from src.dto.usuario_dto import UsuarioDTO
 from src.utils import (
+    MSG_ERROR_CREDENCIALES_INVALIDAS,
+    MSG_ERROR_EMAIL_DUPLICADO,
     MSG_ERROR_EMAIL_INVALIDO,
+    MSG_ERROR_PASSWORD_ACTUAL_INCORRECTA,
     MSG_ERROR_PASSWORD_DEBIL,
-    REGEX_EMAIL,
-    REGEX_PASSWORD,
+    MSG_ERROR_USUARIO_NO_ENCONTRADO,
     ROL_USUARIO_DEFAULT,
     AutenticacionError,
     ValidacionError,
 )
+from src.utils.validators import validar_email, validar_password
 
 
 def hashear_password(password: str) -> str:
@@ -44,22 +47,16 @@ def hashear_password(password: str) -> str:
 def verificar_password(password:str,hash_pw:str) -> bool:
     return bcrypt.checkpw(password.encode('utf-8'),hash_pw.encode('utf-8'))
 
-def validar_email(email:str) -> bool:
-    return re.match(REGEX_EMAIL,email) is not None
-
-def validar_pw_segura(password:str) -> bool:
-    return re.match(REGEX_PASSWORD,password) is not None
-
 def registrar_usuario(email,password,nombre,rol=None) -> UsuarioDTO:
     if not validar_email(email):
         raise ValidacionError(MSG_ERROR_EMAIL_INVALIDO)
     
-    if not validar_pw_segura(password):
+    if not validar_password(password):
         raise ValidacionError(MSG_ERROR_PASSWORD_DEBIL)
     dao = UsuarioDAO()
     usuarioExistente = dao.obtener_por_email(email)
     if usuarioExistente:
-        raise ValidacionError("El email ya está registrado")
+        raise ValidacionError(MSG_ERROR_EMAIL_DUPLICADO)
     
     hashpw = hashear_password(password)
     usuarioNuevo = UsuarioDTO(None,email,hashpw,nombre,rol or ROL_USUARIO_DEFAULT,datetime.now())
@@ -72,26 +69,26 @@ def login(email:str,passw:str) -> UsuarioDTO|None:
     try:
         usuario = dao.obtener_por_email(email)
     except Exception:
-        raise AutenticacionError("Credenciales inválidas")
+        raise AutenticacionError(MSG_ERROR_CREDENCIALES_INVALIDAS)
     
     if usuario and verificar_password(passw,usuario.password_hash):    
         return usuario
-    raise AutenticacionError("Credenciales inválidas")
+    raise AutenticacionError(MSG_ERROR_CREDENCIALES_INVALIDAS)
 
 def cambiar_password(usuarioID: int, passwordActual: str, passwordNueva: str) -> bool:
     dao = UsuarioDAO()
     try:
         usuario = dao.obtener_por_id(usuarioID)
     except Exception:
-        raise AutenticacionError("Usuario no Encontrado")
+        raise AutenticacionError(MSG_ERROR_USUARIO_NO_ENCONTRADO)
     
     if not usuario:
-        raise ValidacionError("Usuario no encontrado")
+        raise ValidacionError(MSG_ERROR_USUARIO_NO_ENCONTRADO)
 
     if not verificar_password(passwordActual, usuario.password_hash):
-        raise AutenticacionError("Contraseña actual incorrecta")
+        raise AutenticacionError(MSG_ERROR_PASSWORD_ACTUAL_INCORRECTA)
     
-    if not validar_pw_segura(passwordNueva):
+    if not validar_password(passwordNueva):
         raise ValidacionError(MSG_ERROR_PASSWORD_DEBIL)
 
     usuario.password_hash = hashear_password(passwordNueva)

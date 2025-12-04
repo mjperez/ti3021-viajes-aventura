@@ -10,33 +10,119 @@ from src.dto.reserva_dto import ReservaDTO
 class ReservaDAO():
     #Maneja todas las operaciones de base de datos relacionadas con Reservas.
     
-    def crear(self, reserva_dto): 
+    def crear(self, reserva_dto: ReservaDTO) -> int: 
         #Inserta una nueva reserva en estado 'pendiente'
-        ...
-    def obtener_por_id(self, id): 
+        sql = "INSERT INTO Reservas (fecha_reserva, estado, monto_total, numero_personas, usuario_id, paquete_id) VALUES (%s,%s,%s,%s,%s,%s)"
+        params = (reserva_dto.fecha_reserva, reserva_dto.estado, reserva_dto.monto_total, reserva_dto.numero_personas, reserva_dto.usuario_id, reserva_dto.paquete_id)
+        return ejecutar_insercion(sql, params)
+    
+    def obtener_por_id(self, id: int) -> ReservaDTO | None: 
         #Busca reserva por ID con JOINs a cliente y paquete
-        ...
-    def actualizar(self, id, reserva_dto): 
+        sql = "SELECT * FROM Reservas WHERE id=%s"
+        params = (id,)
+        reserva = ejecutar_consulta_uno(sql, params)
+        
+        if not reserva:
+            return None
+        
+        return ReservaDTO(
+            id=reserva['id'],
+            fecha_reserva=reserva['fecha_reserva'],
+            estado=reserva['estado'],
+            monto_total=reserva['monto_total'],
+            numero_personas=reserva['numero_personas'],
+            usuario_id=reserva['usuario_id'],
+            paquete_id=reserva['paquete_id']
+        )
+    
+    def actualizar(self, id: int, reserva_dto: ReservaDTO) -> bool: 
         #Actualiza datos de la reserva
-        ...
-    def cambiar_estado(self, id, nuevo_estado): 
+        sql = "UPDATE Reservas SET fecha_reserva=%s, estado=%s, monto_total=%s, numero_personas=%s, usuario_id=%s, paquete_id=%s WHERE id=%s"
+        params = (reserva_dto.fecha_reserva, reserva_dto.estado, reserva_dto.monto_total, reserva_dto.numero_personas, reserva_dto.usuario_id, reserva_dto.paquete_id, id)
+        filas = ejecutar_actualizacion(sql, params)
+        return filas > 0
+    
+    def cambiar_estado(self, id: int, nuevo_estado: str) -> bool: 
         #Cambia el estado de la reserva
-        ...
-    def listar_por_cliente(self, cliente_id): 
+        sql = "UPDATE Reservas SET estado=%s WHERE id=%s"
+        params = (nuevo_estado, id)
+        filas = ejecutar_actualizacion(sql, params)
+        return filas > 0
+    
+    def listar_por_cliente(self, cliente_id: int) -> list[ReservaDTO]: 
         #Retorna reservas de un cliente
-        ...
-    def listar_por_paquete(self, paquete_id): 
+        sql = "SELECT * FROM Reservas WHERE usuario_id=%s"
+        params = (cliente_id,)
+        reservas = ejecutar_consulta(sql, params)
+        
+        if not reservas:
+            return []
+        
+        return [
+            ReservaDTO(
+                id=r['id'],
+                fecha_reserva=r['fecha_reserva'],
+                estado=r['estado'],
+                monto_total=r['monto_total'],
+                numero_personas=r['numero_personas'],
+                usuario_id=r['usuario_id'],
+                paquete_id=r['paquete_id']
+            )
+            for r in reservas
+        ]
+    
+    def listar_por_paquete(self, paquete_id: int) -> list[ReservaDTO]: 
         #Retorna reservas de un paquete
-        ...
-    def listar_por_estado(self, estado): 
+        sql = "SELECT * FROM Reservas WHERE paquete_id=%s"
+        params = (paquete_id,)
+        reservas = ejecutar_consulta(sql, params)
+        
+        if not reservas:
+            return []
+        
+        return [
+            ReservaDTO(
+                id=r['id'],
+                fecha_reserva=r['fecha_reserva'],
+                estado=r['estado'],
+                monto_total=r['monto_total'],
+                numero_personas=r['numero_personas'],
+                usuario_id=r['usuario_id'],
+                paquete_id=r['paquete_id']
+            )
+            for r in reservas
+        ]
+    
+    def listar_por_estado(self, estado: str) -> list[ReservaDTO]: 
         #Retorna reservas filtradas por estado
-        ...
-    def confirmar(self, id): 
+        sql = "SELECT * FROM Reservas WHERE estado=%s"
+        params = (estado,)
+        reservas = ejecutar_consulta(sql, params)
+        
+        if not reservas:
+            return []
+        
+        return [
+            ReservaDTO(
+                id=r['id'],
+                fecha_reserva=r['fecha_reserva'],
+                estado=r['estado'],
+                monto_total=r['monto_total'],
+                numero_personas=r['numero_personas'],
+                usuario_id=r['usuario_id'],
+                paquete_id=r['paquete_id']
+            )
+            for r in reservas
+        ]
+    
+    def confirmar(self, id: int) -> bool: 
         #Cambia estado a 'confirmada'
-        ...
-    def marcar_como_pagada(self, id): 
+        return self.cambiar_estado(id, 'CONFIRMADA')
+    
+    def marcar_como_pagada(self, id: int) -> bool: 
         #Cambia estado a 'pagada'
-        ...
-    def cancelar(self, id): 
+        return self.cambiar_estado(id, 'PAGADA')
+    
+    def cancelar(self, id: int) -> bool: 
         #Cambia estado a 'cancelada' y restaura cupos
-        ...
+        return self.cambiar_estado(id, 'CANCELADA')

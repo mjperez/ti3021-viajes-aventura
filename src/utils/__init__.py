@@ -28,14 +28,22 @@ from .constants import (
     # Límites de negocio
     MIN_PERSONAS_RESERVA,
     MONEDA_OFICIAL,
+    MSG_ERROR_CREDENCIALES_INVALIDAS,
     # Mensajes de error
     MSG_ERROR_CUPOS,
+    MSG_ERROR_EMAIL_DUPLICADO,
     MSG_ERROR_EMAIL_INVALIDO,
     MSG_ERROR_ESTADO_INVALIDO,
+    MSG_ERROR_FECHA_FUTURA,
     MSG_ERROR_FECHA_INVALIDA,
     MSG_ERROR_MONTO_NEGATIVO,
+    MSG_ERROR_NOMBRE_INVALIDO,
+    MSG_ERROR_PASSWORD_ACTUAL_INCORRECTA,
     MSG_ERROR_PASSWORD_DEBIL,
     MSG_ERROR_PERSONAS_INVALIDO,
+    MSG_ERROR_RUT_INVALIDO,
+    MSG_ERROR_TELEFONO_INVALIDO,
+    MSG_ERROR_USUARIO_NO_ENCONTRADO,
     NOMBRE_MAX_LENGTH,
     PASSWORD_MIN_LENGTH,
     POLITICAS_CANCELACION,
@@ -63,7 +71,7 @@ from .exceptions import (
     ValidacionError,
 )
 from .utils import limpiar_pantalla, pausar, validar_opcion
-from .validators import validar_estado_reserva
+from .validators import validar_email, validar_estado_reserva, validar_password
 
 __all__=[
     "AutenticacionError",

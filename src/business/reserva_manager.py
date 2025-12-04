@@ -1,39 +1,42 @@
-"""Gestor de Reservas - Business Logic
+"""Gestor de Reservas - Business Logic"""
 
-Maneja toda la lógica de negocio relacionada con reservas.
-Coordina operaciones entre múltiples DAOs.
-
-Funciones esperadas:
-    - crear_reserva(cliente_id, paquete_id, numero_personas): Crea reserva y reduce cupos
-    - confirmar_reserva(reserva_id): Confirma una reserva pendiente
-    - cancelar_reserva(reserva_id): Cancela reserva y aplica política de cancelación
-    - calcular_monto_total(paquete_id, numero_personas): Calcula monto total
-    - verificar_disponibilidad(paquete_id, numero_personas): Valida cupos disponibles
-    - obtener_reservas_cliente(cliente_id): Lista reservas del cliente
-    - aplicar_politica_cancelacion(reserva_id): Calcula reembolso según política
-    - validar_fechas_reserva(paquete_id): Valida que el paquete esté en fechas válidas
-
-Requiere:
-    - reserva_dao, paquete_dao
-    - Manejo de transacciones para integridad de datos
-"""
-
-from src.utils.exceptions import ValidacionError
-from src.utils import ESTADOS_RESERVA, validar_estado_reserva
+from src.dao.paquete_dao import PaqueteDAO
+from src.dao.reserva_dao import ReservaDAO
+from src.dto.paquete_dto import PaqueteDTO
+from src.dto.reserva_dto import ReservaDTO
+from src.utils.constants import ESTADOS_RESERVA
 
 
-def cambiar_estado_reserva(reserva_id: int, nuevo_estado: str):
-    """Cambia el estado de una reserva"""
-    
-    # Validación
-    if not validar_estado_reserva(nuevo_estado):
-        raise ValidacionError(
-            f"Estado '{nuevo_estado}' inválido. "
-            f"Estados válidos: {', '.join(ESTADOS_RESERVA)}"
-        )
-    
-    # Lógica de negocio
-    # ... obtener reserva actual
-    # ... validar transición de estados
-    
-    # Actualizar en BD
+def crear_reserva(usuario_id: int, paquete_id: int, num_personas: int, fecha_viaje: str) -> int:
+    """Crea una reserva y reduce cupos del paquete."""
+    ...
+
+
+def confirmar_reserva(reserva_id: int) -> bool:
+    """Confirma una reserva pendiente cambiando su estado."""
+    ...
+
+
+def cancelar_reserva(reserva_id: int) -> bool:
+    """Cancela una reserva y devuelve los cupos al paquete."""
+    ...
+
+
+def obtener_reservas_cliente(usuario_id: int) -> list[ReservaDTO]:
+    """Retorna todas las reservas de un cliente."""
+    ...
+
+
+def calcular_precio_total(paquete_id: int, num_personas: int) -> float:
+    """Calcula el precio total de una reserva (precio_paquete * num_personas)."""
+    ...
+
+
+def verificar_disponibilidad(paquete_id: int, num_personas: int) -> bool:
+    """Verifica si hay cupos disponibles en el paquete para el número de personas."""
+    ...
+
+
+def obtener_detalle_reserva(reserva_id: int) -> ReservaDTO | None:
+    """Obtiene los detalles completos de una reserva."""
+    ...        

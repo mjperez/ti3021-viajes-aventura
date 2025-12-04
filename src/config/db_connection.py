@@ -80,18 +80,60 @@ def _ejecutar_query(query: str, params=None, fetch_mode='all'):
         cursor.close()    
 
 def ejecutar_consulta(query: str, params=None) -> list[dict] | None:
+    """
+    Ejecuta SELECT que retorna MÚLTIPLES filas.
+    
+    Args:
+        query: Consulta SQL con placeholders %s
+        params: Tupla de parámetros para el query
+    
+    Returns:
+        Lista de diccionarios (cada dict es una fila) o lista vacía si no hay resultados.
+        Ejemplo: [{'id': 1, 'nombre': 'París'}, {'id': 2, 'nombre': 'Roma'}]
+    """
     return _ejecutar_query(query, params, fetch_mode='all') # type: ignore
 
 
 def ejecutar_consulta_uno(query: str, params=None) -> dict | None:
+    """
+    Ejecuta SELECT que retorna UNA SOLA fila.
+    
+    Args:
+        query: Consulta SQL con placeholders %s
+        params: Tupla de parámetros para el query
+    
+    Returns:
+        Diccionario con los campos de la fila o None si no existe.
+        Ejemplo: {'id': 1, 'nombre': 'París', 'costo_base': 1200.00}
+    """
     return _ejecutar_query(query, params, fetch_mode='one') # type: ignore
 
 
 def ejecutar_insercion(query: str, params=None) -> int:
-    """Ejecuta INSERT y retorna el ID insertado"""
+    """
+    Ejecuta INSERT en la base de datos.
+    
+    Args:
+        query: Consulta INSERT con placeholders %s
+        params: Tupla de valores para insertar
+    
+    Returns:
+        ID autogenerado (lastrowid) del registro insertado.
+        Ejemplo: 5 (el nuevo ID del destino insertado)
+    """
     return _ejecutar_query(query, params, fetch_mode='none') # type: ignore
 
 
 def ejecutar_actualizacion(query: str, params=None) -> int:
-    """Ejecuta UPDATE/DELETE y retorna filas afectadas"""
+    """
+    Ejecuta UPDATE o DELETE en la base de datos.
+    
+    Args:
+        query: Consulta UPDATE/DELETE con placeholders %s
+        params: Tupla de valores para la operación
+    
+    Returns:
+        Número de filas afectadas (rowcount).
+        Ejemplo: 1 si actualizó/eliminó 1 fila, 0 si no encontró nada
+    """
     return _ejecutar_query(query, params, fetch_mode='none') # type: ignore

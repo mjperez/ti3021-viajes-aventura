@@ -103,6 +103,14 @@ MSG_ERROR_EMAIL_INVALIDO = 'El formato del email no es válido'
 MSG_ERROR_PASSWORD_DEBIL = 'La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número'
 MSG_ERROR_PERSONAS_INVALIDO = 'El número de personas debe estar entre 1 y 50'
 MSG_ERROR_ESTADO_INVALIDO = 'El estado proporcionado no es válido'
+MSG_ERROR_EMAIL_DUPLICADO = 'El email ya está registrado'
+MSG_ERROR_USUARIO_NO_ENCONTRADO = 'Usuario no encontrado'
+MSG_ERROR_CREDENCIALES_INVALIDAS = 'Credenciales inválidas'
+MSG_ERROR_PASSWORD_ACTUAL_INCORRECTA = 'Contraseña actual incorrecta'
+MSG_ERROR_FECHA_FUTURA = 'La fecha debe ser futura'
+MSG_ERROR_NOMBRE_INVALIDO = 'El nombre no cumple con los requisitos'
+MSG_ERROR_TELEFONO_INVALIDO = 'El formato del teléfono no es válido'
+MSG_ERROR_RUT_INVALIDO = 'El RUT ingresado no es válido'
 
 # ============================================
 # CONSTANTES FINANCIERAS

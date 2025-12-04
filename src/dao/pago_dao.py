@@ -5,35 +5,116 @@ from src.config.db_connection import (
     ejecutar_insercion,
 )
 from src.dto.pago_dto import PagoDTO
+from src.utils.constants import ESTADOS_PAGO
 
 
 class PagoDAO():
-    #Maneja todas las operaciones de base de datos relacionadas con Pagos.
+    """Maneja todas las operaciones de base de datos relacionadas con Pagos."""
     
-    def crear(self, pago_dto): 
-        #Inserta un nuevo pago
-        ...
+    def crear(self, pago_dto: PagoDTO) -> int:
+        """Inserta un nuevo pago."""
+        sql = """
+            INSERT INTO Pago (reserva_id, monto, metodo_pago, estado, fecha_pago)
+            VALUES (%s, %s, %s, %s, %s)
+        """
+        params = (
+            pago_dto.reserva_id,
+            pago_dto.monto,
+            pago_dto.metodo_pago,
+            pago_dto.estado,
+            pago_dto.fecha_pago
+        )
+        return ejecutar_insercion(sql, params)  # type: ignore
     
-    def obtener_por_id(self, id): 
-        #Busca pago por ID
-        ...
+    def obtener_por_id(self, id: int) -> PagoDTO | None:
+        """Busca pago por ID."""
+        sql = "SELECT * FROM Pago WHERE id = %s"
+        result = ejecutar_consulta_uno(sql, (id,))  # type: ignore
+        
+        if not result:
+            return None
+        
+        return PagoDTO(
+            id=result['id'],
+            reserva_id=result['reserva_id'],
+            monto=result['monto'],
+            metodo_pago=result['metodo_pago'],
+            estado=result['estado'],
+            fecha_pago=result['fecha_pago']
+        )
     
-    def obtener_por_reserva(self, reserva_id): 
-        #Retorna pagos de una reserva
-        ...
+    def obtener_por_reserva(self, reserva_id: int) -> list[PagoDTO]:
+        """Retorna pagos de una reserva."""
+        sql = "SELECT * FROM Pago WHERE reserva_id = %s ORDER BY fecha_pago DESC"
+        results = ejecutar_consulta(sql, (reserva_id,))  # type: ignore
+        
+        if not results:
+            return []
+        
+        return [
+            PagoDTO(
+                id=row['id'],
+                reserva_id=row['reserva_id'],
+                monto=row['monto'],
+                metodo_pago=row['metodo_pago'],
+                estado=row['estado'],
+                fecha_pago=row['fecha_pago']
+            )
+            for row in results
+        ]
     
-    def actualizar_estado(self, id, nuevo_estado): 
-        #Cambia el estado del pago
-        ...
+    def actualizar_estado(self, id: int, nuevo_estado: str) -> bool:
+        """Cambia el estado del pago."""
+        sql = "UPDATE Pago SET estado = %s WHERE id = %s"
+        filas = ejecutar_actualizacion(sql, (nuevo_estado, id))  # type: ignore
+        return filas > 0
     
-    def registrar_pago_completado(self, reserva_id, monto, metodo): 
-        #Procesa un pago exitoso
-        ...
+    def registrar_pago_completado(self, reserva_id: int, monto: float, metodo: str) -> int:
+        """Procesa un pago exitoso."""
+        pago = PagoDTO(
+            reserva_id=reserva_id,
+            monto=monto,
+            metodo_pago=metodo,
+            estado=ESTADOS_PAGO[1],  # "Completado"
+            fecha_pago=None  # Se establece por DEFAULT en BD
+        )
+        return self.crear(pago)
     
-    def listar_por_fecha(self, fecha_inicio, fecha_fin): 
-        #Retorna pagos en rango de fechas
-        ...
+    def listar_por_fecha(self, fecha_inicio: str, fecha_fin: str) -> list[PagoDTO]:
+        """Retorna pagos en rango de fechas."""
+        sql = """
+            SELECT * FROM Pago 
+            WHERE fecha_pago BETWEEN %s AND %s
+            ORDER BY fecha_pago DESC
+        """
+        results = ejecutar_consulta(sql, (fecha_inicio, fecha_fin))  # type: ignore
+        
+        if not results:
+            return []
+        
+        return [
+            PagoDTO(
+                id=row['id'],
+                reserva_id=row['reserva_id'],
+                monto=row['monto'],
+                metodo_pago=row['metodo_pago'],
+                estado=row['estado'],
+                fecha_pago=row['fecha_pago']
+            )
+            for row in results
+        ]
     
-    def obtener_total_por_periodo(self, fecha_inicio, fecha_fin): 
-        #Suma montos de pagos completados
-        ...
+    def obtener_total_por_periodo(self, fecha_inicio: str, fecha_fin: str) -> float:
+        """Suma montos de pagos completados."""
+        sql = """
+            SELECT SUM(monto) as total 
+            FROM Pago 
+            WHERE estado = %s 
+            AND fecha_pago BETWEEN %s AND %s
+        """
+        result = ejecutar_consulta_uno(sql, (ESTADOS_PAGO[1], fecha_inicio, fecha_fin))  # type: ignore
+        
+        if not result or result['total'] is None:
+            return 0.0
+        
+        return float(result['total'])
