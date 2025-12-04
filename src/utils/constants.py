@@ -111,6 +111,7 @@ MSG_ERROR_FECHA_FUTURA = 'La fecha debe ser futura'
 MSG_ERROR_NOMBRE_INVALIDO = 'El nombre no cumple con los requisitos'
 MSG_ERROR_TELEFONO_INVALIDO = 'El formato del teléfono no es válido'
 MSG_ERROR_RUT_INVALIDO = 'El RUT ingresado no es válido'
+MSG_ERROR_OPCION_INVALIDA = 'La opción ingresada no es válida'
 
 # ============================================
 # CONSTANTES FINANCIERAS

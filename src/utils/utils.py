@@ -1,6 +1,6 @@
 import os
 
-def validar_opcion(opcion, min, max) -> bool:
+def validar_opcion(opcion:int, min:int, max:int) -> bool:
     #Valida entrada del usuario
     if not isinstance(opcion,int) and not isinstance(min,int) and not isinstance(max,int):
         print("La opción y los minimos y máximos deben ser numeros.")

@@ -3,35 +3,43 @@
 Interfaz para funciones del cliente en el sistema.
 Accesible para usuarios con rol 'cliente'.'''
 
-from src.utils import limpiar_pantalla, pausar, validar_opcion
+from src.dto.usuario_dto import UsuarioDTO
+from src.utils import (
+    MSG_ERROR_OPCION_INVALIDA,
+    limpiar_pantalla,
+    pausar,
+    validar_opcion,
+)
 
-def mostrar_menu_cliente(usuario):
-    cliente_id = 0
-    reserva_id = 0
-    print("--- Menú Cliente---\n" \
-    "\t1. Ver Paquetes Disponibles\n" \
-    "\t2. Mis Reservas\n" \
-    "\t. Realizar Pago\n" \
-    "\t4. Historial de Pagos\n" \
-    "\t5. Mi Perfil\n" \
-    "\t6. Cerrar Sesión\n")
-    opcion = input("Elija su opción: ")
-    opcion_int = int(opcion)
-    if opcion_int == 1:
-        ver_paquetes_disponibles()
-        paquete_id = input("Elija que paquete desea revisar: ")
-        paquete_id_int = int(paquete_id)
-        ver_detalle_paquete(paquete_id_int)
-    elif opcion_int == 2:
-        ver_mis_reservas(cliente_id)
-    elif opcion_int == 3:
-        realizar_pago(reserva_id)
-    elif opcion_int == 4:
-        ver_mis_pagos(cliente_id)
-    elif opcion_int == 5:
-        ver_mi_perfil(cliente_id)
-    elif opcion_int == 6:
-        ...
+
+def mostrar_menu_cliente(usuario: UsuarioDTO):
+    """Muestra el menú principal de cliente."""
+    while True:
+        limpiar_pantalla()
+        print(f"=== VIAJES AVENTURA - CLIENTE: {usuario.nombre} ===")
+        print("1. Ver Paquetes Disponibles")
+        print("2. Mis Reservas")
+        print("3. Realizar Pago")
+        print("4. Historial de Pagos")
+        print("5. Mi Perfil")
+        print("6. Cerrar Sesión")
+        opcion = input("Elija su opción: ")
+        if not validar_opcion(int(opcion), 1, 6):
+            print(MSG_ERROR_OPCION_INVALIDA)
+            pausar()
+            continue
+        if int(opcion) == 1:
+            ver_paquetes_disponibles()
+        elif int(opcion) == 2:
+            ver_mis_reservas(usuario.id)  # type: ignore
+        elif int(opcion) == 3:
+            realizar_pago(usuario.id)  # type: ignore
+        elif int(opcion) == 4:
+            ver_mis_pagos(usuario.id)  # type: ignore
+        elif int(opcion) == 5:
+            ver_mi_perfil(usuario.id)  # type: ignore
+        elif int(opcion) == 6:
+            break
 
     
 def ver_paquetes_disponibles(): 
