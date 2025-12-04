@@ -1,6 +1,6 @@
 class DestinoDTO:
     # Clase que representa los datos de un destino turístico.
-    def __init__(self, id:int, nombre:str, descripcion:str, costo_base:float):
+    def __init__(self, id:int | None, nombre:str, descripcion:str, costo_base:float):
         self.id=id
         self.nombre=nombre
         self.descripcion=descripcion

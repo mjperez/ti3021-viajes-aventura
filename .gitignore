@@ -47,3 +47,4 @@ logs/*.log
 # OS
 .DS_Store
 Thumbs.db
+docs/diagramaClases_original.drawio

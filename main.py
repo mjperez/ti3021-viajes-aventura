@@ -3,31 +3,113 @@
 Punto de entrada principal de la aplicación.
 Inicia la interfaz de usuario por consola.
 
-Proyecto: TI3021 - Programación Orientada a Objetos Seguro
-Arquitectura: DAO/DTO Pattern
+Curso: TI3021 - Programación Orientada a Objetos Seguro
+Arquitectura: Patrones DAO/DTO
 Base de Datos: MySQL
-
-Flujo de ejecución:
-    1. Carga configuración desde .env
-    2. Verifica conexión a base de datos
-    3. Inicia menú principal
-    4. Maneja excepciones globales
-    5. Cierra conexiones al finalizar
+Integrantes: Maria Jesus Perez, Maria Isabel Rubio
 
 Ejecución:
     python main.py
-
-Autores:
-    - [Tu nombre]
-    - [Nombre compañero]
 """
 
-# TODO: Importar módulos necesarios
-# from src.ui.menu_principal import mostrar_menu_principal
-# from src.dao.db_connection import verificar_conexion
-# from src.config.settings import APP_NAME
+from src.config.db_connection import cerrar_conexion, obtener_conexion
+from src.ui.menu_principal import opcion_login, opcion_registro
+from src.utils import (
+    MSG_ERROR_OPCION_INVALIDA,
+    limpiar_pantalla,
+    pausar,
+    validar_opcion,
+)
 
-# TODO: Implementar función main()
-# TODO: Agregar manejo de excepciones
-# TODO: Agregar logging
-# TODO: Implementar cierre limpio de recursos
+
+def verificar_conexion_bd():
+    """Verifica que la conexión a la base de datos esté disponible."""
+    try:
+        conn = obtener_conexion()
+        if conn:
+            print("Conexión a base de datos exitosa")
+            return True
+        else:
+            print("No se pudo conectar a la base de datos")
+            return False
+    except Exception as e:
+        print(f"Error al conectar con la base de datos: {e}")
+        return False
+
+
+def mostrar_banner():
+    """Muestra el banner de bienvenida de la aplicación."""
+    print("="*60)
+    print("           SISTEMA DE RESERVAS - VIAJES AVENTURA")
+    print("="*60)
+    print("")
+
+
+def main():
+    """Función principal del programa."""
+    try:
+        # Verificar conexión a BD al inicio
+        limpiar_pantalla()
+        mostrar_banner()
+        print("Verificando conexión a la base de datos...")
+        
+        if not verificar_conexion_bd():
+            print("\nNo se puede iniciar la aplicación sin conexión a BD.")
+            print("Verifique que MySQL esté ejecutándose y las credenciales sean correctas.")
+            pausar()
+            return
+        
+        pausar()
+        
+        # Loop principal del menú
+        while True:
+            limpiar_pantalla()
+            mostrar_banner()
+            print("1. Iniciar Sesión")
+            print("2. Registrarse")
+            print("3. Salir")
+            print("")
+            opcion = input("Seleccione una opción: ")
+            
+            try:
+                if not validar_opcion(int(opcion), 1, 3):
+                    print(MSG_ERROR_OPCION_INVALIDA)
+                    pausar()
+                    continue
+                
+                if int(opcion) == 1:
+                    opcion_login()
+                elif int(opcion) == 2:
+                    opcion_registro()
+                elif int(opcion) == 3:
+                    limpiar_pantalla()
+                    print("\n" + "="*60)
+                    print("   Gracias por usar Viajes Aventura. ¡Hasta luego!")
+                    print("="*60 + "\n")
+                    break
+            except ValueError:
+                print("\nPor favor ingrese un número válido")
+                pausar()
+            except KeyboardInterrupt:
+                print("\n\nInterrupción detectada. Cerrando aplicación...")
+                break
+            except Exception as e:
+                print(f"\nError inesperado: {e}")
+                pausar()
+    
+    except KeyboardInterrupt:
+        print("\n\nInterrupción detectada. Cerrando aplicación...")
+    except Exception as e:
+        print(f"\nError crítico: {e}")
+        print("La aplicación se cerrará.")
+    finally:
+        # Cerrar conexiones al finalizar
+        try:
+            cerrar_conexion()
+            print("Conexiones cerradas correctamente.")
+        except Exception as e:
+            print(f"Error al cerrar las conexiones: {e}")
+
+
+if __name__ == "__main__":
+    main()

@@ -19,8 +19,8 @@ class DestinoDAO():
 
     def crear(self, destino_dto: DestinoDTO) -> int: 
         #Inserta un nuevo destino
-        sql = "INSERT INTO Destinos (id, nombre, descripcion, costo_base) VALUES (%s,%s,%s,%s)"
-        params=(destino_dto.id,destino_dto.nombre,destino_dto.descripcion,destino_dto.costo_base)
+        sql = "INSERT INTO Destinos (nombre, descripcion, costo_base) VALUES (%s, %s, %s)"
+        params=(destino_dto.nombre,destino_dto.descripcion,destino_dto.costo_base)
         return ejecutar_insercion(sql,params)
         
     def obtener_por_id(self, id: int) -> DestinoDTO | None: 

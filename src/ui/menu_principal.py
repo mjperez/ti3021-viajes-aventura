@@ -26,9 +26,9 @@ from src.utils import (
 
 def mostrar_menu_principal(usuario: UsuarioDTO): 
     """Redirige al menú correspondiente según el rol del usuario."""
-    if usuario.rol == 'admin':
+    if usuario.rol == 'ADMIN':
         mostrar_menu_admin(usuario)
-    elif usuario.rol == 'cliente':
+    elif usuario.rol == 'CLIENTE':
         mostrar_menu_cliente(usuario)
 
 def opcion_login(): 
@@ -64,23 +64,3 @@ def opcion_registro():
     except Exception as e:
         print(f"Error durante el registro: {str(e)}")
         pausar()
-
-
-
-if __name__ == "__main__":
-    while True:
-        limpiar_pantalla()
-        print("=== VIAJES AVENTURA ===")
-        print("1. Login")
-        print("2. Registro")
-        print("3. Salir")
-        opcion = input("Elija su opción: ")
-        if not validar_opcion(int(opcion),1,3):
-            print(MSG_ERROR_OPCION_INVALIDA)
-        elif int(opcion) == 1:
-            opcion_login()
-        elif int(opcion) == 2:
-            opcion_registro()
-        elif int(opcion) == 3:
-            print("Gracias por usar Viajes Aventura. ¡Hasta luego!")
-            break
