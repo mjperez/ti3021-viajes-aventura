@@ -80,3 +80,4 @@ test_login.py
 test_manual.py
 test_sistema.py
 README_PORTABLE.md
+.bkup/
