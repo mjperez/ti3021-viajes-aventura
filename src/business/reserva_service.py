@@ -5,7 +5,7 @@ Intermediario entre la UI y el DAO para mantener separación de capas.
 Reemplaza completamente a reserva_manager.py (eliminando redundancia).
 """
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from src.dao.destino_dao import DestinoDAO
 from src.dao.paquete_dao import PaqueteDAO
@@ -250,7 +250,10 @@ class ReservaService:
             raise ValidacionError(f"Error al crear reserva de destino: {str(e)}")
     
     def cancelar_reserva(self, reserva_id: int) -> bool:
-        """Cancela una reserva y devuelve los cupos.
+        """Cancela una reserva aplicando política de cancelación.
+        
+        Verifica la política de cancelación del paquete y calcula reembolso
+        según días de aviso y porcentaje establecido.
         
         Args:
             reserva_id: ID de la reserva
@@ -259,7 +262,7 @@ class ReservaService:
             True si se canceló correctamente
             
         Raises:
-            ValidacionError: Si los datos no son válidos
+            ValidacionError: Si los datos no son válidos o no cumple política
         """
         if reserva_id <= 0:
             raise ValidacionError("El ID de la reserva debe ser mayor a 0")
@@ -272,6 +275,42 @@ class ReservaService:
         # Verificar que no esté ya cancelada
         if reserva.estado == "CANCELADA":
             raise ValidacionError("La reserva ya está cancelada")
+        
+        # Verificar política de cancelación para paquetes
+        if reserva.paquete_id:
+            paquete = self.paquete_dao.obtener_por_id(reserva.paquete_id)
+            if paquete and paquete.fecha_inicio:
+                # Calcular días hasta el inicio del paquete
+                fecha_inicio = datetime.strptime(str(paquete.fecha_inicio)[:10], '%Y-%m-%d')
+                hoy = datetime.now()
+                dias_hasta_inicio = (fecha_inicio - hoy).days
+                
+                # Obtener política de cancelación
+                from src.dao.paquete_dao import PaqueteDAO
+                politica_sql = """
+                    SELECT pc.nombre, pc.dias_aviso, pc.porcentaje_reembolso
+                    FROM PoliticasCancelacion pc
+                    JOIN Paquetes p ON p.politica_id = pc.id
+                    WHERE p.id = %s
+                """
+                from src.config.db_connection import ejecutar_consulta_uno
+                politica = ejecutar_consulta_uno(politica_sql, (reserva.paquete_id,))
+                
+                if politica:
+                    dias_minimos = politica['dias_aviso']
+                    porcentaje_reembolso = politica['porcentaje_reembolso']
+                    
+                    if dias_hasta_inicio < dias_minimos:
+                        raise ValidacionError(
+                            f"No se puede cancelar. Política '{politica['nombre']}' requiere "
+                            f"{dias_minimos} días de aviso. Quedan {dias_hasta_inicio} días."
+                        )
+                    
+                    # Mostrar información de reembolso
+                    monto_reembolso = reserva.monto_total * (porcentaje_reembolso / 100)
+                    print(f"\nPolítica de cancelación: {politica['nombre']}")
+                    print(f"Reembolso: {porcentaje_reembolso}% del monto total")
+                    print(f"Monto a reembolsar: ${int(monto_reembolso):,}".replace(",", "."))
         
         # Cancelar la reserva
         if not self.reserva_dao.cancelar(reserva_id):

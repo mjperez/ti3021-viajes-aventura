@@ -139,20 +139,46 @@ def mostrar_tabla_reservas(reservas: list) -> None:
 
 def mostrar_tabla_pagos(pagos: list) -> None:
     """Muestra lista de pagos en formato tabla."""
+    from src.dao.destino_dao import DestinoDAO
+    from src.dao.paquete_dao import PaqueteDAO
+    from src.dao.reserva_dao import ReservaDAO
+    
     if not pagos:
         print("No hay pagos para mostrar.")
         return
     
-    print("\n" + "="*100)
-    print(f"{'ID':<5} {'RESERVA ID':<12} {'MONTO':<12} {'MÉTODO':<15} {'ESTADO':<12} {'FECHA':<20}")
-    print("="*100)
+    reserva_dao = ReservaDAO()
+    paquete_dao = PaqueteDAO()
+    destino_dao = DestinoDAO()
+    
+    print("\n" + "="*120)
+    print(f"{'ID':<5} {'RESERVA':<40} {'MONTO':<12} {'MÉTODO':<15} {'ESTADO':<12} {'FECHA':<20}")
+    print("="*120)
     
     for p in pagos:
         monto = f"${int(p.monto):,}".replace(",", ".")
         fecha = str(p.fecha_pago)[:19] if p.fecha_pago else "N/A"
-        print(f"{p.id:<5} {p.reserva_id:<12} {monto:<12} {p.metodo:<15} {p.estado:<12} {fecha:<20}")
+        
+        # Obtener información de la reserva
+        reserva = reserva_dao.obtener_por_id(p.reserva_id)
+        if reserva:
+            if reserva.paquete_id:
+                paquete = paquete_dao.obtener_por_id(reserva.paquete_id)
+                reserva_info = f"Reserva #{p.reserva_id} - Paquete: {paquete.nombre if paquete else 'N/A'}"
+            elif reserva.destino_id:
+                destino = destino_dao.obtener_por_id(reserva.destino_id)
+                reserva_info = f"Reserva #{p.reserva_id} - Destino: {destino.nombre if destino else 'N/A'}"
+            else:
+                reserva_info = f"Reserva #{p.reserva_id}"
+        else:
+            reserva_info = f"Reserva #{p.reserva_id}"
+        
+        # Truncar si es muy largo
+        reserva_info = (reserva_info[:37] + "...") if len(reserva_info) > 37 else reserva_info
+        
+        print(f"{p.id:<5} {reserva_info:<40} {monto:<12} {p.metodo:<15} {p.estado:<12} {fecha:<20}")
     
-    print("="*100 + "\n")
+    print("="*120 + "\n")
 
 
 def mostrar_actividades_paquete(actividades: list) -> None:

@@ -3,6 +3,7 @@
 Interfaz para funciones del cliente en el sistema.
 Accesible para usuarios con rol 'cliente'.'''
 
+from src.business.actividad_service import ActividadService
 from src.business.destino_service import DestinoService
 from src.business.pago_service import PagoService
 from src.business.paquete_service import PaqueteService
@@ -20,6 +21,7 @@ from src.utils import (
 from src.utils.constants import METODOS_PAGO
 from src.utils.utils import (
     mostrar_actividades_paquete,
+    mostrar_tabla_actividades,
     mostrar_tabla_destinos,
     mostrar_tabla_pagos,
     mostrar_tabla_paquetes,
@@ -34,15 +36,16 @@ def mostrar_menu_cliente(usuario: UsuarioDTO):
         print(f"=== VIAJES AVENTURA - CLIENTE: {usuario.nombre} ===")
         print("1. Ver Destinos Disponibles")
         print("2. Ver Paquetes Disponibles")
-        print("3. Crear Reserva de Paquete")
-        print("4. Crear Reserva de Destino")
-        print("5. Mis Reservas")
-        print("6. Realizar Pago")
-        print("7. Historial de Pagos")
-        print("8. Mi Perfil")
-        print("9. Cerrar Sesión")
+        print("3. Ver Actividades Disponibles")
+        print("4. Crear Reserva de Paquete")
+        print("5. Crear Reserva de Destino")
+        print("6. Mis Reservas")
+        print("7. Realizar Pago")
+        print("8. Historial de Pagos")
+        print("9. Mi Perfil")
+        print("10. Cerrar Sesión")
         opcion = input("Elija su opción: ")
-        if not validar_opcion(int(opcion), 1, 9):
+        if not validar_opcion(int(opcion), 1, 10):
             print(MSG_ERROR_OPCION_INVALIDA)
             continue
         if int(opcion) == 1:
@@ -50,22 +53,69 @@ def mostrar_menu_cliente(usuario: UsuarioDTO):
         elif int(opcion) == 2:
             ver_paquetes_disponibles()
         elif int(opcion) == 3:
-            crear_reserva(usuario.id)  # type: ignore
+            ver_actividades_disponibles()
         elif int(opcion) == 4:
-            crear_reserva_destino(usuario.id)  # type: ignore
+            crear_reserva(usuario.id)  # type: ignore
         elif int(opcion) == 5:
-            ver_mis_reservas(usuario.id)  # type: ignore
+            crear_reserva_destino(usuario.id)  # type: ignore
         elif int(opcion) == 6:
-            realizar_pago_cliente(usuario.id)  # type: ignore
+            ver_mis_reservas(usuario.id)  # type: ignore
         elif int(opcion) == 7:
-            ver_mis_pagos(usuario.id)  # type: ignore
+            realizar_pago_cliente(usuario.id)  # type: ignore
         elif int(opcion) == 8:
+            ver_mis_pagos(usuario.id)  # type: ignore
+        elif int(opcion) == 9:
             # Pasar el objeto usuario completo y actualizar si cambia
             usuario_actualizado = ver_mi_perfil(usuario)
             if usuario_actualizado:
                 usuario = usuario_actualizado
-        elif int(opcion) == 9:
+        elif int(opcion) == 10:
             break
+
+
+def ver_actividades_disponibles():
+    """Lista todas las actividades disponibles o filtra por destino."""
+    actividad_service = ActividadService()
+    destino_service = DestinoService()
+    limpiar_pantalla()
+    print("=== ACTIVIDADES DISPONIBLES ===\n")
+    
+    try:
+        print("1. Ver todas las actividades")
+        print("2. Buscar por destino")
+        print("3. Volver")
+        opcion = input("\nSeleccione una opción: ")
+        
+        if opcion == "2":
+            destinos = destino_service.listar_destinos_disponibles()
+            if not destinos:
+                print("\nNo hay destinos disponibles.")
+            else:
+                print("\nDestinos disponibles:")
+                for d in destinos:
+                    print(f"  ID {d.id}: {d.nombre}")
+                
+                destino_id_str = input("\nIngrese ID del destino (0 para cancelar): ")
+                destino_id = int(destino_id_str)
+                
+                if destino_id > 0:
+                    actividades = actividad_service.listar_actividades_por_destino(destino_id)
+                    if not actividades:
+                        print("\nNo hay actividades disponibles para ese destino.")
+                    else:
+                        print("\nActividades del destino seleccionado:")
+                        mostrar_tabla_actividades(actividades)
+        elif opcion == "1":
+            actividades = actividad_service.listar_todas_actividades()
+            if not actividades:
+                print("\nNo hay actividades disponibles en este momento.")
+            else:
+                mostrar_tabla_actividades(actividades)
+    except ValueError:
+        print("\nERROR: Debe ingresar un número válido")
+    except Exception as e:
+        print(f"\nERROR: Error al cargar actividades: {e}")
+    pausar()
 
 
 def ver_destinos_disponibles():
@@ -75,7 +125,7 @@ def ver_destinos_disponibles():
     print("=== DESTINOS DISPONIBLES ===\n")
     
     try:
-        destinos = destino_service.listar_todos_destinos()
+        destinos = destino_service.listar_destinos_disponibles()
         if not destinos:
             print("No hay destinos disponibles en este momento.")
         else:
@@ -203,7 +253,7 @@ def crear_reserva_destino(cliente_id: int):
     
     try:
         # Mostrar destinos disponibles
-        destinos = destino_service.listar_todos_destinos()
+        destinos = destino_service.listar_destinos_disponibles()
         if not destinos:
             print("No hay destinos disponibles.")
             pausar()
@@ -312,6 +362,12 @@ def cancelar_reserva(cliente_id: int):
         
         if reserva.estado == "CANCELADA":
             print("ERROR: Esta reserva ya está cancelada")
+            pausar()
+            return
+        
+        if reserva.estado == "PAGADA":
+            print("ERROR: No se puede cancelar una reserva ya pagada")
+            print("Por favor contacte al administrador para realizar un reembolso")
             pausar()
             return
         

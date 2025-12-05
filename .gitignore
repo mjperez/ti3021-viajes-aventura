@@ -81,3 +81,5 @@ test_manual.py
 test_sistema.py
 README_PORTABLE.md
 .bkup/
+test_funcionalidad_completa.py
+MEJORAS_IMPLEMENTADAS.md

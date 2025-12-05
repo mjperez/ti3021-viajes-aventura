@@ -35,10 +35,11 @@ def mostrar_menu_admin(usuario: UsuarioDTO):
         print("1. Destinos")
         print("2. Actividades")
         print("3. Paquetes")
-        print("4. Reportes")
-        print("5. Cerrar Sesi�n")
-        opcion = input("Elija su opci�n: ")
-        if not validar_opcion(int(opcion), 1, 5):
+        print("4. Políticas de Cancelación")
+        print("5. Reportes")
+        print("6. Cerrar Sesión")
+        opcion = input("Elija su opción: ")
+        if not validar_opcion(int(opcion), 1, 6):
             print(MSG_ERROR_OPCION_INVALIDA)
             pausar()
             continue
@@ -49,8 +50,10 @@ def mostrar_menu_admin(usuario: UsuarioDTO):
         elif int(opcion) == 3:
             menu_admin_paquetes()
         elif int(opcion) == 4:
-            menu_admin_reportes()
+            menu_admin_politicas()
         elif int(opcion) == 5:
+            menu_admin_reportes()
+        elif int(opcion) == 6:
             break
 
 
@@ -485,3 +488,29 @@ def menu_admin_reportes():
             pausar()
         elif int(opcion) == 4:
             break
+
+
+def menu_admin_politicas():
+    """Submenú para ver políticas de cancelación."""
+    from src.business.politica_cancelacion_service import PoliticaCancelacionService
+    
+    politica_service = PoliticaCancelacionService()
+    
+    limpiar_pantalla()
+    print("=== VIAJES AVENTURA: POLÍTICAS DE CANCELACIÓN ===\n")
+    
+    try:
+        politicas = politica_service.listar_todas_politicas()
+        if not politicas:
+            print("No hay políticas de cancelación registradas.")
+        else:
+            print("="*80)
+            print(f"{'ID':<5} {'NOMBRE':<20} {'DÍAS AVISO':<15} {'% REEMBOLSO':<15}")
+            print("="*80)
+            for p in politicas:
+                print(f"{p.id:<5} {p.nombre:<20} {p.dias_aviso:<15} {p.porcentaje_reembolso}%")
+            print("="*80)
+            print("\nNOTA: Las políticas son de solo lectura y se configuran en la base de datos.")
+    except Exception as e:
+        print(f"ERROR: Error al cargar políticas: {e}")
+    pausar()
