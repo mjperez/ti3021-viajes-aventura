@@ -252,7 +252,7 @@ class ReservaService:
     def cancelar_reserva(self, reserva_id: int) -> bool:
         """Cancela una reserva aplicando política de cancelación.
         
-        Verifica la política de cancelación del paquete y calcula reembolso
+        Verifica la política de cancelación del paquete o destino y calcula reembolso
         según días de aviso y porcentaje establecido.
         
         Args:
@@ -276,41 +276,61 @@ class ReservaService:
         if reserva.estado == "CANCELADA":
             raise ValidacionError("La reserva ya está cancelada")
         
+        from src.config.db_connection import ejecutar_consulta_uno
+        politica = None
+        fecha_referencia = None
+        
         # Verificar política de cancelación para paquetes
         if reserva.paquete_id:
             paquete = self.paquete_dao.obtener_por_id(reserva.paquete_id)
             if paquete and paquete.fecha_inicio:
                 # Calcular días hasta el inicio del paquete
-                fecha_inicio = datetime.strptime(str(paquete.fecha_inicio)[:10], '%Y-%m-%d')
-                hoy = datetime.now()
-                dias_hasta_inicio = (fecha_inicio - hoy).days
+                fecha_referencia = datetime.strptime(str(paquete.fecha_inicio)[:10], '%Y-%m-%d')
                 
-                # Obtener política de cancelación
-                from src.dao.paquete_dao import PaqueteDAO
+                # Obtener política de cancelación del paquete
                 politica_sql = """
                     SELECT pc.nombre, pc.dias_aviso, pc.porcentaje_reembolso
                     FROM PoliticasCancelacion pc
                     JOIN Paquetes p ON p.politica_id = pc.id
                     WHERE p.id = %s
                 """
-                from src.config.db_connection import ejecutar_consulta_uno
                 politica = ejecutar_consulta_uno(politica_sql, (reserva.paquete_id,))
+        
+        # Verificar política de cancelación para destinos
+        elif reserva.destino_id:
+            destino = self.destino_dao.obtener_por_id(reserva.destino_id)
+            if destino:
+                # Para destinos, usamos la fecha de reserva + 30 días como referencia
+                fecha_referencia = reserva.fecha_reserva + timedelta(days=30) if isinstance(reserva.fecha_reserva, datetime) else datetime.strptime(str(reserva.fecha_reserva)[:10], '%Y-%m-%d') + timedelta(days=30)
                 
-                if politica:
-                    dias_minimos = politica['dias_aviso']
-                    porcentaje_reembolso = politica['porcentaje_reembolso']
-                    
-                    if dias_hasta_inicio < dias_minimos:
-                        raise ValidacionError(
-                            f"No se puede cancelar. Política '{politica['nombre']}' requiere "
-                            f"{dias_minimos} días de aviso. Quedan {dias_hasta_inicio} días."
-                        )
-                    
-                    # Mostrar información de reembolso
-                    monto_reembolso = reserva.monto_total * (porcentaje_reembolso / 100)
-                    print(f"\nPolítica de cancelación: {politica['nombre']}")
-                    print(f"Reembolso: {porcentaje_reembolso}% del monto total")
-                    print(f"Monto a reembolsar: ${int(monto_reembolso):,}".replace(",", "."))
+                # Obtener política de cancelación del destino
+                politica_sql = """
+                    SELECT pc.nombre, pc.dias_aviso, pc.porcentaje_reembolso
+                    FROM PoliticasCancelacion pc
+                    JOIN Destinos d ON d.politica_id = pc.id
+                    WHERE d.id = %s
+                """
+                politica = ejecutar_consulta_uno(politica_sql, (reserva.destino_id,))
+        
+        # Aplicar política si existe
+        if politica and fecha_referencia:
+            hoy = datetime.now()
+            dias_hasta_fecha = (fecha_referencia - hoy).days
+            dias_minimos = politica['dias_aviso']
+            porcentaje_reembolso = politica['porcentaje_reembolso']
+            
+            if dias_hasta_fecha < dias_minimos:
+                tipo_reserva = "paquete" if reserva.paquete_id else "destino"
+                raise ValidacionError(
+                    f"No se puede cancelar. Política '{politica['nombre']}' requiere "
+                    f"{dias_minimos} días de aviso. Quedan {dias_hasta_fecha} días para el {tipo_reserva}."
+                )
+            
+            # Mostrar información de reembolso
+            monto_reembolso = reserva.monto_total * (porcentaje_reembolso / 100)
+            print(f"\nPolítica de cancelación: {politica['nombre']}")
+            print(f"Reembolso: {porcentaje_reembolso}% del monto total")
+            print(f"Monto a reembolsar: ${int(monto_reembolso):,}".replace(",", "."))
         
         # Cancelar la reserva
         if not self.reserva_dao.cancelar(reserva_id):
@@ -329,7 +349,9 @@ class ReservaService:
         return True
     
     def confirmar_reserva(self, reserva_id: int) -> bool:
-        """Confirma una reserva pendiente.
+        """Confirma una reserva pagada (admin aprueba después del pago).
+        
+        Flujo: PENDIENTE -> (cliente paga) -> PAGADA -> (admin confirma) -> CONFIRMADA
         
         Args:
             reserva_id: ID de la reserva
@@ -348,9 +370,9 @@ class ReservaService:
         if not reserva:
             raise ValidacionError("La reserva no existe")
         
-        # Verificar que está en estado Pendiente
-        if reserva.estado != "PENDIENTE":
-            raise ValidacionError(f"La reserva debe estar en estado PENDIENTE. Estado actual: {reserva.estado}")
+        # Verificar que está en estado PAGADA (el cliente ya pagó)
+        if reserva.estado != "PAGADA":
+            raise ValidacionError(f"La reserva debe estar en estado PAGADA para confirmar. Estado actual: {reserva.estado}")
         
         # Confirmar la reserva
         return self.reserva_dao.confirmar(reserva_id)

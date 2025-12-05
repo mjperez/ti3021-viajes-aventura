@@ -22,7 +22,8 @@ class DestinoService:
         pais: str,
         descripcion: str,
         costo_base: float,
-        cupos_disponibles: int = 50
+        cupos_disponibles: int = 50,
+        politica_id: int = 1
     ) -> DestinoDTO:
         """Crea un nuevo destino con validaciones.
         
@@ -32,6 +33,7 @@ class DestinoService:
             descripcion: Descripción del destino
             costo_base: Costo base del destino
             cupos_disponibles: Cupos disponibles (default 50)
+            politica_id: ID de la política de cancelación (default 1=Flexible)
             
         Returns:
             DestinoDTO con el destino creado
@@ -50,6 +52,8 @@ class DestinoService:
             raise ValidacionError("El costo base debe ser mayor a 0")
         if cupos_disponibles < 0:
             raise ValidacionError("Los cupos disponibles no pueden ser negativos")
+        if politica_id <= 0:
+            raise ValidacionError("El ID de política debe ser mayor a 0")
         
         # Crear DTO y delegar al DAO
         destino = DestinoDTO(
@@ -57,7 +61,8 @@ class DestinoService:
             nombre=nombre.strip(),
             descripcion=descripcion.strip(),
             costo_base=costo_base,
-            cupos_disponibles=cupos_disponibles
+            cupos_disponibles=cupos_disponibles,
+            politica_id=politica_id
         )
         
         destino_id = self.destino_dao.crear(destino)
@@ -102,7 +107,8 @@ class DestinoService:
         pais: str,
         descripcion: str,
         costo_base: float,
-        cupos_disponibles: int
+        cupos_disponibles: int,
+        politica_id: int = None
     ) -> DestinoDTO:
         """Actualiza un destino existente.
         
@@ -113,6 +119,7 @@ class DestinoService:
             descripcion: Nueva descripción
             costo_base: Nuevo costo base
             cupos_disponibles: Nuevos cupos disponibles
+            politica_id: Nueva política de cancelación (None para mantener)
             
         Returns:
             DestinoDTO actualizado
@@ -139,13 +146,18 @@ class DestinoService:
         if not destino_existente:
             raise ValidacionError(f"No existe un destino con ID {destino_id}")
         
+        # Usar política existente si no se especifica
+        if politica_id is None:
+            politica_id = destino_existente.politica_id
+        
         # Actualizar
         destino = DestinoDTO(
             id=destino_id,
             nombre=nombre.strip(),
             descripcion=descripcion.strip(),
             costo_base=costo_base,
-            cupos_disponibles=cupos_disponibles
+            cupos_disponibles=cupos_disponibles,
+            politica_id=politica_id
         )
         
         success = self.destino_dao.actualizar(destino_id, destino)

@@ -73,6 +73,8 @@ from .exceptions import (
 )
 from .utils import (
     OperacionCancelada,
+    leer_entero,
+    leer_opcion,
     limpiar_pantalla,
     pausar,
     validar_cancelacion,

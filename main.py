@@ -16,6 +16,7 @@ from src.config.db_connection import cerrar_conexion, obtener_conexion
 from src.ui.menu_principal import opcion_login, opcion_registro
 from src.utils import (
     MSG_ERROR_OPCION_INVALIDA,
+    leer_opcion,
     limpiar_pantalla,
     pausar,
     validar_opcion,
@@ -69,33 +70,23 @@ def main():
             print("2. Registrarse")
             print("3. Salir")
             print("")
-            opcion = input("Seleccione una opción: ")
+            opcion = leer_opcion()
             
-            try:
-                if not validar_opcion(int(opcion), 1, 3):
-                    print(MSG_ERROR_OPCION_INVALIDA)
-                    pausar()
-                    continue
-                
-                if int(opcion) == 1:
-                    opcion_login()
-                elif int(opcion) == 2:
-                    opcion_registro()
-                elif int(opcion) == 3:
-                    limpiar_pantalla()
-                    print("\n" + "="*60)
-                    print("   Gracias por usar Viajes Aventura. ¡Hasta luego!")
-                    print("="*60 + "\n")
-                    break
-            except ValueError:
-                print("\nPor favor ingrese un número válido")
+            if not validar_opcion(opcion, 1, 3):
+                print(MSG_ERROR_OPCION_INVALIDA)
                 pausar()
-            except KeyboardInterrupt:
-                print("\n\nInterrupción detectada. Cerrando aplicación...")
+                continue
+            
+            if opcion == 1:
+                opcion_login()
+            elif opcion == 2:
+                opcion_registro()
+            elif opcion == 3:
+                limpiar_pantalla()
+                print("\n" + "="*60)
+                print("   Gracias por usar Viajes Aventura. ¡Hasta luego!")
+                print("="*60 + "\n")
                 break
-            except Exception as e:
-                print(f"\nError inesperado: {e}")
-                pausar()
     
     except KeyboardInterrupt:
         print("\n\nInterrupción detectada. Cerrando aplicación...")

@@ -140,6 +140,22 @@ def validar_numero_personas(numero:int)-> bool:
     except (ValueError,TypeError):
         return False
 
+def validar_dias_aviso(dias: int) -> bool:
+    """Valida que los días de aviso sean válidos (0-365)."""
+    try:
+        d = int(dias)
+        return 0 <= d <= 365
+    except (ValueError, TypeError):
+        return False
+
+def validar_porcentaje_reembolso(porcentaje: float) -> bool:
+    """Valida que el porcentaje de reembolso esté entre 0 y 100."""
+    try:
+        p = float(porcentaje)
+        return 0 <= p <= 100
+    except (ValueError, TypeError):
+        return False
+
 def sanitizar_input(texto:str) -> str:
     #Limpia input de caracteres peligrosos para evitar SQL injection
     if not texto:

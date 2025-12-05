@@ -19,8 +19,8 @@ class DestinoDAO():
 
     def crear(self, destino_dto: DestinoDTO) -> int: 
         #Inserta un nuevo destino
-        sql = "INSERT INTO Destinos (nombre, descripcion, costo_base, cupos_disponibles) VALUES (%s, %s, %s, %s)"
-        params=(destino_dto.nombre,destino_dto.descripcion,destino_dto.costo_base,destino_dto.cupos_disponibles)
+        sql = "INSERT INTO Destinos (nombre, descripcion, costo_base, cupos_disponibles, politica_id) VALUES (%s, %s, %s, %s, %s)"
+        params=(destino_dto.nombre,destino_dto.descripcion,destino_dto.costo_base,destino_dto.cupos_disponibles,destino_dto.politica_id)
         return ejecutar_insercion(sql,params)
         
     def obtener_por_id(self, id: int) -> DestinoDTO | None:
@@ -35,14 +35,15 @@ class DestinoDAO():
             nombre = destino['nombre'],
             descripcion= destino['descripcion'],
             costo_base= destino['costo_base'],
-            cupos_disponibles= destino['cupos_disponibles']
+            cupos_disponibles= destino['cupos_disponibles'],
+            politica_id= destino.get('politica_id', 1)
             )
         
         ...
     def actualizar(self, id: int, destino_dto: DestinoDTO) -> bool: 
         #Actualiza datos del destino
-        sql = "UPDATE Destinos SET nombre=%s, descripcion=%s, costo_base=%s, cupos_disponibles=%s WHERE id=%s"
-        params = (destino_dto.nombre, destino_dto.descripcion, destino_dto.costo_base, destino_dto.cupos_disponibles, id)
+        sql = "UPDATE Destinos SET nombre=%s, descripcion=%s, costo_base=%s, cupos_disponibles=%s, politica_id=%s WHERE id=%s"
+        params = (destino_dto.nombre, destino_dto.descripcion, destino_dto.costo_base, destino_dto.cupos_disponibles, destino_dto.politica_id, id)
         filas = ejecutar_actualizacion(sql, params)
         return filas > 0
     
@@ -84,7 +85,8 @@ class DestinoDAO():
                 nombre=d['nombre'],
                 descripcion=d['descripcion'],
                 costo_base=d['costo_base'],
-                cupos_disponibles=d['cupos_disponibles']
+                cupos_disponibles=d['cupos_disponibles'],
+                politica_id=d.get('politica_id', 1)
             )
             for d in destinos
         ]
@@ -104,7 +106,8 @@ class DestinoDAO():
                 nombre=d['nombre'],
                 descripcion=d['descripcion'],
                 costo_base=d['costo_base'],
-                cupos_disponibles=d['cupos_disponibles']
+                cupos_disponibles=d['cupos_disponibles'],
+                politica_id=d.get('politica_id', 1)
             )
             for d in destinos
         ]

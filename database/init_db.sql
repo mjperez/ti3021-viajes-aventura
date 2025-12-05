@@ -39,6 +39,19 @@ CREATE TABLE Usuarios (
 ) ENGINE=InnoDB;
 
 -- ============================================
+-- Tabla: PoliticasCancelacion
+-- Políticas de cancelación para paquetes y destinos
+-- ============================================
+CREATE TABLE PoliticasCancelacion (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre ENUM('Flexible', 'Estricta') NOT NULL UNIQUE,
+    dias_aviso INT NOT NULL,
+    porcentaje_reembolso INT NOT NULL,
+    CHECK (dias_aviso > 0),
+    CHECK (porcentaje_reembolso >= 0 AND porcentaje_reembolso <= 100)
+) ENGINE=InnoDB;
+
+-- ============================================
 -- Tabla: Destinos
 -- Información de destinos turísticos
 -- ============================================
@@ -49,6 +62,8 @@ CREATE TABLE Destinos (
     costo_base DECIMAL(10,2) NOT NULL,
     cupos_disponibles INT NOT NULL DEFAULT 50 CHECK (cupos_disponibles >= 0),
     activo BOOLEAN NOT NULL DEFAULT TRUE,
+    politica_id INT NOT NULL DEFAULT 1,
+    FOREIGN KEY (politica_id) REFERENCES PoliticasCancelacion(id),
     INDEX idx_nombre (nombre),
     INDEX idx_activo (activo)
 ) ENGINE=InnoDB;
@@ -66,19 +81,6 @@ CREATE TABLE Actividades (
     destino_id INT NOT NULL,
     FOREIGN KEY (destino_id) REFERENCES Destinos(id) ON DELETE CASCADE,
     INDEX idx_destino (destino_id)
-) ENGINE=InnoDB;
-
--- ============================================
--- Tabla: PoliticasCancelacion
--- Políticas de cancelación para paquetes
--- ============================================
-CREATE TABLE PoliticasCancelacion (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre ENUM('Flexible', 'Estricta') NOT NULL UNIQUE,
-    dias_aviso INT NOT NULL,
-    porcentaje_reembolso INT NOT NULL,
-    CHECK (dias_aviso > 0),
-    CHECK (porcentaje_reembolso >= 0 AND porcentaje_reembolso <= 100)
 ) ENGINE=InnoDB;
 
 -- ============================================
@@ -175,12 +177,12 @@ INSERT INTO PoliticasCancelacion (nombre, dias_aviso, porcentaje_reembolso) VALU
 INSERT INTO Usuarios (email, password_hash, nombre, rol) VALUES
 ('admin@viajes-aventura.com', 'hash_aqui', 'Administrador', 'ADMIN');
 
--- Destinos de ejemplo
-INSERT INTO Destinos (nombre, descripcion, costo_base, cupos_disponibles) VALUES
-('París', 'La ciudad de la luz, famosa por la Torre Eiffel y el Louvre', 1200.00, 50),
-('Roma', 'Ciudad histórica con el Coliseo y el Vaticano', 1000.00, 50),
-('Barcelona', 'Ciudad mediterránea con arquitectura de Gaudí', 800.00, 50),
-('Tokio', 'Metrópolis moderna con tradición japonesa', 1800.00, 50);
+-- Destinos de ejemplo (con política de cancelación)
+INSERT INTO Destinos (nombre, descripcion, costo_base, cupos_disponibles, politica_id) VALUES
+('París', 'La ciudad de la luz, famosa por la Torre Eiffel y el Louvre', 1200.00, 50, 1),
+('Roma', 'Ciudad histórica con el Coliseo y el Vaticano', 1000.00, 50, 1),
+('Barcelona', 'Ciudad mediterránea con arquitectura de Gaudí', 800.00, 50, 2),
+('Tokio', 'Metrópolis moderna con tradición japonesa', 1800.00, 50, 2);
 
 -- Actividades de ejemplo
 INSERT INTO Actividades (nombre, descripcion, duracion_horas, precio_base, destino_id) VALUES

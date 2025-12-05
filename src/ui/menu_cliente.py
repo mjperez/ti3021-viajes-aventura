@@ -13,6 +13,7 @@ from src.dto.usuario_dto import UsuarioDTO
 from src.utils import (
     MSG_ERROR_OPCION_INVALIDA,
     OperacionCancelada,
+    leer_opcion,
     limpiar_pantalla,
     pausar,
     validar_cancelacion,
@@ -36,7 +37,7 @@ def mostrar_menu_cliente(usuario: UsuarioDTO):
         print(f"=== VIAJES AVENTURA - CLIENTE: {usuario.nombre} ===")
         print("1. Ver Destinos Disponibles")
         print("2. Ver Paquetes Disponibles")
-        print("3. Ver Actividades Disponibles")
+        print("3. Ver Políticas de Cancelación")
         print("4. Crear Reserva de Paquete")
         print("5. Crear Reserva de Destino")
         print("6. Mis Reservas")
@@ -44,32 +45,32 @@ def mostrar_menu_cliente(usuario: UsuarioDTO):
         print("8. Historial de Pagos")
         print("9. Mi Perfil")
         print("10. Cerrar Sesión")
-        opcion = input("Elija su opción: ")
-        if not validar_opcion(int(opcion), 1, 10):
+        opcion = leer_opcion()
+        if not validar_opcion(opcion, 1, 10):
             print(MSG_ERROR_OPCION_INVALIDA)
             continue
-        if int(opcion) == 1:
+        if opcion == 1:
             ver_destinos_disponibles()
-        elif int(opcion) == 2:
+        elif opcion == 2:
             ver_paquetes_disponibles()
-        elif int(opcion) == 3:
-            ver_actividades_disponibles()
-        elif int(opcion) == 4:
+        elif opcion == 3:
+            ver_politicas_cancelacion_cliente()
+        elif opcion == 4:
             crear_reserva(usuario.id)  # type: ignore
-        elif int(opcion) == 5:
+        elif opcion == 5:
             crear_reserva_destino(usuario.id)  # type: ignore
-        elif int(opcion) == 6:
+        elif opcion == 6:
             ver_mis_reservas(usuario.id)  # type: ignore
-        elif int(opcion) == 7:
+        elif opcion == 7:
             realizar_pago_cliente(usuario.id)  # type: ignore
-        elif int(opcion) == 8:
+        elif opcion == 8:
             ver_mis_pagos(usuario.id)  # type: ignore
-        elif int(opcion) == 9:
+        elif opcion == 9:
             # Pasar el objeto usuario completo y actualizar si cambia
             usuario_actualizado = ver_mi_perfil(usuario)
             if usuario_actualizado:
                 usuario = usuario_actualizado
-        elif int(opcion) == 10:
+        elif opcion == 10:
             break
 
 
@@ -482,6 +483,35 @@ def ver_mis_pagos(cliente_id: int):
             
     except Exception as e:
         print(f"ERROR: Error al cargar pagos: {e}")
+    pausar()
+
+
+def ver_politicas_cancelacion_cliente():
+    """Muestra las políticas de cancelación disponibles para clientes."""
+    from src.business.politica_cancelacion_service import PoliticaCancelacionService
+    
+    politica_service = PoliticaCancelacionService()
+    
+    limpiar_pantalla()
+    print("=== POLÍTICAS DE CANCELACIÓN ===\n")
+    
+    try:
+        politicas = politica_service.listar_todas_politicas()
+        if not politicas:
+            print("No hay políticas de cancelación registradas.")
+        else:
+            print("="*100)
+            print(f"{'ID':<5} {'NOMBRE':<30} {'DÍAS DE AVISO':<20} {'% REEMBOLSO':<20}")
+            print("="*100)
+            for p in politicas:
+                print(f"{p.id:<5} {p.nombre:<30} {p.dias_aviso:<20} {p.porcentaje_reembolso}%")
+            print("="*100)
+            print("\n📋 Estas políticas aplican a las reservas de PAQUETES y DESTINOS.")
+            print("   El reembolso depende de cuándo canceles tu reserva.")
+            print("\n   • Flexible: Puedes cancelar hasta 3 días antes y recibir reembolso completo.")
+            print("   • Estricta: Debes cancelar con al menos 7 días de anticipación para 50% de reembolso.")
+    except Exception as e:
+        print(f"ERROR: Error al cargar políticas: {e}")
     pausar()
 
 

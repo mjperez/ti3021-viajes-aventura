@@ -18,6 +18,7 @@ from src.ui.menu_admin import mostrar_menu_admin
 from src.ui.menu_cliente import mostrar_menu_cliente
 from src.utils import (
     MSG_ERROR_OPCION_INVALIDA,
+    leer_opcion,
     limpiar_pantalla,
     pausar,
     validar_opcion,
@@ -69,7 +70,7 @@ def opcion_registro():
             print(f"\nError durante el registro: {str(e)}")
             print("\n1. Intentar nuevamente")
             print("2. Volver al menú principal")
-            opcion = input("Seleccione una opción: ")
+            opcion = leer_opcion()
             
             if opcion != "1":
                 break  # Salir si el usuario no quiere reintentar

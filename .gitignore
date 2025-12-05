@@ -83,3 +83,12 @@ README_PORTABLE.md
 .bkup/
 test_funcionalidad_completa.py
 MEJORAS_IMPLEMENTADAS.md
+demo_mejoras.py
+.gitignore
+test_actividades.py
+.gitignore
+ViajesAventuraPortable.spec
+.gitignore
+RESUMEN_MEJORAS_SESION_2.txt
+.gitignore
+test_politicas_crud.py

@@ -56,3 +56,68 @@ class PoliticaCancelacionDAO:
             )
             for p in politicas
         ]
+    
+    def crear(self, nombre: str, dias_aviso: int, porcentaje_reembolso: float) -> PoliticaCancelacionDTO:
+        """Crea una nueva política de cancelación.
+        
+        Args:
+            nombre: Nombre de la política
+            dias_aviso: Días de aviso requeridos
+            porcentaje_reembolso: Porcentaje de reembolso (0-100)
+            
+        Returns:
+            PoliticaCancelacionDTO con la política creada
+        """
+        from src.config.db_connection import ejecutar_insercion
+        
+        sql = """INSERT INTO PoliticasCancelacion (nombre, dias_aviso, porcentaje_reembolso) 
+                 VALUES (%s, %s, %s)"""
+        politica_id = ejecutar_insercion(sql, (nombre, dias_aviso, porcentaje_reembolso))
+        
+        return PoliticaCancelacionDTO(
+            id=politica_id,
+            nombre=nombre,
+            dias_aviso=dias_aviso,
+            porcentaje_reembolso=porcentaje_reembolso
+        )
+    
+    def actualizar(self, id: int, nombre: str, dias_aviso: int, porcentaje_reembolso: float) -> PoliticaCancelacionDTO:
+        """Actualiza una política de cancelación existente.
+        
+        Args:
+            id: ID de la política a actualizar
+            nombre: Nuevo nombre
+            dias_aviso: Nuevos días de aviso
+            porcentaje_reembolso: Nuevo porcentaje de reembolso
+            
+        Returns:
+            PoliticaCancelacionDTO con los datos actualizados
+        """
+        from src.config.db_connection import ejecutar_actualizacion
+        
+        sql = """UPDATE PoliticasCancelacion 
+                 SET nombre = %s, dias_aviso = %s, porcentaje_reembolso = %s 
+                 WHERE id = %s"""
+        ejecutar_actualizacion(sql, (nombre, dias_aviso, porcentaje_reembolso, id))
+        
+        return PoliticaCancelacionDTO(
+            id=id,
+            nombre=nombre,
+            dias_aviso=dias_aviso,
+            porcentaje_reembolso=porcentaje_reembolso
+        )
+    
+    def eliminar(self, id: int) -> bool:
+        """Elimina una política de cancelación.
+        
+        Args:
+            id: ID de la política a eliminar
+            
+        Returns:
+            True si se eliminó correctamente
+        """
+        from src.config.db_connection import ejecutar_actualizacion
+        
+        sql = "DELETE FROM PoliticasCancelacion WHERE id = %s"
+        filas_afectadas = ejecutar_actualizacion(sql, (id,))
+        return filas_afectadas > 0
