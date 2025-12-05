@@ -3,18 +3,11 @@
 Interfaz para funciones del cliente en el sistema.
 Accesible para usuarios con rol 'cliente'.'''
 
-from src.business.pago_manager import obtener_historial_pagos, procesar_pago
-from src.business.reserva_manager import (
-    cancelar_reserva as cancelar_reserva_manager,
-)
-from src.business.reserva_manager import crear_reserva as crear_reserva_manager
-from src.business.reserva_manager import (
-    crear_reserva_destino as crear_reserva_destino_manager,
-)
-from src.dao.destino_dao import DestinoDAO
-from src.dao.paquete_dao import PaqueteDAO
-from src.dao.reserva_dao import ReservaDAO
-from src.dao.usuario_dao import UsuarioDAO
+from src.business.destino_service import DestinoService
+from src.business.pago_service import PagoService
+from src.business.paquete_service import PaqueteService
+from src.business.reserva_service import ReservaService
+from src.business.usuario_service import UsuarioService
 from src.dto.usuario_dto import UsuarioDTO
 from src.utils import (
     MSG_ERROR_OPCION_INVALIDA,
@@ -77,12 +70,12 @@ def mostrar_menu_cliente(usuario: UsuarioDTO):
 
 def ver_destinos_disponibles():
     """Lista todos los destinos disponibles."""
-    destino_dao = DestinoDAO()
+    destino_service = DestinoService()
     limpiar_pantalla()
     print("=== DESTINOS DISPONIBLES ===\n")
     
     try:
-        destinos = destino_dao.listar_todos()
+        destinos = destino_service.listar_todos_destinos()
         if not destinos:
             print("No hay destinos disponibles en este momento.")
         else:
@@ -94,12 +87,12 @@ def ver_destinos_disponibles():
 
 def ver_paquetes_disponibles():
     """Lista paquetes con cupos disponibles y sus actividades."""
-    paquete_dao = PaqueteDAO()
+    paquete_service = PaqueteService()
     limpiar_pantalla()
-    print("=== PAQUETES DISPONIBLES ===\n")
+    print("=== PAQUETES DISPONIBLES ===")
     
     try:
-        paquetes = paquete_dao.listar_disponibles()
+        paquetes = paquete_service.listar_paquetes_disponibles()
         if not paquetes:
             print("No hay paquetes disponibles en este momento.")
         else:
@@ -119,8 +112,9 @@ def ver_paquetes_disponibles():
                 print(f"DESCRIPCIÓN: {paquete.descripcion or 'Sin descripción'}")
                 
                 # Mostrar actividades incluidas
-                actividades = paquete_dao.obtener_actividades_paquete(paquete.id)
-                mostrar_actividades_paquete(actividades)
+                if paquete.id:
+                    actividades = paquete_service.obtener_actividades_paquete(paquete.id)
+                    mostrar_actividades_paquete(actividades)
             print("="*100 + "\n")
     except Exception as e:
         print(f"ERROR: Error al cargar paquetes: {e}")
@@ -129,14 +123,14 @@ def ver_paquetes_disponibles():
 
 def crear_reserva(cliente_id: int):
     """Proceso de creación de nueva reserva."""
-    paquete_dao = PaqueteDAO()
+    paquete_service = PaqueteService()
     limpiar_pantalla()
     print("=== CREAR RESERVA ===")
     print("(Presione Enter, '0' o 'cancelar' en cualquier momento para abortar)\n")
     
     try:
         # Mostrar paquetes disponibles
-        paquetes = paquete_dao.listar_disponibles()
+        paquetes = paquete_service.listar_paquetes_disponibles()
         if not paquetes:
             print("No hay paquetes disponibles.")
             pausar()
@@ -150,7 +144,7 @@ def crear_reserva(cliente_id: int):
         paquete_id = int(paquete_id_str)
         
         # Obtener el paquete seleccionado y validar cupos
-        paquete_seleccionado = paquete_dao.obtener_por_id(paquete_id)
+        paquete_seleccionado = paquete_service.obtener_paquete(paquete_id)
         if not paquete_seleccionado:
             print("ERROR: El paquete seleccionado no existe.")
             pausar()
@@ -183,8 +177,9 @@ def crear_reserva(cliente_id: int):
             pausar()
             return
         
-        # Crear reserva usando el manager
-        reserva_id = crear_reserva_manager(cliente_id, paquete_id, num_personas)
+        # Crear reserva usando el service
+        reserva_service = ReservaService()
+        reserva_id = reserva_service.crear_reserva_paquete(cliente_id, paquete_id, num_personas)
         print(f"\nEXITO: Reserva creada exitosamente con ID: {reserva_id}")
         print("Estado: Pendiente de pago")
         print("\nPuedes realizar el pago desde el menú 'Realizar Pago'")
@@ -201,14 +196,14 @@ def crear_reserva(cliente_id: int):
 
 def crear_reserva_destino(cliente_id: int):
     """Proceso de creación de reserva de destino individual."""
-    destino_dao = DestinoDAO()
+    destino_service = DestinoService()
     limpiar_pantalla()
     print("=== CREAR RESERVA DE DESTINO ===")
     print("(Presione Enter, '0' o 'cancelar' en cualquier momento para abortar)\n")
     
     try:
         # Mostrar destinos disponibles
-        destinos = destino_dao.listar_todos()
+        destinos = destino_service.listar_todos_destinos()
         if not destinos:
             print("No hay destinos disponibles.")
             pausar()
@@ -222,7 +217,7 @@ def crear_reserva_destino(cliente_id: int):
         destino_id = int(destino_id_str)
         
         # Obtener el destino seleccionado y validar cupos
-        destino_seleccionado = destino_dao.obtener_por_id(destino_id)
+        destino_seleccionado = destino_service.obtener_destino(destino_id)
         if not destino_seleccionado:
             print("ERROR: El destino seleccionado no existe.")
             pausar()
@@ -254,8 +249,9 @@ def crear_reserva_destino(cliente_id: int):
             pausar()
             return
         
-        # Crear reserva usando el manager
-        reserva_id = crear_reserva_destino_manager(cliente_id, destino_id, num_personas)
+        # Crear reserva usando el service
+        reserva_service = ReservaService()
+        reserva_id = reserva_service.crear_reserva_destino(cliente_id, destino_id, num_personas)
         print(f"\nEXITO: Reserva de destino creada exitosamente con ID: {reserva_id}")
         print("Estado: Pendiente de pago")
         print("\nPuedes realizar el pago desde el menú 'Realizar Pago'")
@@ -272,12 +268,12 @@ def crear_reserva_destino(cliente_id: int):
 
 def ver_mis_reservas(cliente_id: int):
     """Lista reservas del cliente."""
-    reserva_dao = ReservaDAO()
+    reserva_service = ReservaService()
     limpiar_pantalla()
     print("=== MIS RESERVAS ===\n")
     
     try:
-        reservas = reserva_dao.listar_por_cliente(cliente_id)
+        reservas = reserva_service.listar_reservas_cliente(cliente_id)
         if not reservas:
             print("No tienes reservas registradas.")
         else:
@@ -297,13 +293,13 @@ def ver_mis_reservas(cliente_id: int):
 
 def cancelar_reserva(cliente_id: int):
     """Proceso de cancelación de reserva."""
-    reserva_dao = ReservaDAO()
+    reserva_service = ReservaService()
     
     try:
         reserva_id = int(input("\nID de la reserva a cancelar: "))
         
         # Verificar que la reserva pertenece al cliente
-        reserva = reserva_dao.obtener_por_id(reserva_id)
+        reserva = reserva_service.obtener_reserva(reserva_id)
         if not reserva:
             print("ERROR: Reserva no encontrada")
             pausar()
@@ -321,7 +317,8 @@ def cancelar_reserva(cliente_id: int):
         
         confirmacion = input(f"¿Confirma cancelación de reserva {reserva_id}? (s/n): ")
         if confirmacion.lower() == 's':
-            if cancelar_reserva_manager(reserva_id):
+            reserva_service = ReservaService()
+            if reserva_service.cancelar_reserva(reserva_id):
                 print("EXITO: Reserva cancelada exitosamente")
                 print("Los cupos han sido devueltos al paquete")
             else:
@@ -334,13 +331,13 @@ def cancelar_reserva(cliente_id: int):
 
 def realizar_pago_cliente(cliente_id: int):
     """Proceso de pago de una reserva."""
-    reserva_dao = ReservaDAO()
+    reserva_service = ReservaService()
     limpiar_pantalla()
     print("=== REALIZAR PAGO ===\n")
     
     try:
         # Mostrar reservas pendientes de pago
-        reservas = reserva_dao.listar_por_cliente(cliente_id)
+        reservas = reserva_service.listar_reservas_cliente(cliente_id)
         reservas_pendientes = [r for r in reservas if r.estado in ["PENDIENTE", "CONFIRMADA"]]
         
         if not reservas_pendientes:
@@ -355,7 +352,7 @@ def realizar_pago_cliente(cliente_id: int):
         reserva_id = int(input("\nID de la reserva a pagar: "))
         
         # Verificar que la reserva existe y pertenece al cliente
-        reserva = reserva_dao.obtener_por_id(reserva_id)
+        reserva = reserva_service.obtener_reserva(reserva_id)
         if not reserva or reserva.usuario_id != cliente_id:
             print("ERROR: Reserva no válida")
             pausar()
@@ -387,7 +384,8 @@ def realizar_pago_cliente(cliente_id: int):
         confirmacion = input("¿Confirmar pago? (s/n): ")
         
         if confirmacion.lower() == 's':
-            pago_id = procesar_pago(reserva_id, metodo_pago)
+            pago_service = PagoService()
+            pago_id = pago_service.procesar_pago(reserva_id, metodo_pago)
             print("\nEXITO: Pago procesado exitosamente")
             print(f"ID de pago: {pago_id}")
             print(f"Método: {metodo_pago}")
@@ -402,19 +400,21 @@ def realizar_pago_cliente(cliente_id: int):
 
 def ver_mis_pagos(cliente_id: int):
     """Historial de pagos."""
-    reserva_dao = ReservaDAO()
+    reserva_service = ReservaService()
     limpiar_pantalla()
     print("=== HISTORIAL DE PAGOS ===\n")
     
     try:
         # Obtener todas las reservas del cliente
-        reservas = reserva_dao.listar_por_cliente(cliente_id)
+        reservas = reserva_service.listar_reservas_cliente(cliente_id)
         
+        pago_service = PagoService()
         todos_pagos = []
         for reserva in reservas:
-            pagos = obtener_historial_pagos(reserva.id)
-            if pagos:
-                todos_pagos.extend(pagos)
+            if reserva.id is not None:  # Validar que id no sea None
+                pagos = pago_service.obtener_historial_pagos(reserva.id)
+                if pagos:
+                    todos_pagos.extend(pagos)
         
         if not todos_pagos:
             print("No tienes pagos registrados.")
@@ -428,13 +428,13 @@ def ver_mis_pagos(cliente_id: int):
 
 def ver_mi_perfil(usuario: UsuarioDTO) -> UsuarioDTO | None:
     """Muestra información del cliente y permite editarlo. Retorna usuario actualizado si cambia."""
-    usuario_dao = UsuarioDAO()
+    usuario_service = UsuarioService()
     limpiar_pantalla()
     print("=== MI PERFIL ===\n")
     
     try:
         # Recargar datos actuales del usuario
-        usuario_actual = usuario_dao.obtener_por_id(usuario.id)  # type: ignore
+        usuario_actual = usuario_service.obtener_usuario(usuario.id)  # type: ignore
         if not usuario_actual:
             print("ERROR: Error al cargar perfil")
             pausar()
@@ -463,23 +463,23 @@ def ver_mi_perfil(usuario: UsuarioDTO) -> UsuarioDTO | None:
 
 def actualizar_perfil(usuario: UsuarioDTO) -> UsuarioDTO | None:
     """Modificar datos del usuario. Retorna usuario actualizado o None si falla."""
-    usuario_dao = UsuarioDAO()
+    usuario_service = UsuarioService()
     
     try:
         print("\n=== EDITAR PERFIL ===")
         nuevo_nombre = input(f"Nuevo nombre (Enter='{usuario.nombre}'): ") or usuario.nombre
-        nuevo_email = input(f"Nuevo email (Enter='{usuario.email}'): ") or usuario.email
         
-        usuario.nombre = nuevo_nombre
-        usuario.email = nuevo_email
+        # Actualizar usando el servicio
+        usuario_actualizado = usuario_service.actualizar_perfil(
+            usuario.id,  # type: ignore
+            nuevo_nombre
+        )
         
-        if usuario_dao.actualizar(usuario):
-            print("EXITO: Perfil actualizado exitosamente")
-            return usuario
-        else:
-            print("ERROR: No se pudo actualizar el perfil")
-            return None
+        print("\nEXITO: Perfil actualizado correctamente")
+        pausar()
+        return usuario_actualizado
             
     except Exception as e:
         print(f"ERROR: Error: {e}")
+        pausar()
         return None

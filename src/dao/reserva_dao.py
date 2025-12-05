@@ -153,3 +153,25 @@ class ReservaDAO():
             )
             for r in reservas
         ]
+    
+    def listar_todas(self) -> list[ReservaDTO]:
+        """Retorna todas las reservas del sistema."""
+        sql = "SELECT * FROM Reservas ORDER BY fecha_reserva DESC"
+        reservas = ejecutar_consulta(sql)
+        
+        if not reservas:
+            return []
+        
+        return [
+            ReservaDTO(
+                id=r['id'],
+                fecha_reserva=r['fecha_reserva'],
+                estado=r['estado'],
+                monto_total=r['monto_total'],
+                numero_personas=r['numero_personas'],
+                usuario_id=r['usuario_id'],
+                paquete_id=r.get('paquete_id'),
+                destino_id=r.get('destino_id')
+            )
+            for r in reservas
+        ]

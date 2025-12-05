@@ -3,7 +3,7 @@ from datetime import datetime
 
 class UsuarioDTO():
     # Clase que representa los datos de un usuario del sistema.
-    def __init__(self,id: int | None, email:str, password_hash: str, nombre:str, rol: str, fecha_registro: datetime, ):
+    def __init__(self,id: int | None, email:str, password_hash: str, nombre:str, rol: str, fecha_registro: datetime):
         self.id = id
         self.email = email
         self.password_hash = password_hash

@@ -1,12 +1,16 @@
-﻿"""Menú de Administrador - Interfaz de Usuario por Consola
+"""Men� de Administrador - Interfaz de Usuario por Consola
 
 Interfaz para funciones administrativas del sistema.
 Solo accesible para usuarios con rol 'administrador'.
 """
 from datetime import datetime
 
-from src.dao import ActividadDAO, DestinoDAO, PaqueteDAO, ReservaDAO
-from src.dto import ActividadDTO, DestinoDTO, PaqueteDTO, UsuarioDTO
+from src.business.actividad_service import ActividadService
+from src.business.destino_service import DestinoService
+from src.business.paquete_service import PaqueteService
+from src.business.reserva_service import ReservaService
+from src.business.usuario_service import UsuarioService
+from src.dto import UsuarioDTO
 from src.utils import (
     MSG_ERROR_OPCION_INVALIDA,
     OperacionCancelada,
@@ -24,7 +28,7 @@ from src.utils.utils import (
 
 
 def mostrar_menu_admin(usuario: UsuarioDTO):
-    """Muestra el menú principal de administrador."""
+    """Muestra el men� principal de administrador."""
     while True:
         limpiar_pantalla()
         print(f"=== VIAJES AVENTURA - ADMIN: {usuario.nombre} ===")
@@ -32,8 +36,8 @@ def mostrar_menu_admin(usuario: UsuarioDTO):
         print("2. Actividades")
         print("3. Paquetes")
         print("4. Reportes")
-        print("5. Cerrar Sesión")
-        opcion = input("Elija su opción: ")
+        print("5. Cerrar Sesi�n")
+        opcion = input("Elija su opci�n: ")
         if not validar_opcion(int(opcion), 1, 5):
             print(MSG_ERROR_OPCION_INVALIDA)
             pausar()
@@ -51,8 +55,8 @@ def mostrar_menu_admin(usuario: UsuarioDTO):
 
 
 def menu_admin_destinos():
-    """Submenú para gestión de destinos."""
-    destino_dao = DestinoDAO()
+    """Submen� para gesti�n de destinos."""
+    destino_service = DestinoService()
     while True:
         limpiar_pantalla()
         print("=== VIAJES AVENTURA: DESTINOS ===")
@@ -61,7 +65,7 @@ def menu_admin_destinos():
         print("3. Editar Destino")
         print("4. Eliminar Destino")
         print("5. Volver")
-        opcion = input("Elija su opción: ")
+        opcion = input("Elija su opci�n: ")
         
         if not validar_opcion(int(opcion), 1, 5):
             print(MSG_ERROR_OPCION_INVALIDA)
@@ -73,11 +77,11 @@ def menu_admin_destinos():
             dest = input("Ingrese nombre de destino a buscar (o Enter para todos): ")
             if dest:
                 print(f"Mostrando destinos que coinciden con '{dest}'...")
-                destinos = destino_dao.buscar_por_nombre(dest)
+                destinos = destino_service.buscar_destinos_por_nombre(dest)
                 mostrar_tabla_destinos(destinos)
             else:
                 print("Mostrando todos los destinos...")
-                destinos = destino_dao.listar_todos()
+                destinos = destino_service.listar_todos_destinos()
                 mostrar_tabla_destinos(destinos)
             pausar()
         elif int(opcion) == 2:
@@ -85,16 +89,17 @@ def menu_admin_destinos():
             print("(Presione Enter, '0' o 'cancelar' para abortar)\n")
             try:
                 nombre = validar_cancelacion(input("Nombre del destino: "))
-                descripcion = validar_cancelacion(input("Descripción: "))
+                descripcion = validar_cancelacion(input("Descripci�n: "))
                 costo_base_str = validar_cancelacion(input("Costo base del destino: "))
                 costo_base = float(costo_base_str)
+                cupos_str = validar_cancelacion(input("Cupos disponibles (Enter=50): ")) or "50"
+                cupos = int(cupos_str)
                 
                 print(f"Agregando destino '{nombre}'...")
-                new_destino = DestinoDTO(None, nombre, descripcion, costo_base)
-                new_destino.id = destino_dao.crear(new_destino)
+                new_destino = destino_service.crear_destino(nombre, "Pa�s", descripcion, costo_base, cupos)
                 print(f"EXITO: Destino '{nombre}' agregado con ID: {new_destino.id}")
             except OperacionCancelada:
-                print("\nINFO: Operación cancelada.")
+                print("\nINFO: Operaci�n cancelada.")
             except Exception as e:
                 print(f"ERROR: Error al agregar destino: {e}")
             pausar()
@@ -102,7 +107,7 @@ def menu_admin_destinos():
             print("=== VIAJES AVENTURA: EDITAR DESTINO ===")
             print("(Presione Enter, '0' o 'cancelar' para abortar)\n")
             try:
-                destinos = destino_dao.listar_todos()
+                destinos = destino_service.listar_todos_destinos()
                 print("Destinos disponibles:")
                 for d in destinos:
                     print(f"- {d.nombre} (ID: {d.id})")
@@ -110,55 +115,57 @@ def menu_admin_destinos():
                 id_editar_str = validar_cancelacion(input("\nIngrese el ID del destino a editar: "))
                 id_editar = int(id_editar_str)
                 
-                destino = destino_dao.obtener_por_id(id_editar) 
+                destino = destino_service.obtener_destino(id_editar)
                 if not destino:
-                    print(f"ERROR: No se encontró destino con ID {id_editar}.")
+                    print(f"ERROR: No se encontr� destino con ID {id_editar}.")
                     pausar()
                     continue
                     
                 print(f"\nDestino a editar: {destino.nombre}")
                 nuevo_nombre = input(f"Nuevo nombre (Enter para mantener '{destino.nombre}'): ") or destino.nombre
-                nueva_descripcion = input("Nueva descripción (Enter para mantener): ") or destino.descripcion
-                nuevo_costo_base = input(f"Nuevo costo base (Enter para mantener '{destino.costo_base}'): ") or destino.costo_base
+                nueva_descripcion = input("Nueva descripci�n (Enter para mantener): ") or destino.descripcion
+                nuevo_costo_base_str = input(f"Nuevo costo base (Enter para mantener '{destino.costo_base}'): ")
+                nuevo_costo_base = float(nuevo_costo_base_str) if nuevo_costo_base_str else destino.costo_base
+                nuevos_cupos_str = input(f"Nuevos cupos (Enter para mantener '{destino.cupos_disponibles}'): ")
+                nuevos_cupos = int(nuevos_cupos_str) if nuevos_cupos_str else destino.cupos_disponibles
                 
                 print(f"\nActualizando destino ID {id_editar}...")
-                destino.nombre = nuevo_nombre
-                destino.descripcion = nueva_descripcion
-                destino.costo_base = float(nuevo_costo_base)
-                actualizado = destino_dao.actualizar(id_editar, destino)
-                
-                if actualizado:
-                    print(f"EXITO: Destino ID {id_editar} actualizado exitosamente.")
-                else:
-                    print(f"ERROR: No se pudo actualizar el destino ID {id_editar}.")
-                    
+                destino_actualizado = destino_service.actualizar_destino(
+                    id_editar,
+                    nuevo_nombre,
+                    "Pa�s",  # Campo pais no disponible en la entrada original
+                    nueva_descripcion,
+                    nuevo_costo_base,
+                    nuevos_cupos
+                )
+                print(f"EXITO: Destino '{destino_actualizado.nombre}' actualizado correctamente.")
             except OperacionCancelada:
-                print("\nINFO: Operación cancelada.")
+                print("\nINFO: Operaci�n cancelada.")
             except Exception as e:
-                print(f"ERROR: Error al actualizar destino: {e}")
+                print(f"ERROR: Error al editar destino: {e}")
             pausar()
         elif int(opcion) == 4:
             print("=== VIAJES AVENTURA: ELIMINAR DESTINO ===")
-            destinos = destino_dao.listar_todos()
+            destinos = destino_service.listar_todos_destinos()
             print("Destinos disponibles:")
             for d in destinos:
                 print(f"- {d.nombre} (ID: {d.id})")
             id_eliminar = int(input("\nIngrese el ID del destino a eliminar: "))
-            destino = destino_dao.obtener_por_id(id_eliminar)
+            destino = destino_service.obtener_destino(id_eliminar)
             if not destino:
-                print(f"No se encontró destino con ID {id_eliminar}.")
+                print(f"No se encontr� destino con ID {id_eliminar}.")
                 pausar()
                 continue
             print(f"Destino a eliminar: {destino.nombre}")
-            confirmar = input("¿Está seguro? (s/n): ")
+            confirmar = input("�Est� seguro? (s/n): ")
             if confirmar.lower() != 's':    
-                print("Eliminación cancelada.")
+                print("Eliminaci�n cancelada.")
                 pausar()
                 continue
             print(f"Eliminando destino ID {id_eliminar}...")
             # Lógica para eliminar destino
             try:
-                eliminado = destino_dao.eliminar(id_eliminar)
+                eliminado = destino_service.eliminar_destino(id_eliminar)
                 if eliminado:
                     print(f"Destino ID {id_eliminar} eliminado exitosamente.")
                 else:
@@ -172,9 +179,9 @@ def menu_admin_destinos():
 
 
 def menu_admin_actividades():
-    """Submenú para gestión de actividades."""
-    actividad_dao = ActividadDAO()
-    destino_dao = DestinoDAO()
+    """Submen� para gesti�n de actividades."""
+    actividad_service = ActividadService()
+    destino_service = DestinoService()
     
     while True:
         limpiar_pantalla()
@@ -184,7 +191,7 @@ def menu_admin_actividades():
         print("3. Editar Actividad")
         print("4. Eliminar Actividad")
         print("5. Volver")
-        opcion = input("Elija su opción: ")
+        opcion = input("Elija su opci�n: ")
         if not validar_opcion(int(opcion), 1, 5):
             print(MSG_ERROR_OPCION_INVALIDA)
             pausar()
@@ -192,7 +199,7 @@ def menu_admin_actividades():
         
         if int(opcion) == 1:
             print("=== VIAJES AVENTURA: LISTAR ACTIVIDADES ===")
-            actividades = actividad_dao.listar_todas()
+            actividades = actividad_service.listar_todas_actividades()
             if not actividades:
                 print("No hay actividades registradas.")
             else:
@@ -201,7 +208,7 @@ def menu_admin_actividades():
         elif int(opcion) == 2:
             print("=== VIAJES AVENTURA: AGREGAR ACTIVIDAD ===")
             # Listar destinos disponibles
-            destinos = destino_dao.listar_todos()
+            destinos = destino_service.listar_todos_destinos()
             if not destinos:
                 print("No hay destinos disponibles. Cree destinos primero.")
                 pausar()
@@ -212,14 +219,13 @@ def menu_admin_actividades():
             
             try:
                 nombre = input("\nNombre de la actividad: ")
-                descripcion = input("Descripción: ")
-                duracion = int(input("Duración (horas): "))
+                descripcion = input("Descripci�n: ")
+                duracion = int(input("Duraci�n (horas): "))
                 precio = float(input("Precio base: "))
                 destino_id = int(input("ID del destino: "))
                 
-                nueva_actividad = ActividadDTO(0, nombre, descripcion, duracion, precio, destino_id)
-                id_creado = actividad_dao.crear(nueva_actividad)
-                print(f"EXITO: Actividad creada con ID: {id_creado}")
+                nueva_actividad = actividad_service.crear_actividad(nombre, descripcion, duracion, precio, destino_id)
+                print(f"EXITO: Actividad creada con ID: {nueva_actividad.id}")
             except Exception as e:
                 print(f"ERROR: Error al crear actividad: {e}")
             pausar()
@@ -227,16 +233,16 @@ def menu_admin_actividades():
             print("=== VIAJES AVENTURA: EDITAR ACTIVIDAD ===")
             try:
                 id_editar = int(input("ID de la actividad a editar: "))
-                actividad = actividad_dao.obtener_por_id(id_editar)
+                actividad = actividad_service.obtener_actividad(id_editar)
                 if not actividad:
-                    print(f"No se encontró actividad con ID {id_editar}")
+                    print(f"No se encontr� actividad con ID {id_editar}")
                     pausar()
                     continue
                 
                 print(f"\nActividad actual: {actividad.nombre}")
                 nuevo_nombre = input(f"Nuevo nombre (Enter='{actividad.nombre}'): ") or actividad.nombre
-                nueva_descripcion = input(f"Nueva descripción (Enter='{actividad.descripcion}'): ") or actividad.descripcion
-                nueva_duracion = input(f"Nueva duración (Enter={actividad.duracion_horas}h): ")
+                nueva_descripcion = input(f"Nueva descripci�n (Enter='{actividad.descripcion}'): ") or actividad.descripcion
+                nueva_duracion = input(f"Nueva duraci�n (Enter={actividad.duracion_horas}h): ")
                 nuevo_precio = input(f"Nuevo precio (Enter=${actividad.precio_base}): ")
                 nuevo_destino = input(f"Nuevo destino ID (Enter={actividad.destino_id}): ")
                 
@@ -246,10 +252,15 @@ def menu_admin_actividades():
                 actividad.precio_base = float(nuevo_precio) if nuevo_precio else actividad.precio_base
                 actividad.destino_id = int(nuevo_destino) if nuevo_destino else actividad.destino_id
                 
-                if actividad_dao.actualizar(id_editar, actividad):
-                    print("EXITO: Actividad actualizada exitosamente")
-                else:
-                    print("ERROR: No se pudo actualizar la actividad")
+                actividad_service.actualizar_actividad(
+                    id_editar,
+                    actividad.nombre,
+                    actividad.descripcion,
+                    actividad.duracion_horas,
+                    actividad.precio_base,
+                    actividad.destino_id
+                )
+                print("EXITO: Actividad actualizada exitosamente")
             except Exception as e:
                 print(f"ERROR: Error: {e}")
             pausar()
@@ -257,21 +268,21 @@ def menu_admin_actividades():
             print("=== VIAJES AVENTURA: ELIMINAR ACTIVIDAD ===")
             try:
                 id_eliminar = int(input("ID de la actividad a eliminar: "))
-                actividad = actividad_dao.obtener_por_id(id_eliminar)
+                actividad = actividad_service.obtener_actividad(id_eliminar)
                 if not actividad:
-                    print(f"No se encontró actividad con ID {id_eliminar}")
+                    print(f"No se encontr� actividad con ID {id_eliminar}")
                     pausar()
                     continue
                 
                 print(f"\nActividad: {actividad.nombre}")
                 confirmacion = input("¿Está seguro? (s/n): ")
                 if confirmacion.lower() == 's':
-                    if actividad_dao.eliminar(id_eliminar):
+                    if actividad_service.eliminar_actividad(id_eliminar):
                         print("EXITO: Actividad eliminada exitosamente")
                     else:
                         print("ERROR: No se pudo eliminar la actividad")
                 else:
-                    print("Eliminación cancelada")
+                    print("Eliminaci�n cancelada")
             except Exception as e:
                 print(f"ERROR: Error: {e}")
             pausar()
@@ -280,8 +291,8 @@ def menu_admin_actividades():
 
 
 def menu_admin_paquetes():
-    """Submenú para gestión de paquetes."""
-    paquete_dao = PaqueteDAO()
+    """Submen� para gesti�n de paquetes."""
+    paquete_service = PaqueteService()
     
     while True:
         limpiar_pantalla()
@@ -291,7 +302,7 @@ def menu_admin_paquetes():
         print("3. Editar Paquete")
         print("4. Eliminar Paquete")
         print("5. Volver")
-        opcion = input("Elija su opción: ")
+        opcion = input("Elija su opci�n: ")
         if not validar_opcion(int(opcion), 1, 5):
             print(MSG_ERROR_OPCION_INVALIDA)
             pausar()
@@ -299,7 +310,7 @@ def menu_admin_paquetes():
         
         if int(opcion) == 1:
             print("=== VIAJES AVENTURA: LISTAR PAQUETES ===")
-            paquetes = paquete_dao.listar_todos()
+            paquetes = paquete_service.listar_todos_paquetes()
             if not paquetes:
                 print("No hay paquetes registrados.")
             else:
@@ -313,14 +324,21 @@ def menu_admin_paquetes():
                 fecha_fin_str = input("Fecha fin (YYYY-MM-DD): ")
                 precio = float(input("Precio total: "))
                 cupos = int(input("Cupos disponibles: "))
-                politica_id = int(input("ID política de cancelación (ej: 1): "))
+                politica_id = int(input("ID pol�tica de cancelaci�n (ej: 1): "))
                 
                 fecha_inicio = datetime.strptime(fecha_inicio_str, "%Y-%m-%d")
                 fecha_fin = datetime.strptime(fecha_fin_str, "%Y-%m-%d")
                 
-                nuevo_paquete = PaqueteDTO(0, nombre, fecha_inicio, fecha_fin, precio, cupos, politica_id)
-                id_creado = paquete_dao.crear(nuevo_paquete)
-                print(f"EXITO: Paquete creado con ID: {id_creado}")
+                nuevo_paquete = paquete_service.crear_paquete(
+                    nombre,
+                    "",  # descripcion
+                    fecha_inicio,
+                    fecha_fin,
+                    precio,
+                    cupos,
+                    politica_id
+                )
+                print(f"EXITO: Paquete creado con ID: {nuevo_paquete.id}")
             except Exception as e:
                 print(f"ERROR: Error al crear paquete: {e}")
             pausar()
@@ -328,9 +346,9 @@ def menu_admin_paquetes():
             print("=== VIAJES AVENTURA: EDITAR PAQUETE ===")
             try:
                 id_editar = int(input("ID del paquete a editar: "))
-                paquete = paquete_dao.obtener_por_id(id_editar)
+                paquete = paquete_service.obtener_paquete(id_editar)
                 if not paquete:
-                    print(f"No se encontró paquete con ID {id_editar}")
+                    print(f"No se encontr� paquete con ID {id_editar}")
                     pausar()
                     continue
                 
@@ -343,10 +361,17 @@ def menu_admin_paquetes():
                 paquete.precio_total = float(nuevo_precio) if nuevo_precio else paquete.precio_total
                 paquete.cupos_disponibles = int(nuevos_cupos) if nuevos_cupos else paquete.cupos_disponibles
                 
-                if paquete_dao.actualizar(id_editar, paquete):
-                    print("EXITO: Paquete actualizado exitosamente")
-                else:
-                    print("ERROR: No se pudo actualizar el paquete")
+                paquete_service.actualizar_paquete(
+                    id_editar,
+                    paquete.nombre,
+                    paquete.descripcion or "",
+                    paquete.fecha_inicio,
+                    paquete.fecha_fin,
+                    paquete.precio_total,
+                    paquete.cupos_disponibles,
+                    paquete.politica_id
+                )
+                print("EXITO: Paquete actualizado exitosamente")
             except Exception as e:
                 print(f"ERROR: Error: {e}")
             pausar()
@@ -354,21 +379,21 @@ def menu_admin_paquetes():
             print("=== VIAJES AVENTURA: ELIMINAR PAQUETE ===")
             try:
                 id_eliminar = int(input("ID del paquete a eliminar: "))
-                paquete = paquete_dao.obtener_por_id(id_eliminar)
+                paquete = paquete_service.obtener_paquete(id_eliminar)
                 if not paquete:
-                    print(f"No se encontró paquete con ID {id_eliminar}")
+                    print(f"No se encontr� paquete con ID {id_eliminar}")
                     pausar()
                     continue
                 
                 print(f"\nPaquete: {paquete.nombre}")
                 confirmacion = input("¿Está seguro? (s/n): ")
                 if confirmacion.lower() == 's':
-                    if paquete_dao.eliminar(id_eliminar):
+                    if paquete_service.eliminar_paquete(id_eliminar):
                         print("EXITO: Paquete eliminado exitosamente")
                     else:
                         print("ERROR: No se pudo eliminar el paquete")
                 else:
-                    print("Eliminación cancelada")
+                    print("Eliminaci�n cancelada")
             except Exception as e:
                 print(f"ERROR: Error: {e}")
             pausar()
@@ -378,12 +403,12 @@ def menu_admin_paquetes():
 
 def menu_admin_reportes():
     """Submenú para reportes administrativos."""
-    from src.business.pago_manager import generar_reporte_ventas
-    from src.dao.usuario_dao import UsuarioDAO
+    from src.business.pago_service import PagoService
     from src.utils.constants import ESTADOS_RESERVA
     
-    reserva_dao = ReservaDAO()
-    usuario_dao = UsuarioDAO()
+    reserva_service = ReservaService()
+    usuario_service = UsuarioService()
+    pago_service = PagoService()
     
     while True:
         limpiar_pantalla()
@@ -392,7 +417,7 @@ def menu_admin_reportes():
         print("2. Reporte de Ventas")
         print("3. Reporte de Clientes")
         print("4. Volver")
-        opcion = input("Elija su opción: ")
+        opcion = input("Elija su opci�n: ")
         if not validar_opcion(int(opcion), 1, 4):
             print(MSG_ERROR_OPCION_INVALIDA)
             pausar()
@@ -404,20 +429,20 @@ def menu_admin_reportes():
             print("0. Todas")
             for i, estado in enumerate(ESTADOS_RESERVA, 1):
                 print(f"{i}. {estado}")
-            filtro = input("\nSeleccione opción (Enter=Todas): ")
+            filtro = input("\nSeleccione opci�n (Enter=Todas): ")
             
             try:
                 if not filtro or filtro == '0':
-                    # Listar todas - necesitaríamos un método listar_todas() en ReservaDAO
-                    print("\nListando todas las reservas por estado:")
-                    for estado in ESTADOS_RESERVA:
-                        reservas = reserva_dao.listar_por_estado(estado)
-                        if reservas:
-                            print(f"\n--- {estado.upper()} ({len(reservas)}) ---")
-                            mostrar_tabla_reservas(reservas)
+                    # Listar todas las reservas
+                    todas_reservas = reserva_service.listar_todas_reservas()
+                    print(f"\nTotal de reservas: {len(todas_reservas)}")
+                    if todas_reservas:
+                        mostrar_tabla_reservas(todas_reservas)
                 else:
                     estado_seleccionado = ESTADOS_RESERVA[int(filtro) - 1]
-                    reservas = reserva_dao.listar_por_estado(estado_seleccionado)
+                    # Filtrar manualmente por estado
+                    todas_reservas = reserva_service.listar_todas_reservas()
+                    reservas = [r for r in todas_reservas if r.estado == estado_seleccionado]
                     print(f"\nReservas en estado '{estado_seleccionado}': {len(reservas)}")
                     if reservas:
                         mostrar_tabla_reservas(reservas)
@@ -430,9 +455,9 @@ def menu_admin_reportes():
                 fecha_inicio = input("Fecha inicio (YYYY-MM-DD): ")
                 fecha_fin = input("Fecha fin (YYYY-MM-DD): ")
                 
-                reporte = generar_reporte_ventas(fecha_inicio, fecha_fin)
+                reporte = pago_service.generar_reporte_ventas(fecha_inicio, fecha_fin)
                 print("\n--- REPORTE DE VENTAS ---")
-                print(f"Período: {reporte['fecha_inicio']} al {reporte['fecha_fin']}")
+                print(f"Per�odo: {reporte['fecha_inicio']} al {reporte['fecha_fin']}")
                 print(f"Total de pagos: {reporte['cantidad_pagos']}")
                 print(f"Monto total: ${reporte['total']:.2f}")
                 
@@ -446,7 +471,8 @@ def menu_admin_reportes():
         elif int(opcion) == 3:
             print("=== VIAJES AVENTURA: REPORTE DE CLIENTES ===")
             try:
-                clientes = usuario_dao.listar_por_rol('cliente')
+                todos_usuarios = usuario_service.listar_todos_usuarios()
+                clientes = [u for u in todos_usuarios if u.rol == 'cliente']
                 print(f"\nTotal de clientes registrados: {len(clientes)}")
                 print("\n" + "="*70)
                 for c in clientes:

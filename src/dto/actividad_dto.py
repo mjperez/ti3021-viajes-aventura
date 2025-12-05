@@ -1,6 +1,6 @@
 class ActividadDTO:
     # Clase que representa los datos de una actividad turística.
-    def __init__(self, id:int, nombre:str, descripcion: str, duracion_horas: int, precio_base: float, destino_id:int):
+    def __init__(self, id:int | None, nombre:str, descripcion: str, duracion_horas: int, precio_base: float, destino_id:int):
         self.id=id
         self.nombre=nombre
         self.descripcion=descripcion

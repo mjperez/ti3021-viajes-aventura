@@ -64,3 +64,13 @@ ViajesAventura.spec
 .gitignore
 ViajesAventura_Portable/LEEME.txt
 ViajesAventura_Portable/ViajesAventura.exe
+db_sqlite_adapter.py
+main_sqlite.py
+.gitignore
+viajes_aventura.spec
+.gitignore
+ViajesAventuraPortable.zip
+viajes_portable.spec
+ViajesAventuraPortable/ViajesAventuraPortable.exe
+ViajesAventuraPortable/LEEME.txt
+ViajesAventuraPortable/README.md
