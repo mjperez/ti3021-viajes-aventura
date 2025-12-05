@@ -347,7 +347,10 @@ def realizar_pago_cliente(cliente_id: int):
         
         print("Reservas pendientes de pago:")
         for r in reservas_pendientes:
-            print(f"  [{r.id}] Paquete {r.paquete_id} - ${int(r.monto_total):,} - {r.numero_personas} personas - Estado: {r.estado}".replace(",", "."))
+            # Determinar si es paquete o destino
+            tipo = "Paquete" if r.paquete_id else "Destino"
+            id_ref = r.paquete_id if r.paquete_id else r.destino_id
+            print(f"  [{r.id}] {tipo} #{id_ref} - ${int(r.monto_total):,} - {r.numero_personas} personas - Estado: {r.estado}".replace(",", "."))
         
         reserva_id = int(input("\nID de la reserva a pagar: "))
         
