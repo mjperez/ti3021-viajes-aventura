@@ -19,8 +19,8 @@ class DestinoDAO():
 
     def crear(self, destino_dto: DestinoDTO) -> int: 
         #Inserta un nuevo destino
-        sql = "INSERT INTO Destinos (nombre, descripcion, costo_base) VALUES (%s, %s, %s)"
-        params=(destino_dto.nombre,destino_dto.descripcion,destino_dto.costo_base)
+        sql = "INSERT INTO Destinos (nombre, descripcion, costo_base, cupos_disponibles) VALUES (%s, %s, %s, %s)"
+        params=(destino_dto.nombre,destino_dto.descripcion,destino_dto.costo_base,destino_dto.cupos_disponibles)
         return ejecutar_insercion(sql,params)
         
     def obtener_por_id(self, id: int) -> DestinoDTO | None: 
@@ -34,14 +34,15 @@ class DestinoDAO():
             id = destino['id'],
             nombre = destino['nombre'],
             descripcion= destino['descripcion'],
-            costo_base= destino['costo_base']
+            costo_base= destino['costo_base'],
+            cupos_disponibles= destino['cupos_disponibles']
             )
         
         ...
     def actualizar(self, id: int, destino_dto: DestinoDTO) -> bool: 
         #Actualiza datos del destino
-        sql = "UPDATE Destinos SET nombre=%s, descripcion=%s, costo_base=%s WHERE id=%s"
-        params = (destino_dto.nombre, destino_dto.descripcion, destino_dto.costo_base, id)
+        sql = "UPDATE Destinos SET nombre=%s, descripcion=%s, costo_base=%s, cupos_disponibles=%s WHERE id=%s"
+        params = (destino_dto.nombre, destino_dto.descripcion, destino_dto.costo_base, destino_dto.cupos_disponibles, id)
         filas = ejecutar_actualizacion(sql, params)
         return filas > 0
     
@@ -64,7 +65,8 @@ class DestinoDAO():
                 id=d['id'],
                 nombre=d['nombre'],
                 descripcion=d['descripcion'],
-                costo_base=d['costo_base']
+                costo_base=d['costo_base'],
+                cupos_disponibles=d['cupos_disponibles']
             )
             for d in destinos
         ]
@@ -83,7 +85,22 @@ class DestinoDAO():
                 id=d['id'],
                 nombre=d['nombre'],
                 descripcion=d['descripcion'],
-                costo_base=d['costo_base']
+                costo_base=d['costo_base'],
+                cupos_disponibles=d['cupos_disponibles']
             )
             for d in destinos
         ]
+    
+    def reducir_cupo(self, id: int) -> bool:
+        """Reduce en 1 el cupo disponible del destino."""
+        sql = "UPDATE Destinos SET cupos_disponibles = cupos_disponibles - 1 WHERE id=%s AND cupos_disponibles > 0"
+        params = (id,)
+        filas = ejecutar_actualizacion(sql, params)
+        return filas > 0
+    
+    def aumentar_cupo(self, id: int) -> bool:
+        """Aumenta en 1 el cupo disponible del destino."""
+        sql = "UPDATE Destinos SET cupos_disponibles = cupos_disponibles + 1 WHERE id=%s"
+        params = (id,)
+        filas = ejecutar_actualizacion(sql, params)
+        return filas > 0

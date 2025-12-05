@@ -20,9 +20,9 @@ def procesar_pago(reserva_id: int, metodo_pago: str) -> int:
     if not reserva:
         raise ValueError("La reserva no existe")
     
-    # Verificar que la reserva esté confirmada
-    if reserva.estado != "CONFIRMADA":
-        raise ValueError(f"La reserva debe estar CONFIRMADA. Estado actual: {reserva.estado}")
+    # Verificar que la reserva esté pendiente o confirmada
+    if reserva.estado not in ["PENDIENTE", "CONFIRMADA"]:
+        raise ValueError(f"La reserva debe estar PENDIENTE o CONFIRMADA. Estado actual: {reserva.estado}")
     
     # Calcular monto
     monto = reserva.monto_total

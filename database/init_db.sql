@@ -45,8 +45,9 @@ CREATE TABLE Usuarios (
 CREATE TABLE Destinos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
-    descripcion TEXT NOT NULL,
+    descripcion VARCHAR(500) NOT NULL,
     costo_base DECIMAL(10,2) NOT NULL,
+    cupos_disponibles INT NOT NULL DEFAULT 50 CHECK (cupos_disponibles >= 0),
     INDEX idx_nombre (nombre)
 ) ENGINE=InnoDB;
 
@@ -57,7 +58,7 @@ CREATE TABLE Destinos (
 CREATE TABLE Actividades (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
-    descripcion TEXT,
+    descripcion VARCHAR(500),
     duracion_horas INT NOT NULL,
     precio_base DECIMAL(10,2) NOT NULL DEFAULT 0.00,
     destino_id INT NOT NULL,
@@ -85,6 +86,7 @@ CREATE TABLE PoliticasCancelacion (
 CREATE TABLE Paquetes (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
+    descripcion TEXT,
     fecha_inicio DATETIME NOT NULL,
     fecha_fin DATETIME NOT NULL,
     precio_total DECIMAL(10,2) NOT NULL,
@@ -124,13 +126,17 @@ CREATE TABLE Reservas (
     monto_total DECIMAL(10,2) NOT NULL,
     numero_personas INT NOT NULL,
     usuario_id INT NOT NULL,
-    paquete_id INT NOT NULL,
+    paquete_id INT NULL,
+    destino_id INT NULL,
     FOREIGN KEY (usuario_id) REFERENCES Usuarios(id) ON DELETE CASCADE,
     FOREIGN KEY (paquete_id) REFERENCES Paquetes(id) ON DELETE CASCADE,
+    FOREIGN KEY (destino_id) REFERENCES Destinos(id) ON DELETE CASCADE,
     CHECK (monto_total >= 0),
     CHECK (numero_personas > 0),
+    CHECK ((paquete_id IS NOT NULL AND destino_id IS NULL) OR (paquete_id IS NULL AND destino_id IS NOT NULL)),
     INDEX idx_usuario (usuario_id),
     INDEX idx_paquete (paquete_id),
+    INDEX idx_destino (destino_id),
     INDEX idx_estado (estado),
     INDEX idx_fecha (fecha_reserva)
 ) ENGINE=InnoDB;
@@ -168,11 +174,11 @@ INSERT INTO Usuarios (email, password_hash, nombre, rol) VALUES
 ('admin@viajes-aventura.com', 'hash_aqui', 'Administrador', 'ADMIN');
 
 -- Destinos de ejemplo
-INSERT INTO Destinos (nombre, descripcion, costo_base) VALUES
-('París', 'La ciudad de la luz, famosa por la Torre Eiffel y el Louvre', 1200.00),
-('Roma', 'Ciudad histórica con el Coliseo y el Vaticano', 1000.00),
-('Barcelona', 'Ciudad mediterránea con arquitectura de Gaudí', 800.00),
-('Tokio', 'Metrópolis moderna con tradición japonesa', 1800.00);
+INSERT INTO Destinos (nombre, descripcion, costo_base, cupos_disponibles) VALUES
+('París', 'La ciudad de la luz, famosa por la Torre Eiffel y el Louvre', 1200.00, 50),
+('Roma', 'Ciudad histórica con el Coliseo y el Vaticano', 1000.00, 50),
+('Barcelona', 'Ciudad mediterránea con arquitectura de Gaudí', 800.00, 50),
+('Tokio', 'Metrópolis moderna con tradición japonesa', 1800.00, 50);
 
 -- Actividades de ejemplo
 INSERT INTO Actividades (nombre, descripcion, duracion_horas, precio_base, destino_id) VALUES
@@ -194,10 +200,10 @@ INSERT INTO Actividades (nombre, descripcion, duracion_horas, precio_base, desti
 ('Visita Monte Fuji', 'Excursión de día completo al Monte Fuji y lago Kawaguchi', 8, 200.00, 4);
 
 -- Paquete de ejemplo
-INSERT INTO Paquetes (nombre, fecha_inicio, fecha_fin, precio_total, cupos_disponibles, politica_id) VALUES
-('Europa Clásica', '2025-06-01 09:00:00', '2025-06-15 18:00:00', 3500.00, 20, 1),
-('Tour Mediterráneo', '2025-07-10 10:00:00', '2025-07-20 16:00:00', 2800.00, 15, 2),
-('Aventura Asiática', '2025-08-05 08:00:00', '2025-08-18 20:00:00', 4200.00, 12, 1);
+INSERT INTO Paquetes (nombre, descripcion, fecha_inicio, fecha_fin, precio_total, cupos_disponibles, politica_id) VALUES
+('Europa Clásica', 'Recorre las principales capitales europeas: París, Roma, Londres y Madrid', '2025-06-01 09:00:00', '2025-06-15 18:00:00', 3500.00, 20, 1),
+('Tour Mediterráneo', 'Disfruta del sol y las playas de Grecia, Italia y España', '2025-07-10 10:00:00', '2025-07-20 16:00:00', 2800.00, 15, 2),
+('Aventura Asiática', 'Explora la cultura milenaria de Japón, China y Tailandia', '2025-08-05 08:00:00', '2025-08-18 20:00:00', 4200.00, 12, 1);
 
 -- Relación Paquetes-Destinos
 INSERT INTO Paquete_Destino (paquete_id, destino_id, orden_visita) VALUES

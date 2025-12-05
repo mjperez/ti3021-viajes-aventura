@@ -12,8 +12,8 @@ class PaqueteDAO():
     
     def crear(self, paquete_dto: PaqueteDTO) -> int: 
         #Inserta un nuevo paquete
-        sql = "INSERT INTO Paquetes (nombre, fecha_inicio, fecha_fin, precio_total, cupos_disponibles, politica_id) VALUES (%s,%s,%s,%s,%s,%s)"
-        params = (paquete_dto.nombre, paquete_dto.fecha_inicio, paquete_dto.fecha_fin, paquete_dto.precio_total, paquete_dto.cupos_disponibles, paquete_dto.politica_id)
+        sql = "INSERT INTO Paquetes (nombre, descripcion, fecha_inicio, fecha_fin, precio_total, cupos_disponibles, politica_id) VALUES (%s,%s,%s,%s,%s,%s,%s)"
+        params = (paquete_dto.nombre, paquete_dto.descripcion, paquete_dto.fecha_inicio, paquete_dto.fecha_fin, paquete_dto.precio_total, paquete_dto.cupos_disponibles, paquete_dto.politica_id)
         return ejecutar_insercion(sql, params)
     
     def obtener_por_id(self, id: int) -> PaqueteDTO | None: 
@@ -32,13 +32,14 @@ class PaqueteDAO():
             fecha_fin=paquete['fecha_fin'],
             precio_total=paquete['precio_total'],
             cupos_disponibles=paquete['cupos_disponibles'],
-            politica_id=paquete['politica_id']
+            politica_id=paquete['politica_id'],
+            descripcion=paquete.get('descripcion') or ''
         )
     
     def actualizar(self, id: int, paquete_dto: PaqueteDTO) -> bool: 
         #Actualiza datos del paquete
-        sql = "UPDATE Paquetes SET nombre=%s, fecha_inicio=%s, fecha_fin=%s, precio_total=%s, cupos_disponibles=%s, politica_id=%s WHERE id=%s"
-        params = (paquete_dto.nombre, paquete_dto.fecha_inicio, paquete_dto.fecha_fin, paquete_dto.precio_total, paquete_dto.cupos_disponibles, paquete_dto.politica_id, id)
+        sql = "UPDATE Paquetes SET nombre=%s, descripcion=%s, fecha_inicio=%s, fecha_fin=%s, precio_total=%s, cupos_disponibles=%s, politica_id=%s WHERE id=%s"
+        params = (paquete_dto.nombre, paquete_dto.descripcion, paquete_dto.fecha_inicio, paquete_dto.fecha_fin, paquete_dto.precio_total, paquete_dto.cupos_disponibles, paquete_dto.politica_id, id)
         filas = ejecutar_actualizacion(sql, params)
         return filas > 0
     
@@ -65,7 +66,8 @@ class PaqueteDAO():
                 fecha_fin=p['fecha_fin'],
                 precio_total=p['precio_total'],
                 cupos_disponibles=p['cupos_disponibles'],
-                politica_id=p['politica_id']
+                politica_id=p['politica_id'],
+                descripcion=p.get('descripcion') or ''
             )
             for p in paquetes
         ]
@@ -86,12 +88,13 @@ class PaqueteDAO():
                 fecha_fin=p['fecha_fin'],
                 precio_total=p['precio_total'],
                 cupos_disponibles=p['cupos_disponibles'],
-                politica_id=p['politica_id']
+                politica_id=p['politica_id'],
+                descripcion=p.get('descripcion') or ''
             )
             for p in paquetes
         ]
     
-    def reducir_cupo(self, id: int) -> bool: 
+    def reducir_cupo(self, id: int) -> bool:
         #Decrementa cupos_disponibles
         sql = "UPDATE Paquetes SET cupos_disponibles = cupos_disponibles - 1 WHERE id=%s AND cupos_disponibles > 0"
         params = (id,)
@@ -121,3 +124,16 @@ class PaqueteDAO():
         params = (paquete_id, destino_id)
         filas = ejecutar_actualizacion(sql, params)
         return filas > 0
+    
+    def obtener_actividades_paquete(self, paquete_id: int) -> list:
+        """Obtiene todas las actividades de los destinos incluidos en el paquete."""
+        sql = """
+        SELECT DISTINCT a.id, a.nombre, a.descripcion, a.duracion_horas, a.precio_base, d.nombre as destino_nombre
+        FROM Actividades a
+        JOIN Destinos d ON a.destino_id = d.id
+        JOIN Paquete_Destino pd ON d.id = pd.destino_id
+        WHERE pd.paquete_id = %s
+        ORDER BY d.nombre, a.nombre
+        """
+        params = (paquete_id,)
+        return ejecutar_consulta(sql, params)

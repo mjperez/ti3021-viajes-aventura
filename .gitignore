@@ -57,3 +57,10 @@ database/setup_sqlite.py
 src/config/db_connection_sqlite.py
 database/init_db_sqlite.sql
 main_portable.py
+ViajesAventura_Portable.zip
+.gitignore
+generar_hashes.py
+ViajesAventura.spec
+.gitignore
+ViajesAventura_Portable/LEEME.txt
+ViajesAventura_Portable/ViajesAventura.exe

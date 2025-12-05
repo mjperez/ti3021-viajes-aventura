@@ -40,40 +40,43 @@ def pausar():
     input("Presione Enter para continuar...")
 
 def mostrar_tabla_paquetes(paquetes: list) -> None:
-    """Muestra lista de paquetes en formato tabla."""
+    """Muestra lista de paquetes con descripción completa."""
     if not paquetes:
         print("No hay paquetes para mostrar.")
         return
     
-    # Encabezado
-    print("\n" + "="*120)
-    print(f"{'ID':<5} {'NOMBRE':<30} {'PRECIO':<12} {'CUPOS':<8} {'FECHA INICIO':<20} {'FECHA FIN':<20}")
-    print("="*120)
-    
-    # Filas
+    print("\n" + "="*100)
     for p in paquetes:
-        precio = f"${p.precio_total:,.2f}"
+        precio = f"${int(p.precio_total):,}".replace(",", ".")
         fecha_inicio = str(p.fecha_inicio)[:16] if p.fecha_inicio else "N/A"
         fecha_fin = str(p.fecha_fin)[:16] if p.fecha_fin else "N/A"
-        print(f"{p.id:<5} {p.nombre:<30} {precio:<12} {p.cupos_disponibles:<8} {fecha_inicio:<20} {fecha_fin:<20}")
-    
-    print("="*120 + "\n")
+        
+        print(f"\nID: {p.id}")
+        print(f"NOMBRE: {p.nombre}")
+        print(f"PRECIO: {precio}")
+        print(f"CUPOS DISPONIBLES: {p.cupos_disponibles}")
+        print(f"INICIO: {fecha_inicio}")
+        print(f"FIN: {fecha_fin}")
+        print(f"DESCRIPCIÓN: {p.descripcion or 'Sin descripción'}")
+        print("-"*100)
+    print("="*100 + "\n")
 
 def mostrar_tabla_destinos(destinos: list) -> None:
-    """Muestra lista de destinos en formato tabla."""
+    """Muestra lista de destinos en formato tabla con descripción completa."""
     if not destinos:
         print("No hay destinos para mostrar.")
         return
     
+    # Mostrar cada destino en su propio bloque
     print("\n" + "="*100)
-    print(f"{'ID':<5} {'NOMBRE':<30} {'COSTO BASE':<15} {'DESCRIPCIÓN':<48}")
-    print("="*100)
-    
     for d in destinos:
-        costo = f"${d.costo_base:,.2f}"
-        descripcion = d.descripcion[:45] + "..." if len(d.descripcion) > 45 else d.descripcion
-        print(f"{d.id:<5} {d.nombre:<30} {costo:<15} {descripcion:<48}")
-    
+        costo = f"${int(d.costo_base):,}".replace(",", ".")
+        print(f"\nID: {d.id}")
+        print(f"NOMBRE: {d.nombre}")
+        print(f"COSTO BASE: {costo}")
+        print(f"CUPOS DISPONIBLES: {d.cupos_disponibles}")
+        print(f"DESCRIPCIÓN: {d.descripcion}")
+        print("-"*100)
     print("="*100 + "\n")
 
 def mostrar_tabla_actividades(actividades: list) -> None:
@@ -88,7 +91,7 @@ def mostrar_tabla_actividades(actividades: list) -> None:
     
     for a in actividades:
         duracion = f"{a.duracion_horas}h"
-        precio = f"${a.precio_base:,.2f}"
+        precio = f"${int(a.precio_base):,}".replace(",", ".")
         descripcion = (a.descripcion[:29] + "...") if a.descripcion and len(a.descripcion) > 29 else (a.descripcion or "")
         print(f"{a.id:<5} {a.nombre:<35} {duracion:<12} {precio:<12} {a.destino_id:<12} {descripcion:<32}")
     
@@ -96,18 +99,41 @@ def mostrar_tabla_actividades(actividades: list) -> None:
 
 def mostrar_tabla_reservas(reservas: list) -> None:
     """Muestra lista de reservas en formato tabla."""
+    from src.dao.destino_dao import DestinoDAO
+    from src.dao.paquete_dao import PaqueteDAO
+    
     if not reservas:
         print("No hay reservas para mostrar.")
         return
     
+    paquete_dao = PaqueteDAO()
+    destino_dao = DestinoDAO()
+    
     print("\n" + "="*110)
-    print(f"{'ID':<5} {'PAQUETE ID':<12} {'ESTADO':<12} {'PERSONAS':<10} {'MONTO':<12} {'FECHA':<20} {'USUARIO ID':<12}")
+    print(f"{'ID':<5} {'TIPO':<12} {'ESTADO':<12} {'PERSONAS':<10} {'MONTO':<14} {'FECHA':<20} {'NOMBRE':<37}")
     print("="*110)
     
     for r in reservas:
-        monto = f"${r.monto_total:,.2f}"
+        monto = f"${int(r.monto_total):,}".replace(",", ".")
         fecha = str(r.fecha_reserva)[:19] if r.fecha_reserva else "N/A"
-        print(f"{r.id:<5} {r.paquete_id:<12} {r.estado:<12} {r.numero_personas:<10} {monto:<12} {fecha:<20} {r.usuario_id:<12}")
+        
+        # Determinar tipo y nombre según sea paquete o destino
+        if r.paquete_id:
+            tipo = "Paquete"
+            paquete = paquete_dao.obtener_por_id(r.paquete_id)
+            nombre = paquete.nombre if paquete else f"Paquete #{r.paquete_id}"
+        elif r.destino_id:
+            tipo = "Destino"
+            destino = destino_dao.obtener_por_id(r.destino_id)
+            nombre = destino.nombre if destino else f"Destino #{r.destino_id}"
+        else:
+            tipo = "Desconocido"
+            nombre = "N/A"
+        
+        # Truncar nombre si es muy largo
+        nombre = (nombre[:34] + "...") if len(nombre) > 34 else nombre
+        
+        print(f"{r.id:<5} {tipo:<12} {r.estado:<12} {r.numero_personas:<10} {monto:<14} {fecha:<20} {nombre:<37}")
     
     print("="*110 + "\n")
 
@@ -122,8 +148,29 @@ def mostrar_tabla_pagos(pagos: list) -> None:
     print("="*100)
     
     for p in pagos:
-        monto = f"${p.monto:,.2f}"
+        monto = f"${int(p.monto):,}".replace(",", ".")
         fecha = str(p.fecha_pago)[:19] if p.fecha_pago else "N/A"
         print(f"{p.id:<5} {p.reserva_id:<12} {monto:<12} {p.metodo:<15} {p.estado:<12} {fecha:<20}")
     
     print("="*100 + "\n")
+
+
+def mostrar_actividades_paquete(actividades: list) -> None:
+    """Muestra las actividades incluidas en un paquete."""
+    if not actividades:
+        print("\n  Este paquete no tiene actividades asignadas.\n")
+        return
+    
+    print("\n  ACTIVIDADES INCLUIDAS:")
+    print("  " + "-"*90)
+    destino_actual = None
+    for act in actividades:
+        # Agrupar por destino
+        if act['destino_nombre'] != destino_actual:
+            destino_actual = act['destino_nombre']
+            print(f"\n  📍 {destino_actual}")
+        
+        print(f"     • {act['nombre']} ({act['duracion_horas']}h)")
+        if act.get('descripcion'):
+            print(f"       {act['descripcion']}")
+    print("  " + "-"*90 + "\n")

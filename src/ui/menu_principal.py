@@ -52,15 +52,24 @@ def opcion_login():
     
 def opcion_registro(): 
     #Maneja el proceso de registro de cliente
-    limpiar_pantalla()
-    print("=== VIAJES AVENTURA: REGISTRO ===")
-    nombre = input("Ingrese su nombre: ")
-    email = input("Ingrese su email: ")
-    password = input("Ingrese su contraseña: ")
-    try:
-        usuario = registrar_usuario(email,password,nombre)
-        print(f"¡Registro exitoso! Bienvenido, {usuario.nombre}. Ahora puede iniciar sesión.")
-        pausar()
-    except Exception as e:
-        print(f"Error durante el registro: {str(e)}")
-        pausar()
+    while True:
+        limpiar_pantalla()
+        print("=== VIAJES AVENTURA: REGISTRO ===")
+        nombre = input("Ingrese su nombre: ")
+        email = input("Ingrese su email: ")
+        password = input("Ingrese su contraseña: ")
+        
+        try:
+            usuario = registrar_usuario(email, password, nombre)
+            print(f"¡Registro exitoso! Bienvenido, {usuario.nombre}. Ahora puede iniciar sesión.")
+            pausar()
+            break  # Salir del loop si el registro fue exitoso
+            
+        except Exception as e:
+            print(f"\nError durante el registro: {str(e)}")
+            print("\n1. Intentar nuevamente")
+            print("2. Volver al menú principal")
+            opcion = input("Seleccione una opción: ")
+            
+            if opcion != "1":
+                break  # Salir si el usuario no quiere reintentar

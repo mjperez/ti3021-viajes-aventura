@@ -3,9 +3,10 @@ from datetime import datetime
 
 class PaqueteDTO:
     #Clase que representa los datos de un paquete turístico.
-    def __init__(self, id:int, nombre:str, fecha_inicio: datetime, fecha_fin:datetime, precio_total:float, cupos_disponibles:int, politica_id: int):
+    def __init__(self, id:int, nombre:str, fecha_inicio: datetime, fecha_fin:datetime, precio_total:float, cupos_disponibles:int, politica_id: int, descripcion:str=None):
         self.id=id
         self.nombre=nombre
+        self.descripcion=descripcion
         self.fecha_inicio=fecha_inicio
         self.fecha_fin=fecha_fin
         self.precio_total=precio_total

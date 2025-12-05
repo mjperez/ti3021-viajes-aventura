@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from src.config.db_connection import (
     ejecutar_actualizacion,
     ejecutar_consulta,
@@ -20,7 +22,7 @@ class PagoDAO():
         params = (
             pago_dto.reserva_id,
             pago_dto.monto,
-            pago_dto.metodo_pago,
+            pago_dto.metodo,
             pago_dto.estado,
             pago_dto.fecha_pago
         )
@@ -38,7 +40,7 @@ class PagoDAO():
             id=result['id'],
             reserva_id=result['reserva_id'],
             monto=result['monto'],
-            metodo_pago=result['metodo'],
+            metodo=result['metodo'],
             estado=result['estado'],
             fecha_pago=result['fecha_pago']
         )
@@ -56,7 +58,7 @@ class PagoDAO():
                 id=row['id'],
                 reserva_id=row['reserva_id'],
                 monto=row['monto'],
-                metodo_pago=row['metodo'],
+                metodo=row['metodo'],
                 estado=row['estado'],
                 fecha_pago=row['fecha_pago']
             )
@@ -72,11 +74,12 @@ class PagoDAO():
     def registrar_pago_completado(self, reserva_id: int, monto: float, metodo: str) -> int:
         """Procesa un pago exitoso."""
         pago = PagoDTO(
+            id=None,  # Se genera automáticamente
             reserva_id=reserva_id,
             monto=monto,
-            metodo_pago=metodo,
+            metodo=metodo,
             estado=ESTADOS_PAGO[1],  # "Completado"
-            fecha_pago=None  # Se establece por DEFAULT en BD
+            fecha_pago=datetime.now()
         )
         return self.crear(pago)
     
@@ -97,7 +100,7 @@ class PagoDAO():
                 id=row['id'],
                 reserva_id=row['reserva_id'],
                 monto=row['monto'],
-                metodo_pago=row['metodo'],
+                metodo=row['metodo'],
                 estado=row['estado'],
                 fecha_pago=row['fecha_pago']
             )
