@@ -23,11 +23,11 @@ class DestinoDAO():
         params=(destino_dto.nombre,destino_dto.descripcion,destino_dto.costo_base,destino_dto.cupos_disponibles)
         return ejecutar_insercion(sql,params)
         
-    def obtener_por_id(self, id: int) -> DestinoDTO | None: 
-        #Busca destino por ID
-        sql = "SELECT * FROM Destinos WHERE id = %s"
-        params= (id,)
-        destino = ejecutar_consulta_uno(sql,params)
+    def obtener_por_id(self, id: int) -> DestinoDTO | None:
+        """Busca destino activo por ID."""
+        sql = "SELECT * FROM Destinos WHERE id = %s AND activo = 1"
+        params = (id,)
+        destino = ejecutar_consulta_uno(sql, params)
         if not destino:
             return None
         return DestinoDTO(
@@ -46,16 +46,34 @@ class DestinoDAO():
         filas = ejecutar_actualizacion(sql, params)
         return filas > 0
     
-    def eliminar(self, id: int) -> bool: 
-        #Elimina un destino
-        sql = "DELETE FROM Destinos WHERE id=%s"
-        params = (id,)
-        filas = ejecutar_actualizacion(sql, params)
-        return filas > 0
+    def eliminar(self, id: int) -> bool:
+        """Elimina un destino con lógica híbrida:
+        - Si tiene paquetes asociados: borrado lógico (activo=FALSE)
+        - Si NO tiene paquetes: borrado físico (DELETE)
+        """
+        # Verificar si el destino está en uso en Paquete_Destino
+        sql_check = "SELECT COUNT(*) as count FROM Paquete_Destino WHERE destino_id=%s"
+        params_check = (id,)
+        resultado = ejecutar_consulta_uno(sql_check, params_check)
+        
+        en_uso = resultado['count'] > 0 if resultado else False
+        
+        if en_uso:
+            # Borrado lógico: desactivar el destino
+            sql = "UPDATE Destinos SET activo = FALSE WHERE id=%s"
+            params = (id,)
+            filas = ejecutar_actualizacion(sql, params)
+            return filas > 0
+        else:
+            # Borrado físico: eliminar completamente
+            sql = "DELETE FROM Destinos WHERE id=%s"
+            params = (id,)
+            filas = ejecutar_actualizacion(sql, params)
+            return filas > 0
     
     def listar_todos(self) -> list[DestinoDTO]:
-        #Retorna lista de todos los destinos
-        sql = "SELECT * FROM Destinos ORDER BY id ASC"
+        """Retorna lista de todos los destinos activos."""
+        sql = "SELECT * FROM Destinos WHERE activo = 1 ORDER BY id ASC"
         destinos = ejecutar_consulta(sql)        
         if not destinos:
             return []
@@ -72,8 +90,8 @@ class DestinoDAO():
         ]
     
     def buscar_por_nombre(self, nombre: str) -> list[DestinoDTO]:
-        #Busca destinos por nombre (LIKE)
-        sql = "SELECT * FROM Destinos WHERE nombre LIKE %s"
+        """Busca destinos activos por nombre (LIKE)."""
+        sql = "SELECT * FROM Destinos WHERE nombre LIKE %s AND activo = 1"
         params = (f"%{nombre}%",)
         destinos = ejecutar_consulta(sql, params)
         

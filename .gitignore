@@ -48,6 +48,7 @@ logs/*.log
 .DS_Store
 Thumbs.db
 docs/diagramaClases_original.drawio
+dist/
 INSTRUCCIONES_TESTER.md
 crear_ejecutable.bat
 .gitignore
@@ -74,3 +75,8 @@ viajes_portable.spec
 ViajesAventuraPortable/ViajesAventuraPortable.exe
 ViajesAventuraPortable/LEEME.txt
 ViajesAventuraPortable/README.md
+REPORTE_FINAL.md
+test_login.py
+test_manual.py
+test_sistema.py
+README_PORTABLE.md

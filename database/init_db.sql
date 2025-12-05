@@ -48,7 +48,9 @@ CREATE TABLE Destinos (
     descripcion VARCHAR(500) NOT NULL,
     costo_base DECIMAL(10,2) NOT NULL,
     cupos_disponibles INT NOT NULL DEFAULT 50 CHECK (cupos_disponibles >= 0),
-    INDEX idx_nombre (nombre)
+    activo BOOLEAN NOT NULL DEFAULT TRUE,
+    INDEX idx_nombre (nombre),
+    INDEX idx_activo (activo)
 ) ENGINE=InnoDB;
 
 -- ============================================
