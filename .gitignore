@@ -48,3 +48,12 @@ logs/*.log
 .DS_Store
 Thumbs.db
 docs/diagramaClases_original.drawio
+INSTRUCCIONES_TESTER.md
+crear_ejecutable.bat
+.gitignore
+.gitignore
+database/setup_sqlite.py
+.gitignore
+src/config/db_connection_sqlite.py
+database/init_db_sqlite.sql
+main_portable.py

@@ -51,7 +51,7 @@ class PaqueteDAO():
     
     def listar_todos(self) -> list[PaqueteDTO]: 
         #Retorna lista de todos los paquetes
-        sql = "SELECT * FROM Paquetes"
+        sql = "SELECT * FROM Paquetes ORDER BY id ASC"
         paquetes = ejecutar_consulta(sql)
         
         if not paquetes:
@@ -72,7 +72,7 @@ class PaqueteDAO():
     
     def listar_disponibles(self) -> list[PaqueteDTO]: 
         #Retorna paquetes con cupos > 0
-        sql = "SELECT * FROM Paquetes WHERE cupos_disponibles > 0"
+        sql = "SELECT * FROM Paquetes WHERE cupos_disponibles > 0 ORDER BY id ASC"
         paquetes = ejecutar_consulta(sql)
         
         if not paquetes:
@@ -112,7 +112,7 @@ class PaqueteDAO():
         try:
             ejecutar_insercion(sql, params)
             return True
-        except:
+        except Exception:
             return False
     
     def eliminar_destino(self, paquete_id: int, destino_id: int) -> bool: 

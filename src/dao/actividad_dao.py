@@ -48,11 +48,10 @@ class ActividadDAO():
         filas = ejecutar_actualizacion(sql, params)
         return filas > 0
     
-    def listar_todas(self) -> list[ActividadDTO]: 
+    def listar_todas(self) -> list[ActividadDTO]:
         #Retorna lista de todas las actividades
-        sql = "SELECT * FROM Actividades"
-        actividades = ejecutar_consulta(sql)
-        
+        sql = "SELECT * FROM Actividades ORDER BY id ASC"
+        actividades = ejecutar_consulta(sql)        
         if not actividades:
             return []
         

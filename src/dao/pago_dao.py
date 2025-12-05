@@ -14,7 +14,7 @@ class PagoDAO():
     def crear(self, pago_dto: PagoDTO) -> int:
         """Inserta un nuevo pago."""
         sql = """
-            INSERT INTO Pago (reserva_id, monto, metodo_pago, estado, fecha_pago)
+            INSERT INTO Pagos (reserva_id, monto, metodo, estado, fecha_pago)
             VALUES (%s, %s, %s, %s, %s)
         """
         params = (
@@ -28,7 +28,7 @@ class PagoDAO():
     
     def obtener_por_id(self, id: int) -> PagoDTO | None:
         """Busca pago por ID."""
-        sql = "SELECT * FROM Pago WHERE id = %s"
+        sql = "SELECT * FROM Pagos WHERE id = %s"
         result = ejecutar_consulta_uno(sql, (id,))  # type: ignore
         
         if not result:
@@ -38,14 +38,14 @@ class PagoDAO():
             id=result['id'],
             reserva_id=result['reserva_id'],
             monto=result['monto'],
-            metodo_pago=result['metodo_pago'],
+            metodo_pago=result['metodo'],
             estado=result['estado'],
             fecha_pago=result['fecha_pago']
         )
     
     def obtener_por_reserva(self, reserva_id: int) -> list[PagoDTO]:
         """Retorna pagos de una reserva."""
-        sql = "SELECT * FROM Pago WHERE reserva_id = %s ORDER BY fecha_pago DESC"
+        sql = "SELECT * FROM Pagos WHERE reserva_id = %s ORDER BY fecha_pago DESC"
         results = ejecutar_consulta(sql, (reserva_id,))  # type: ignore
         
         if not results:
@@ -56,7 +56,7 @@ class PagoDAO():
                 id=row['id'],
                 reserva_id=row['reserva_id'],
                 monto=row['monto'],
-                metodo_pago=row['metodo_pago'],
+                metodo_pago=row['metodo'],
                 estado=row['estado'],
                 fecha_pago=row['fecha_pago']
             )
@@ -65,7 +65,7 @@ class PagoDAO():
     
     def actualizar_estado(self, id: int, nuevo_estado: str) -> bool:
         """Cambia el estado del pago."""
-        sql = "UPDATE Pago SET estado = %s WHERE id = %s"
+        sql = "UPDATE Pagos SET estado = %s WHERE id = %s"
         filas = ejecutar_actualizacion(sql, (nuevo_estado, id))  # type: ignore
         return filas > 0
     
@@ -83,7 +83,7 @@ class PagoDAO():
     def listar_por_fecha(self, fecha_inicio: str, fecha_fin: str) -> list[PagoDTO]:
         """Retorna pagos en rango de fechas."""
         sql = """
-            SELECT * FROM Pago 
+            SELECT * FROM Pagos 
             WHERE fecha_pago BETWEEN %s AND %s
             ORDER BY fecha_pago DESC
         """
@@ -97,7 +97,7 @@ class PagoDAO():
                 id=row['id'],
                 reserva_id=row['reserva_id'],
                 monto=row['monto'],
-                metodo_pago=row['metodo_pago'],
+                metodo_pago=row['metodo'],
                 estado=row['estado'],
                 fecha_pago=row['fecha_pago']
             )
@@ -108,7 +108,7 @@ class PagoDAO():
         """Suma montos de pagos completados."""
         sql = """
             SELECT SUM(monto) as total 
-            FROM Pago 
+            FROM Pagos 
             WHERE estado = %s 
             AND fecha_pago BETWEEN %s AND %s
         """

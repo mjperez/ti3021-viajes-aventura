@@ -71,7 +71,13 @@ from .exceptions import (
     ReservaError,
     ValidacionError,
 )
-from .utils import limpiar_pantalla, pausar, validar_opcion
+from .utils import (
+    OperacionCancelada,
+    limpiar_pantalla,
+    pausar,
+    validar_cancelacion,
+    validar_opcion,
+)
 from .validators import validar_email, validar_estado_reserva, validar_password
 
 __all__=[
@@ -87,6 +93,8 @@ __all__=[
     "limpiar_pantalla",
     "pausar",
     "validar_opcion",
+    "validar_cancelacion",
+    "OperacionCancelada",
     "ESTADOS_RESERVA",
     "METODOS_PAGO",
     "ESTADOS_PAGO",

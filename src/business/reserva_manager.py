@@ -6,7 +6,7 @@ from src.dto.reserva_dto import ReservaDTO
 from src.utils.constants import ESTADOS_RESERVA
 
 
-def crear_reserva(usuario_id: int, paquete_id: int, num_personas: int, fecha_viaje: str) -> int:
+def crear_reserva(usuario_id: int, paquete_id: int, num_personas: int) -> int:
     """Crea una reserva y reduce cupos del paquete."""
     paquete_dao = PaqueteDAO()
     reserva_dao = ReservaDAO()

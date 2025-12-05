@@ -51,7 +51,7 @@ class ReservaDAO():
     
     def listar_por_cliente(self, cliente_id: int) -> list[ReservaDTO]: 
         #Retorna reservas de un cliente
-        sql = "SELECT * FROM Reservas WHERE usuario_id=%s"
+        sql = "SELECT * FROM Reservas WHERE usuario_id=%s ORDER BY id ASC"
         params = (cliente_id,)
         reservas = ejecutar_consulta(sql, params)
         
@@ -95,7 +95,7 @@ class ReservaDAO():
     
     def listar_por_estado(self, estado: str) -> list[ReservaDTO]: 
         #Retorna reservas filtradas por estado
-        sql = "SELECT * FROM Reservas WHERE estado=%s"
+        sql = "SELECT * FROM Reservas WHERE estado=%s ORDER BY id ASC"
         params = (estado,)
         reservas = ejecutar_consulta(sql, params)
         

@@ -52,11 +52,10 @@ class DestinoDAO():
         filas = ejecutar_actualizacion(sql, params)
         return filas > 0
     
-    def listar_todos(self) -> list[DestinoDTO]: 
+    def listar_todos(self) -> list[DestinoDTO]:
         #Retorna lista de todos los destinos
-        sql = "SELECT * FROM Destinos"
-        destinos = ejecutar_consulta(sql)
-        
+        sql = "SELECT * FROM Destinos ORDER BY id ASC"
+        destinos = ejecutar_consulta(sql)        
         if not destinos:
             return []
         
