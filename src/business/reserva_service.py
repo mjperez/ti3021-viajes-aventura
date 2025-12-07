@@ -197,7 +197,7 @@ class ReservaService:
             
             # Reducir cupos del paquete
             cupos_reducidos = 0
-            for i in range(num_personas):
+            for i in range(num_personas): # type: ignore
                 if not self.paquete_dao.reducir_cupo(paquete_id):
                     # Rollback: devolver cupos ya reducidos
                     for _ in range(cupos_reducidos):
@@ -261,7 +261,7 @@ class ReservaService:
             
             # Reducir cupos del destino
             cupos_reducidos = 0
-            for i in range(num_personas):
+            for i in range(num_personas): # type: ignore
                 if not self.destino_dao.reducir_cupo(destino_id):
                     # Rollback: devolver cupos ya reducidos
                     for _ in range(cupos_reducidos):

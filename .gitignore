@@ -21,6 +21,7 @@ wheels/
 *.egg
 
 # Virtual Environment
+.venv/
 venv/
 env/
 ENV/
@@ -32,14 +33,14 @@ ENV/
 *.swo
 *~
 
-# Environment variables
-#.env
+# Environment variables (descomentar si no quieres subir credenciales)
+# .env
 
 # Logs
 logs/*.log
 *.log
 
-# Database
+# Database files
 *.db
 *.sqlite
 *.sqlite3
@@ -47,48 +48,7 @@ logs/*.log
 # OS
 .DS_Store
 Thumbs.db
-docs/diagramaClases_original.drawio
-dist/
-INSTRUCCIONES_TESTER.md
-crear_ejecutable.bat
-.gitignore
-.gitignore
-database/setup_sqlite.py
-.gitignore
-src/config/db_connection_sqlite.py
-database/init_db_sqlite.sql
-main_portable.py
-ViajesAventura_Portable.zip
-.gitignore
-generar_hashes.py
-ViajesAventura.spec
-.gitignore
-ViajesAventura_Portable/LEEME.txt
-ViajesAventura_Portable/ViajesAventura.exe
-db_sqlite_adapter.py
-main_sqlite.py
-.gitignore
-viajes_aventura.spec
-.gitignore
-ViajesAventuraPortable.zip
-viajes_portable.spec
-ViajesAventuraPortable/ViajesAventuraPortable.exe
-ViajesAventuraPortable/LEEME.txt
-ViajesAventuraPortable/README.md
-REPORTE_FINAL.md
-test_login.py
-test_manual.py
-test_sistema.py
-README_PORTABLE.md
+
+# Backup
 .bkup/
-test_funcionalidad_completa.py
-MEJORAS_IMPLEMENTADAS.md
-demo_mejoras.py
-.gitignore
-test_actividades.py
-.gitignore
-ViajesAventuraPortable.spec
-.gitignore
-RESUMEN_MEJORAS_SESION_2.txt
-.gitignore
-test_politicas_crud.py
+
