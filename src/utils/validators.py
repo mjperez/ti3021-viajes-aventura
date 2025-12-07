@@ -156,8 +156,6 @@ def validar_porcentaje_reembolso(porcentaje: float) -> bool:
     except (ValueError, TypeError):
         return False
 
-def sanitizar_input(texto:str) -> str:
-    #Limpia input de caracteres peligrosos para evitar SQL injection
-    if not texto:
-        return ""
-    return texto.strip().replace("'","").replace('"',"").replace(';','').replace('--','')
+# NOTA: sanitizar_input fue eliminado.
+# No es necesario porque todas las consultas SQL usan parámetros (%s)
+# que previenen SQL injection de forma nativa.

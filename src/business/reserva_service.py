@@ -14,6 +14,16 @@ from src.dto.reserva_dto import ReservaDTO
 from src.utils.constants import ESTADOS_RESERVA
 from src.utils.exceptions import ValidacionError
 
+# Máquina de estados: define transiciones válidas
+# Formato: estado_actual -> [estados_permitidos]
+TRANSICIONES_VALIDAS = {
+    "PENDIENTE": ["PAGADA", "CANCELADA"],           # Cliente puede pagar o cancelar
+    "PAGADA": ["CONFIRMADA", "CANCELADA"],          # Admin confirma, o se puede cancelar
+    "CONFIRMADA": ["COMPLETADA", "CANCELADA"],      # Se completa el viaje o se cancela (con política)
+    "COMPLETADA": [],                                # Estado final, no hay más transiciones
+    "CANCELADA": []                                  # Estado final, no hay más transiciones
+}
+
 
 class ReservaService:
     """Servicio para gestión de reservas."""
@@ -89,22 +99,22 @@ class ReservaService:
         return self.reserva_dao.listar_todas()
     
     def cambiar_estado_reserva(self, reserva_id: int, nuevo_estado: str) -> bool:
-        """Cambia el estado de una reserva.
+        """Cambia el estado de una reserva validando transiciones.
         
         Args:
             reserva_id: ID de la reserva
-            nuevo_estado: Nuevo estado (PENDIENTE, CONFIRMADA, CANCELADA, etc.)
+            nuevo_estado: Nuevo estado (PENDIENTE, PAGADA, CONFIRMADA, CANCELADA, COMPLETADA)
             
         Returns:
             True si se actualizó correctamente
             
         Raises:
-            ValidacionError: Si los datos no son válidos
+            ValidacionError: Si los datos no son válidos o transición no permitida
         """
         if reserva_id <= 0:
             raise ValidacionError("El ID de la reserva debe ser mayor a 0")
         
-        estados_validos = ["PENDIENTE", "CONFIRMADA", "CANCELADA", "COMPLETADA"]
+        estados_validos = list(TRANSICIONES_VALIDAS.keys())
         if nuevo_estado not in estados_validos:
             raise ValidacionError(f"Estado no válido. Debe ser uno de: {', '.join(estados_validos)}")
         
@@ -113,18 +123,28 @@ class ReservaService:
         if not reserva:
             raise ValidacionError(f"No existe una reserva con ID {reserva_id}")
         
+        # Validar transición de estado
+        estado_actual = reserva.estado
+        transiciones_permitidas = TRANSICIONES_VALIDAS.get(estado_actual, [])
+        
+        if nuevo_estado not in transiciones_permitidas:
+            raise ValidacionError(
+                f"Transición no permitida: {estado_actual} → {nuevo_estado}. "
+                f"Transiciones válidas desde {estado_actual}: {transiciones_permitidas or 'ninguna'}"
+            )
+        
         # Actualizar estado usando el DAO
-        # Como no existe actualizar_estado, usamos los métodos específicos
         if nuevo_estado == "CONFIRMADA":
             return self.reserva_dao.confirmar(reserva_id)
         elif nuevo_estado == "CANCELADA":
             return self.reserva_dao.cancelar(reserva_id)
+        elif nuevo_estado == "PAGADA":
+            return self.reserva_dao.marcar_como_pagada(reserva_id)
+        elif nuevo_estado == "COMPLETADA":
+            return self.reserva_dao.completar(reserva_id)
         else:
-            # Para otros estados, necesitamos un método genérico en el DAO
             raise ValidacionError(f"Cambio de estado a '{nuevo_estado}' no implementado")
-    
-    # ========== NUEVOS MÉTODOS MIGRADOS DE reserva_manager.py ========== #
-    
+      
     def crear_reserva_paquete(self, usuario_id: int, paquete_id: int, num_personas: int) -> int:
         """Crea una reserva de paquete y reduce cupos.
         
@@ -176,12 +196,14 @@ class ReservaService:
             reserva_id = self.reserva_dao.crear(reserva)
             
             # Reducir cupos del paquete
-            for _ in range(num_personas):
+            cupos_reducidos = 0
+            for i in range(num_personas):
                 if not self.paquete_dao.reducir_cupo(paquete_id):
                     # Rollback: devolver cupos ya reducidos
-                    for _ in range(_):
+                    for _ in range(cupos_reducidos):
                         self.paquete_dao.aumentar_cupo(paquete_id)
                     raise ValidacionError("Error al reducir cupos del paquete")
+                cupos_reducidos += 1
             
             return reserva_id
         except Exception as e:
@@ -238,31 +260,39 @@ class ReservaService:
             reserva_id = self.reserva_dao.crear(reserva)
             
             # Reducir cupos del destino
-            for _ in range(num_personas):
+            cupos_reducidos = 0
+            for i in range(num_personas):
                 if not self.destino_dao.reducir_cupo(destino_id):
                     # Rollback: devolver cupos ya reducidos
-                    for _ in range(_):
+                    for _ in range(cupos_reducidos):
                         self.destino_dao.aumentar_cupo(destino_id)
                     raise ValidacionError("Error al reducir cupos del destino")
+                cupos_reducidos += 1
             
             return reserva_id
         except Exception as e:
             raise ValidacionError(f"Error al crear reserva de destino: {str(e)}")
     
-    def cancelar_reserva(self, reserva_id: int) -> bool:
+    def cancelar_reserva(self, reserva_id: int) -> dict:
         """Cancela una reserva aplicando política de cancelación.
         
         Verifica la política de cancelación del paquete o destino y calcula reembolso
-        según días de aviso y porcentaje establecido.
+        según días de aviso y porcentaje establecido. Las reservas CONFIRMADAS pueden
+        cancelarse pero se aplica la política de reembolso.
         
         Args:
             reserva_id: ID de la reserva
             
         Returns:
-            True si se canceló correctamente
+            Diccionario con información del reembolso:
+            - cancelada: bool
+            - monto_total: float
+            - porcentaje_reembolso: float
+            - monto_reembolso: float
+            - mensaje: str
             
         Raises:
-            ValidacionError: Si los datos no son válidos o no cumple política
+            ValidacionError: Si los datos no son válidos o transición no permitida
         """
         if reserva_id <= 0:
             raise ValidacionError("El ID de la reserva debe ser mayor a 0")
@@ -272,9 +302,13 @@ class ReservaService:
         if not reserva:
             raise ValidacionError("La reserva no existe")
         
-        # Verificar que no esté ya cancelada
-        if reserva.estado == "CANCELADA":
-            raise ValidacionError("La reserva ya está cancelada")
+        # Validar transición de estado usando máquina de estados
+        estado_actual = reserva.estado
+        if "CANCELADA" not in TRANSICIONES_VALIDAS.get(estado_actual, []):
+            raise ValidacionError(
+                f"No se puede cancelar una reserva en estado '{estado_actual}'. "
+                f"Solo se pueden cancelar reservas en estado: PENDIENTE, PAGADA o CONFIRMADA."
+            )
         
         from src.config.db_connection import ejecutar_consulta_uno
         politica = None
@@ -284,10 +318,8 @@ class ReservaService:
         if reserva.paquete_id:
             paquete = self.paquete_dao.obtener_por_id(reserva.paquete_id)
             if paquete and paquete.fecha_inicio:
-                # Calcular días hasta el inicio del paquete
                 fecha_referencia = datetime.strptime(str(paquete.fecha_inicio)[:10], '%Y-%m-%d')
                 
-                # Obtener política de cancelación del paquete
                 politica_sql = """
                     SELECT pc.nombre, pc.dias_aviso, pc.porcentaje_reembolso
                     FROM PoliticasCancelacion pc
@@ -300,10 +332,8 @@ class ReservaService:
         elif reserva.destino_id:
             destino = self.destino_dao.obtener_por_id(reserva.destino_id)
             if destino:
-                # Para destinos, usamos la fecha de reserva + 30 días como referencia
                 fecha_referencia = reserva.fecha_reserva + timedelta(days=30) if isinstance(reserva.fecha_reserva, datetime) else datetime.strptime(str(reserva.fecha_reserva)[:10], '%Y-%m-%d') + timedelta(days=30)
                 
-                # Obtener política de cancelación del destino
                 politica_sql = """
                     SELECT pc.nombre, pc.dias_aviso, pc.porcentaje_reembolso
                     FROM PoliticasCancelacion pc
@@ -312,41 +342,77 @@ class ReservaService:
                 """
                 politica = ejecutar_consulta_uno(politica_sql, (reserva.destino_id,))
         
-        # Aplicar política si existe
+        # Calcular reembolso según política
+        porcentaje_reembolso = 100.0  # Por defecto, reembolso completo
+        monto_reembolso = float(reserva.monto_total)
+        mensaje = "Reembolso completo (100%)"
+        
         if politica and fecha_referencia:
             hoy = datetime.now()
             dias_hasta_fecha = (fecha_referencia - hoy).days
             dias_minimos = politica['dias_aviso']
-            porcentaje_reembolso = politica['porcentaje_reembolso']
             
+            # Si no cumple días mínimos de aviso
             if dias_hasta_fecha < dias_minimos:
-                tipo_reserva = "paquete" if reserva.paquete_id else "destino"
-                raise ValidacionError(
-                    f"No se puede cancelar. Política '{politica['nombre']}' requiere "
-                    f"{dias_minimos} días de aviso. Quedan {dias_hasta_fecha} días para el {tipo_reserva}."
-                )
-            
-            # Mostrar información de reembolso
-            monto_reembolso = reserva.monto_total * (porcentaje_reembolso / 100)
-            print(f"\nPolítica de cancelación: {politica['nombre']}")
-            print(f"Reembolso: {porcentaje_reembolso}% del monto total")
-            print(f"Monto a reembolsar: ${int(monto_reembolso):,}".replace(",", "."))
+                # Para reservas PENDIENTES, no permitir cancelar
+                if estado_actual == "PENDIENTE":
+                    tipo_reserva = "paquete" if reserva.paquete_id else "destino"
+                    raise ValidacionError(
+                        f"No se puede cancelar. Política '{politica['nombre']}' requiere "
+                        f"{dias_minimos} días de aviso. Quedan {dias_hasta_fecha} días para el {tipo_reserva}."
+                    )
+                # Para PAGADA o CONFIRMADA, aplicar porcentaje reducido (o 0%)
+                porcentaje_reembolso = 0.0
+                monto_reembolso = 0.0
+                mensaje = f"Sin reembolso - Cancelación tardía (menos de {dias_minimos} días de aviso)"
+            else:
+                # Cumple con días de aviso, aplicar porcentaje de la política
+                porcentaje_reembolso = float(politica['porcentaje_reembolso'])
+                monto_reembolso = float(reserva.monto_total) * (porcentaje_reembolso / 100)
+                
+                if porcentaje_reembolso == 100:
+                    mensaje = f"Reembolso completo (100%) - Política '{politica['nombre']}'"
+                elif porcentaje_reembolso > 0:
+                    mensaje = f"Reembolso parcial ({porcentaje_reembolso}%) - Política '{politica['nombre']}'"
+                else:
+                    mensaje = f"Sin reembolso - Política '{politica['nombre']}'"
+        
+        # Mostrar información de reembolso al cliente
+        print(f"\n{'='*50}")
+        print("INFORMACIÓN DE CANCELACIÓN")
+        print(f"{'='*50}")
+        print(f"Estado actual de la reserva: {estado_actual}")
+        print(f"Monto total pagado: ${int(reserva.monto_total):,}".replace(",", "."))
+        print(f"Porcentaje de reembolso: {porcentaje_reembolso}%")
+        print(f"Monto a reembolsar: ${int(monto_reembolso):,}".replace(",", "."))
+        print(f"Detalle: {mensaje}")
+        print(f"{'='*50}\n")
         
         # Cancelar la reserva
         if not self.reserva_dao.cancelar(reserva_id):
-            return False
+            return {
+                "cancelada": False,
+                "monto_total": float(reserva.monto_total),
+                "porcentaje_reembolso": 0,
+                "monto_reembolso": 0,
+                "mensaje": "Error al cancelar la reserva"
+            }
         
         # Devolver los cupos según el tipo de reserva
         if reserva.paquete_id:
-            # Reserva de paquete: devolver cupos al paquete
             for _ in range(reserva.numero_personas):
                 self.paquete_dao.aumentar_cupo(reserva.paquete_id)
         elif reserva.destino_id:
-            # Reserva de destino: devolver cupos al destino
             for _ in range(reserva.numero_personas):
                 self.destino_dao.aumentar_cupo(reserva.destino_id)
         
-        return True
+        return {
+            "cancelada": True,
+            "monto_total": float(reserva.monto_total),
+            "porcentaje_reembolso": porcentaje_reembolso,
+            "monto_reembolso": monto_reembolso,
+            "mensaje": mensaje
+        }
     
     def confirmar_reserva(self, reserva_id: int) -> bool:
         """Confirma una reserva pagada (admin aprueba después del pago).

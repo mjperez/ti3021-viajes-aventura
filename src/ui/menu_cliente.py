@@ -343,7 +343,7 @@ def ver_mis_reservas(cliente_id: int):
 
 
 def cancelar_reserva(cliente_id: int):
-    """Proceso de cancelación de reserva."""
+    """Proceso de cancelación de reserva con aplicación de política de reembolso."""
     reserva_service = ReservaService()
     
     try:
@@ -366,23 +366,27 @@ def cancelar_reserva(cliente_id: int):
             pausar()
             return
         
-        if reserva.estado == "PAGADA":
-            print("ERROR: No se puede cancelar una reserva ya pagada")
-            print("Por favor contacte al administrador para realizar un reembolso")
+        if reserva.estado == "COMPLETADA":
+            print("ERROR: No se puede cancelar una reserva ya completada")
             pausar()
             return
         
-        confirmacion = input(f"¿Confirma cancelación de reserva {reserva_id}? (s/n): ")
+        # Informar al cliente sobre el estado
+        print(f"\nEstado actual de la reserva: {reserva.estado}")
+        if reserva.estado in ["PAGADA", "CONFIRMADA"]:
+            print("NOTA: Se aplicará la política de cancelación para determinar el reembolso.")
+        
+        confirmacion = input(f"\n¿Confirma cancelación de reserva {reserva_id}? (s/n): ")
         if confirmacion.lower() == 's':
-            reserva_service = ReservaService()
-            if reserva_service.cancelar_reserva(reserva_id):
-                print("EXITO: Reserva cancelada exitosamente")
-                print("Los cupos han sido devueltos al paquete")
+            resultado = reserva_service.cancelar_reserva(reserva_id)
+            if resultado["cancelada"]:
+                print("\n✓ ÉXITO: Reserva cancelada exitosamente")
+                print("Los cupos han sido devueltos")
             else:
-                print("ERROR: No se pudo cancelar la reserva")
+                print(f"ERROR: {resultado['mensaje']}")
         pausar()
     except Exception as e:
-        print(f"ERROR: Error: {e}")
+        print(f"ERROR: {e}")
         pausar()
 
 

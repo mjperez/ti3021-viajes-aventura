@@ -268,55 +268,10 @@ GROUP BY r.id, r.fecha_reserva, r.estado, r.monto_total, r.numero_personas,
          u.nombre, u.email, p.nombre, p.fecha_inicio, p.fecha_fin;
 
 -- ============================================
--- Triggers para lógica de negocio
+-- NOTA: Los triggers fueron eliminados.
+-- La lógica de cupos se maneja en Python (ReservaService)
+-- para evitar duplicación y mantener consistencia.
 -- ============================================
-
-DELIMITER $$
-
--- Trigger: Reducir cupos al crear reserva confirmada
-CREATE TRIGGER trg_reducir_cupos_reserva
-AFTER INSERT ON Reservas
-FOR EACH ROW
-BEGIN
-    IF NEW.estado IN ('CONFIRMADA', 'PAGADA') THEN
-        UPDATE Paquetes 
-        SET cupos_disponibles = cupos_disponibles - 1
-        WHERE id = NEW.paquete_id AND cupos_disponibles > 0;
-    END IF;
-END$$
-
--- Trigger: Restaurar cupos al cancelar reserva
-CREATE TRIGGER trg_restaurar_cupos_cancelacion
-AFTER UPDATE ON Reservas
-FOR EACH ROW
-BEGIN
-    IF OLD.estado IN ('CONFIRMADA', 'PAGADA') AND NEW.estado = 'CANCELADA' THEN
-        UPDATE Paquetes 
-        SET cupos_disponibles = cupos_disponibles + 1
-        WHERE id = NEW.paquete_id;
-    END IF;
-END$$
-
--- Trigger: Validar cupos antes de confirmar reserva
-CREATE TRIGGER trg_validar_cupos_antes_confirmar
-BEFORE UPDATE ON Reservas
-FOR EACH ROW
-BEGIN
-    DECLARE cupos_actuales INT;
-    
-    IF OLD.estado = 'PENDIENTE' AND NEW.estado IN ('CONFIRMADA', 'PAGADA') THEN
-        SELECT cupos_disponibles INTO cupos_actuales
-        FROM Paquetes 
-        WHERE id = NEW.paquete_id;
-        
-        IF cupos_actuales <= 0 THEN
-            SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'No hay cupos disponibles para este paquete';
-        END IF;
-    END IF;
-END$$
-
-DELIMITER ;
 
 -- ============================================
 -- Consultas útiles para verificación

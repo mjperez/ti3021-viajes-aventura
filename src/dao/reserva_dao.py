@@ -131,6 +131,10 @@ class ReservaDAO():
         #Cambia estado a 'cancelada' y restaura cupos
         return self.cambiar_estado(id, 'CANCELADA')
     
+    def completar(self, id: int) -> bool: 
+        #Cambia estado a 'completada' (viaje finalizado)
+        return self.cambiar_estado(id, 'COMPLETADA')
+    
     def listar_por_destino(self, destino_id: int) -> list[ReservaDTO]: 
         #Retorna reservas de un destino
         sql = "SELECT * FROM Reservas WHERE destino_id=%s"
