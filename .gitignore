@@ -52,3 +52,7 @@ Thumbs.db
 # Backup
 .bkup/
 
+tests/.gitkeep
+tests/test_usuario_service.py
+.gitignore
+requirements-dev.txt

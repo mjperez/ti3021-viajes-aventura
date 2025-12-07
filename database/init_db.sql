@@ -59,7 +59,7 @@ CREATE TABLE Destinos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
     descripcion VARCHAR(500) NOT NULL,
-    costo_base DECIMAL(10,2) NOT NULL,
+    costo_base INT NOT NULL,
     cupos_disponibles INT NOT NULL DEFAULT 50 CHECK (cupos_disponibles >= 0),
     activo BOOLEAN NOT NULL DEFAULT TRUE,
     politica_id INT NOT NULL DEFAULT 1,
@@ -77,7 +77,7 @@ CREATE TABLE Actividades (
     nombre VARCHAR(100) NOT NULL,
     descripcion VARCHAR(500),
     duracion_horas INT NOT NULL,
-    precio_base DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    precio_base INT NOT NULL DEFAULT 0,
     destino_id INT NOT NULL,
     FOREIGN KEY (destino_id) REFERENCES Destinos(id) ON DELETE CASCADE,
     INDEX idx_destino (destino_id)
@@ -93,7 +93,7 @@ CREATE TABLE Paquetes (
     descripcion TEXT,
     fecha_inicio DATETIME NOT NULL,
     fecha_fin DATETIME NOT NULL,
-    precio_total DECIMAL(10,2) NOT NULL,
+    precio_total INT NOT NULL,
     cupos_disponibles INT NOT NULL,
     politica_id INT NOT NULL,
     FOREIGN KEY (politica_id) REFERENCES PoliticasCancelacion(id),
@@ -127,7 +127,7 @@ CREATE TABLE Reservas (
     id INT AUTO_INCREMENT PRIMARY KEY,
     fecha_reserva DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     estado ENUM('PENDIENTE', 'CONFIRMADA', 'CANCELADA', 'PAGADA') NOT NULL DEFAULT 'PENDIENTE',
-    monto_total DECIMAL(10,2) NOT NULL,
+    monto_total INT NOT NULL,
     numero_personas INT NOT NULL,
     usuario_id INT NOT NULL,
     paquete_id INT NULL,
@@ -151,7 +151,7 @@ CREATE TABLE Reservas (
 -- ============================================
 CREATE TABLE Pagos (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    monto DECIMAL(10,2) NOT NULL,
+    monto INT NOT NULL,
     fecha_pago DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     metodo ENUM('EFECTIVO', 'TARJETA', 'TRANSFERENCIA') NOT NULL,
     estado ENUM('PENDIENTE', 'COMPLETADO', 'FALLIDO') NOT NULL DEFAULT 'PENDIENTE',
@@ -177,46 +177,95 @@ INSERT INTO PoliticasCancelacion (nombre, dias_aviso, porcentaje_reembolso) VALU
 INSERT INTO Usuarios (email, password_hash, nombre, rol) VALUES
 ('admin@viajes-aventura.com', '$2b$12$MmQxlm77yoa.XQMHKDWffeU0KJB28f/.NDBXHG4gAu4qb4QuyTRTy', 'Administrador', 'ADMIN');
 
--- Destinos de ejemplo (con política de cancelación)
+-- Destinos de ejemplo (con politica de cancelacion)
+-- Precios en pesos chilenos
 INSERT INTO Destinos (nombre, descripcion, costo_base, cupos_disponibles, politica_id) VALUES
-('París', 'La ciudad de la luz, famosa por la Torre Eiffel y el Louvre', 1200.00, 50, 1),
-('Roma', 'Ciudad histórica con el Coliseo y el Vaticano', 1000.00, 50, 1),
-('Barcelona', 'Ciudad mediterránea con arquitectura de Gaudí', 800.00, 50, 2),
-('Tokio', 'Metrópolis moderna con tradición japonesa', 1800.00, 50, 2);
+('Paris', 'La ciudad de la luz, famosa por la Torre Eiffel y el Louvre', 850000, 50, 1),
+('Roma', 'Ciudad historica con el Coliseo y el Vaticano', 720000, 50, 1),
+('Barcelona', 'Ciudad mediterranea con arquitectura de Gaudi', 580000, 50, 2),
+('Tokio', 'Metropolis moderna con tradicion japonesa', 1250000, 50, 2);
 
 -- Actividades de ejemplo
+-- Precios en pesos chilenos
 INSERT INTO Actividades (nombre, descripcion, duracion_horas, precio_base, destino_id) VALUES
--- París
-('Tour Eiffel con cena', 'Visita guiada a la Torre Eiffel con cena romántica en restaurante panorámico', 4, 150.00, 1),
-('Museo del Louvre', 'Recorrido por las obras maestras del museo más famoso del mundo', 3, 80.00, 1),
-('Crucero por el Sena', 'Paseo en barco por el río Sena con vistas a monumentos parisinos', 2, 120.00, 1),
+-- Paris
+('Tour Eiffel con cena', 'Visita guiada a la Torre Eiffel con cena romantica en restaurante panoramico', 4, 95000, 1),
+('Museo del Louvre', 'Recorrido por las obras maestras del museo mas famoso del mundo', 3, 45000, 1),
+('Crucero por el Sena', 'Paseo en barco por el rio Sena con vistas a monumentos parisinos', 2, 72000, 1),
 -- Roma
-('Tour del Coliseo', 'Visita guiada al Coliseo Romano y Foro Romano con historiador', 3, 100.00, 2),
-('Visita al Vaticano', 'Recorrido por los Museos Vaticanos y Capilla Sixtina', 4, 90.00, 2),
-('Clase de cocina italiana', 'Aprende a preparar pasta fresca y platos tradicionales italianos', 3, 110.00, 2),
+('Tour del Coliseo', 'Visita guiada al Coliseo Romano y Foro Romano con historiador', 3, 58000, 2),
+('Visita al Vaticano', 'Recorrido por los Museos Vaticanos y Capilla Sixtina', 4, 52000, 2),
+('Clase de cocina italiana', 'Aprende a preparar pasta fresca y platos tradicionales italianos', 3, 65000, 2),
 -- Barcelona
-('Tour Sagrada Familia', 'Visita guiada a la obra maestra de Gaudí con acceso prioritario', 2, 95.00, 3),
-('Park Güell', 'Recorrido por el parque modernista diseñado por Antoni Gaudí', 2, 70.00, 3),
-('Degustación de tapas', 'Tour gastronómico por los mejores bares de tapas del barrio Gótico', 3, 85.00, 3),
+('Tour Sagrada Familia', 'Visita guiada a la obra maestra de Gaudi con acceso prioritario', 2, 55000, 3),
+('Park Guell', 'Recorrido por el parque modernista disenado por Antoni Gaudi', 2, 38000, 3),
+('Degustacion de tapas', 'Tour gastronomico por los mejores bares de tapas del barrio Gotico', 3, 48000, 3),
 -- Tokio
-('Tour templos tradicionales', 'Visita a templos históricos de Asakusa y jardines zen', 4, 130.00, 4),
-('Experiencia de sushi', 'Clase magistral de preparación de sushi con chef profesional', 2, 140.00, 4),
-('Visita Monte Fuji', 'Excursión de día completo al Monte Fuji y lago Kawaguchi', 8, 200.00, 4);
+('Tour templos tradicionales', 'Visita a templos historicos de Asakusa y jardines zen', 4, 78000, 4),
+('Experiencia de sushi', 'Clase magistral de preparacion de sushi con chef profesional', 2, 85000, 4),
+('Visita Monte Fuji', 'Excursion de dia completo al Monte Fuji y lago Kawaguchi', 8, 125000, 4);
 
--- Paquete de ejemplo
+-- Paquetes de ejemplo
+-- Precios en pesos chilenos
 INSERT INTO Paquetes (nombre, descripcion, fecha_inicio, fecha_fin, precio_total, cupos_disponibles, politica_id) VALUES
-('Europa Clásica', 'Recorre las principales capitales europeas: París, Roma, Londres y Madrid', '2025-06-01 09:00:00', '2025-06-15 18:00:00', 3500.00, 20, 1),
-('Tour Mediterráneo', 'Disfruta del sol y las playas de Grecia, Italia y España', '2025-07-10 10:00:00', '2025-07-20 16:00:00', 2800.00, 15, 2),
-('Aventura Asiática', 'Explora la cultura milenaria de Japón, China y Tailandia', '2025-08-05 08:00:00', '2025-08-18 20:00:00', 4200.00, 12, 1);
+('Europa Clasica', 'Recorre las principales capitales europeas: Paris, Roma y Barcelona', '2025-06-01 09:00:00', '2025-06-15 18:00:00', 2450000, 20, 1),
+('Tour Mediterraneo', 'Disfruta del sol y las playas del Mediterraneo visitando Italia y Espana', '2025-07-10 10:00:00', '2025-07-20 16:00:00', 1890000, 15, 2),
+('Aventura Asiatica', 'Explora la cultura milenaria de Japon con templos y gastronomia', '2025-08-05 08:00:00', '2025-08-18 20:00:00', 2980000, 12, 1),
+('Escapada Paris', 'Fin de semana romantico en la ciudad del amor', '2025-05-15 09:00:00', '2025-05-18 18:00:00', 980000, 30, 1),
+('Roma Imperial', 'Viaje cultural por la Roma antigua y el Vaticano', '2025-09-01 08:00:00', '2025-09-07 20:00:00', 1250000, 25, 2);
 
--- Relación Paquetes-Destinos
+-- Relacion Paquetes-Destinos
 INSERT INTO Paquete_Destino (paquete_id, destino_id, orden_visita) VALUES
--- Europa Clásica: París -> Roma -> Barcelona
+-- Europa Clasica: Paris -> Roma -> Barcelona
 (1, 1, 1),
 (1, 2, 2),
 (1, 3, 3),
--- Tour Mediterráneo: Roma -> Barcelona
+-- Tour Mediterraneo: Roma -> Barcelona
 (2, 2, 1),
 (2, 3, 2),
--- Aventura Asiática: Tokio
-(3, 4, 1);
+-- Aventura Asiatica: Tokio
+(3, 4, 1),
+-- Escapada Paris: Paris
+(4, 1, 1),
+-- Roma Imperial: Roma
+(5, 2, 1);
+
+-- ============================================
+-- Usuarios cliente de ejemplo para demo
+-- Password para todos: Cliente123
+-- ============================================
+INSERT INTO Usuarios (email, password_hash, nombre, rol) VALUES
+('maria.gonzalez@email.com', '$2b$12$MmQxlm77yoa.XQMHKDWffeU0KJB28f/.NDBXHG4gAu4qb4QuyTRTy', 'Maria Gonzalez', 'CLIENTE'),
+('juan.perez@email.com', '$2b$12$MmQxlm77yoa.XQMHKDWffeU0KJB28f/.NDBXHG4gAu4qb4QuyTRTy', 'Juan Perez', 'CLIENTE'),
+('ana.martinez@email.com', '$2b$12$MmQxlm77yoa.XQMHKDWffeU0KJB28f/.NDBXHG4gAu4qb4QuyTRTy', 'Ana Martinez', 'CLIENTE');
+
+-- ============================================
+-- Reservas de ejemplo para demo
+-- Montos en pesos chilenos
+-- ============================================
+INSERT INTO Reservas (fecha_reserva, estado, monto_total, numero_personas, usuario_id, paquete_id, destino_id) VALUES
+-- Maria Gonzalez: Reserva confirmada de Europa Clasica (2 personas)
+('2025-01-15 10:30:00', 'CONFIRMADA', 4900000, 2, 2, 1, NULL),
+-- Maria Gonzalez: Reserva pendiente de destino Paris (1 persona)
+('2025-02-20 14:15:00', 'PENDIENTE', 850000, 1, 2, NULL, 1),
+-- Juan Perez: Reserva pagada de Tour Mediterraneo (3 personas)
+('2025-02-01 09:00:00', 'PAGADA', 5670000, 3, 3, 2, NULL),
+-- Juan Perez: Reserva cancelada de Aventura Asiatica
+('2025-01-10 16:45:00', 'CANCELADA', 2980000, 1, 3, 3, NULL),
+-- Ana Martinez: Reserva confirmada de Escapada Paris (2 personas)
+('2025-03-05 11:20:00', 'CONFIRMADA', 1960000, 2, 4, 4, NULL),
+-- Ana Martinez: Reserva pendiente de destino Barcelona
+('2025-03-10 08:30:00', 'PENDIENTE', 1160000, 2, 4, NULL, 3);
+
+-- ============================================
+-- Pagos de ejemplo para demo
+-- Montos en pesos chilenos
+-- ============================================
+INSERT INTO Pagos (monto, fecha_pago, metodo, estado, reserva_id) VALUES
+-- Pago completo de Maria (reserva 1 - Europa Clasica)
+(4900000, '2025-01-15 11:00:00', 'TARJETA', 'COMPLETADO', 1),
+-- Pago parcial de Juan (reserva 3 - Tour Mediterraneo)
+(2835000, '2025-02-01 10:00:00', 'TRANSFERENCIA', 'COMPLETADO', 3),
+(2835000, '2025-02-05 10:00:00', 'TRANSFERENCIA', 'COMPLETADO', 3),
+-- Pago de Ana (reserva 5 - Escapada Paris)
+(1960000, '2025-03-05 12:00:00', 'EFECTIVO', 'COMPLETADO', 5);

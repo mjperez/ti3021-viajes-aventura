@@ -26,7 +26,8 @@ class PaqueteService:
         fecha_fin: datetime,
         precio_total: float,
         cupos_disponibles: int,
-        politica_id: int
+        politica_id: int,
+        destino_id: int | None = None
     ) -> PaqueteDTO:
         """Crea un nuevo paquete con validaciones.
         
@@ -38,6 +39,7 @@ class PaqueteService:
             precio_total: Precio total del paquete
             cupos_disponibles: Cupos disponibles
             politica_id: ID de la política de cancelación
+            destino_id: ID del destino a asociar (opcional)
             
         Returns:
             PaqueteDTO con el paquete creado
@@ -48,8 +50,6 @@ class PaqueteService:
         # Validaciones de negocio
         if not nombre or not nombre.strip():
             raise ValidacionError("El nombre del paquete no puede estar vacío")
-        if not descripcion or not descripcion.strip():
-            raise ValidacionError("La descripción no puede estar vacía")
         if precio_total <= 0:
             raise ValidacionError("El precio total debe ser mayor a 0")
         if cupos_disponibles < 0:
@@ -63,7 +63,7 @@ class PaqueteService:
         paquete = PaqueteDTO(
             id=None,
             nombre=nombre.strip(),
-            descripcion=descripcion.strip(),
+            descripcion=(descripcion or "").strip(),
             fecha_inicio=fecha_inicio,
             fecha_fin=fecha_fin,
             precio_total=precio_total,
@@ -73,6 +73,11 @@ class PaqueteService:
         
         paquete_id = self.paquete_dao.crear(paquete)
         paquete.id = paquete_id
+        
+        # Asociar destino al paquete si se proporcionó
+        if destino_id:
+            self.paquete_dao.agregar_destino(paquete_id, destino_id)
+        
         return paquete
     
     def obtener_paquete(self, paquete_id: int) -> PaqueteDTO | None:

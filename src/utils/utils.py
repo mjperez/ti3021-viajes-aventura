@@ -1,9 +1,129 @@
+import math
 import os
+import re
 
 
 class OperacionCancelada(Exception):
     """Excepción lanzada cuando el usuario cancela una operación."""
     pass
+
+
+def sanitizar_numero(valor: str) -> str:
+    """Limpia un string para convertirlo a número.
+    
+    Elimina puntos de miles, espacios, y símbolos de moneda.
+    Reemplaza coma decimal por punto.
+    
+    Args:
+        valor: String con el número a limpiar
+        
+    Returns:
+        String limpio listo para convertir a int/float
+    """
+    if not valor:
+        return "0"
+    # Eliminar espacios, símbolo $, puntos de miles
+    limpio = valor.strip().replace("$", "").replace(" ", "")
+    # Si tiene coma como decimal (formato chileno), reemplazar
+    if "," in limpio and "." in limpio:
+        # Formato 1.234,56 -> 1234.56
+        limpio = limpio.replace(".", "").replace(",", ".")
+    elif "," in limpio:
+        # Solo coma -> es decimal
+        limpio = limpio.replace(",", ".")
+    elif limpio.count(".") > 1:
+        # Múltiples puntos = separador de miles
+        limpio = limpio.replace(".", "")
+    return limpio
+
+
+def leer_entero_seguro(prompt: str, minimo: int | None = None, maximo: int | None = None) -> int | None:
+    """Lee un entero del usuario con sanitización.
+    
+    Args:
+        prompt: Mensaje a mostrar
+        minimo: Valor mínimo permitido (opcional)
+        maximo: Valor máximo permitido (opcional)
+        
+    Returns:
+        Entero válido o None si cancela/inválido
+    """
+    try:
+        valor = input(prompt).strip()
+        if not valor or valor.lower() in ['0', 'cancelar', 'cancel']:
+            return None
+        
+        numero = int(sanitizar_numero(valor))
+        
+        if minimo is not None and numero < minimo:
+            print(f"Error: El valor debe ser al menos {minimo}")
+            return None
+        if maximo is not None and numero > maximo:
+            print(f"Error: El valor no puede ser mayor a {maximo}")
+            return None
+            
+        return numero
+    except ValueError:
+        print("Error: Debe ingresar un número válido (sin letras ni símbolos)")
+        return None
+
+
+def leer_decimal_seguro(prompt: str, minimo: float | None = None) -> float | None:
+    """Lee un decimal del usuario con sanitización.
+    
+    Args:
+        prompt: Mensaje a mostrar
+        minimo: Valor mínimo permitido (opcional)
+        
+    Returns:
+        Float válido o None si cancela/inválido
+    """
+    try:
+        valor = input(prompt).strip()
+        if not valor or valor.lower() in ['0', 'cancelar', 'cancel']:
+            return None
+        
+        numero = float(sanitizar_numero(valor))
+        
+        if minimo is not None and numero < minimo:
+            print(f"Error: El valor debe ser al menos {minimo}")
+            return None
+            
+        return numero
+    except ValueError:
+        print("Error: Debe ingresar un número válido (sin letras)")
+        return None
+
+
+def calcular_precio_con_iva(precio_base: int | float, iva: float = 0.19) -> int:
+    """Calcula el precio total incluyendo IVA, redondeando al techo.
+    
+    En Chile no existen decimales en la moneda, por lo que se redondea
+    hacia arriba (ceil) para no perder centavos.
+    
+    Args:
+        precio_base: Precio sin IVA (entero o float)
+        iva: Tasa de IVA (default 19%)
+        
+    Returns:
+        Precio con IVA incluido, redondeado al entero superior
+    """
+    return math.ceil(precio_base * (1 + iva))
+
+
+def formatear_precio(precio: int | float, con_iva: bool = False) -> str:
+    """Formatea un precio en formato chileno con símbolo $.
+    
+    Args:
+        precio: Monto a formatear
+        con_iva: Si es True, agrega 19% de IVA al precio
+        
+    Returns:
+        String formateado como "$1.234.567"
+    """
+    if con_iva:
+        precio = calcular_precio_con_iva(precio)
+    return f"${int(precio):,}".replace(",", ".")
 
 
 def validar_cancelacion(valor: str) -> str:
@@ -67,8 +187,13 @@ def pausar():
     #Espera input del usuario antes de continuar
     input("Presione Enter para continuar...")
 
-def mostrar_tabla_paquetes(paquetes: list) -> None:
-    """Muestra lista de paquetes en formato tabla."""
+def mostrar_tabla_paquetes(paquetes: list, con_iva: bool = False) -> None:
+    """Muestra lista de paquetes en formato tabla.
+    
+    Args:
+        paquetes: Lista de PaqueteDTO
+        con_iva: Si es True, muestra precios con IVA (19%) incluido
+    """
     from src.business.paquete_service import PaqueteService
     
     if not paquetes:
@@ -78,32 +203,42 @@ def mostrar_tabla_paquetes(paquetes: list) -> None:
     paquete_service = PaqueteService()
     
     # Encabezado
+    precio_header = "PRECIO (IVA inc.)" if con_iva else "PRECIO"
     print("\n" + "="*120)
-    print(f"{'ID':<5} {'NOMBRE':<35} {'PRECIO':<15} {'CUPOS':<8} {'FECHA INICIO':<12} {'FECHA FIN':<12}")
+    print(f"{'ID':<5} {'NOMBRE':<35} {precio_header:<18} {'CUPOS':<8} {'FECHA INICIO':<12} {'FECHA FIN':<12}")
     print("="*120)
     
     for p in paquetes:
-        precio = f"${int(p.precio_total):,}".replace(",", ".")
+        precio_mostrar = calcular_precio_con_iva(p.precio_total) if con_iva else p.precio_total
+        precio = f"${int(precio_mostrar):,}".replace(",", ".")
         fecha_inicio = str(p.fecha_inicio)[:10] if p.fecha_inicio else "N/A"
         fecha_fin = str(p.fecha_fin)[:10] if p.fecha_fin else "N/A"
         nombre = (p.nombre[:32] + "...") if len(p.nombre) > 35 else p.nombre
         
-        print(f"{p.id:<5} {nombre:<35} {precio:<15} {p.cupos_disponibles:<8} {fecha_inicio:<12} {fecha_fin:<12}")
+        print(f"{p.id:<5} {nombre:<35} {precio:<18} {p.cupos_disponibles:<8} {fecha_inicio:<12} {fecha_fin:<12}")
         
         # Mostrar actividades incluidas en el paquete
         if p.id:
             actividades = paquete_service.obtener_actividades_paquete(p.id)
             if actividades:
-                print("      └─ Actividades: ", end="")
+                print("      Actividades: ", end="")
                 acts_str = ", ".join([f"{a['nombre']} ({a['duracion_horas']}h)" for a in actividades[:3]])
                 if len(actividades) > 3:
-                    acts_str += f" +{len(actividades)-3} más"
+                    acts_str += f" +{len(actividades)-3} mas"
                 print(acts_str)
         print("-"*120)
+    
+    if con_iva:
+        print("* Precios incluyen IVA (19%)")
     print("="*120 + "\n")
 
-def mostrar_tabla_destinos(destinos: list) -> None:
-    """Muestra lista de destinos en formato tabla con política de cancelación."""
+def mostrar_tabla_destinos(destinos: list, con_iva: bool = False) -> None:
+    """Muestra lista de destinos en formato tabla con politica de cancelacion.
+    
+    Args:
+        destinos: Lista de DestinoDTO
+        con_iva: Si es True, muestra precios con IVA (19%) incluido
+    """
     if not destinos:
         print("No hay destinos para mostrar.")
         return
@@ -114,37 +249,50 @@ def mostrar_tabla_destinos(destinos: list) -> None:
     politicas = {p.id: p.nombre for p in politica_dao.listar_todas()}
     
     # Encabezado
+    costo_header = "COSTO (IVA inc.)" if con_iva else "COSTO BASE"
     print("\n" + "="*125)
-    print(f"{'ID':<5} {'NOMBRE':<25} {'COSTO BASE':<15} {'CUPOS':<8} {'POLÍTICA':<12} {'DESCRIPCIÓN':<50}")
+    print(f"{'ID':<5} {'NOMBRE':<25} {costo_header:<18} {'CUPOS':<8} {'POLITICA':<12} {'DESCRIPCION':<50}")
     print("="*125)
     
     for d in destinos:
-        costo = f"${int(d.costo_base):,}".replace(",", ".")
+        costo_mostrar = calcular_precio_con_iva(d.costo_base) if con_iva else d.costo_base
+        costo = f"${int(costo_mostrar):,}".replace(",", ".")
         descripcion = (d.descripcion[:47] + "...") if len(d.descripcion) > 50 else d.descripcion
         politica_nombre = politicas.get(d.politica_id, "Flexible")
-        print(f"{d.id:<5} {d.nombre:<25} {costo:<15} {d.cupos_disponibles:<8} {politica_nombre:<12} {descripcion:<50}")
+        print(f"{d.id:<5} {d.nombre:<25} {costo:<18} {d.cupos_disponibles:<8} {politica_nombre:<12} {descripcion:<50}")
     
+    if con_iva:
+        print("* Precios incluyen IVA (19%)")
     print("="*125 + "\n")
 
-def mostrar_tabla_actividades(actividades: list) -> None:
-    """Muestra lista de actividades en formato tabla."""
+def mostrar_tabla_actividades(actividades: list, con_iva: bool = False) -> None:
+    """Muestra lista de actividades en formato tabla.
+    
+    Args:
+        actividades: Lista de ActividadDTO
+        con_iva: Si es True, muestra precios con IVA (19%) incluido
+    """
     if not actividades:
         print("No hay actividades para mostrar.")
         return
     
     # Encabezado
+    precio_header = "PRECIO (IVA)" if con_iva else "PRECIO"
     print("\n" + "="*115)
-    print(f"{'ID':<5} {'NOMBRE':<30} {'DURACIÓN':<10} {'PRECIO':<15} {'DESTINO':<8} {'DESCRIPCIÓN':<40}")
+    print(f"{'ID':<5} {'NOMBRE':<30} {'DURACION':<10} {precio_header:<15} {'DESTINO':<8} {'DESCRIPCION':<40}")
     print("="*115)
     
     for a in actividades:
         duracion = f"{a.duracion_horas}h"
-        precio = f"${int(a.precio_base):,}".replace(",", ".")
-        descripcion = (a.descripcion[:37] + "...") if a.descripcion and len(a.descripcion) > 40 else (a.descripcion or "Sin descripción")
+        precio_mostrar = calcular_precio_con_iva(a.precio_base) if con_iva else a.precio_base
+        precio = f"${int(precio_mostrar):,}".replace(",", ".")
+        descripcion = (a.descripcion[:37] + "...") if a.descripcion and len(a.descripcion) > 40 else (a.descripcion or "Sin descripcion")
         nombre = (a.nombre[:27] + "...") if len(a.nombre) > 30 else a.nombre
         
         print(f"{a.id:<5} {nombre:<30} {duracion:<10} {precio:<15} {a.destino_id:<8} {descripcion:<40}")
     
+    if con_iva:
+        print("* Precios incluyen IVA (19%)")
     print("="*115 + "\n")
 
 def mostrar_tabla_reservas(reservas: list) -> None:

@@ -85,9 +85,10 @@ def ver_actividades_disponibles():
         print("1. Ver todas las actividades")
         print("2. Buscar por destino")
         print("3. Volver")
-        opcion = input("\nSeleccione una opción: ")
+        opcion = input("\nSeleccione una opcion: ")
         
         if opcion == "2":
+            limpiar_pantalla()
             destinos = destino_service.listar_destinos_disponibles()
             if not destinos:
                 print("\nNo hay destinos disponibles.")
@@ -100,20 +101,22 @@ def ver_actividades_disponibles():
                 destino_id = int(destino_id_str)
                 
                 if destino_id > 0:
+                    limpiar_pantalla()
                     actividades = actividad_service.listar_actividades_por_destino(destino_id)
                     if not actividades:
                         print("\nNo hay actividades disponibles para ese destino.")
                     else:
                         print("\nActividades del destino seleccionado:")
-                        mostrar_tabla_actividades(actividades)
+                        mostrar_tabla_actividades(actividades, con_iva=True)
         elif opcion == "1":
+            limpiar_pantalla()
             actividades = actividad_service.listar_todas_actividades()
             if not actividades:
                 print("\nNo hay actividades disponibles en este momento.")
             else:
-                mostrar_tabla_actividades(actividades)
+                mostrar_tabla_actividades(actividades, con_iva=True)
     except ValueError:
-        print("\nERROR: Debe ingresar un número válido")
+        print("\nERROR: Debe ingresar un numero valido")
     except Exception as e:
         print(f"\nERROR: Error al cargar actividades: {e}")
     pausar()
@@ -130,7 +133,7 @@ def ver_destinos_disponibles():
         if not destinos:
             print("No hay destinos disponibles en este momento.")
         else:
-            mostrar_tabla_destinos(destinos)
+            mostrar_tabla_destinos(destinos, con_iva=True)
     except Exception as e:
         print(f"ERROR: Error al cargar destinos: {e}")
     pausar()
@@ -147,26 +150,7 @@ def ver_paquetes_disponibles():
         if not paquetes:
             print("No hay paquetes disponibles en este momento.")
         else:
-            # Mostrar cada paquete con sus actividades
-            for paquete in paquetes:
-                precio = f"${int(paquete.precio_total):,}".replace(",", ".")
-                fecha_inicio = str(paquete.fecha_inicio)[:16] if paquete.fecha_inicio else "N/A"
-                fecha_fin = str(paquete.fecha_fin)[:16] if paquete.fecha_fin else "N/A"
-                
-                print("\n" + "="*100)
-                print(f"ID: {paquete.id}")
-                print(f"NOMBRE: {paquete.nombre}")
-                print(f"PRECIO: {precio}")
-                print(f"CUPOS DISPONIBLES: {paquete.cupos_disponibles}")
-                print(f"INICIO: {fecha_inicio}")
-                print(f"FIN: {fecha_fin}")
-                print(f"DESCRIPCIÓN: {paquete.descripcion or 'Sin descripción'}")
-                
-                # Mostrar actividades incluidas
-                if paquete.id:
-                    actividades = paquete_service.obtener_actividades_paquete(paquete.id)
-                    mostrar_actividades_paquete(actividades)
-            print("="*100 + "\n")
+            mostrar_tabla_paquetes(paquetes, con_iva=True)
     except Exception as e:
         print(f"ERROR: Error al cargar paquetes: {e}")
     pausar()

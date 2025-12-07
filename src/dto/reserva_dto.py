@@ -3,7 +3,8 @@ from datetime import datetime
 
 class ReservaDTO:
     # Clase que representa los datos de una reserva.
-    def __init__(self, id:int | None, fecha_reserva:datetime, estado: str, monto_total: float, numero_personas: int, usuario_id: int, paquete_id: int | None = None, destino_id: int | None = None):
+    # Montos en pesos chilenos (enteros, sin decimales)
+    def __init__(self, id:int | None, fecha_reserva:datetime, estado: str, monto_total: int, numero_personas: int, usuario_id: int, paquete_id: int | None = None, destino_id: int | None = None):
         self.id=id
         self.fecha_reserva=fecha_reserva
         self.estado=estado
