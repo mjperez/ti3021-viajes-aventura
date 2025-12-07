@@ -36,8 +36,7 @@ from src.utils import (
     AutenticacionError,
     ValidacionError,
 )
-from src.utils.validators import validar_email, validar_password
-
+from src.utils.validators import validar_email, validar_password, validar_rut
 
 def hashear_password(password: str) -> str:
     '''Hashea la contraseña usando bcrypt. Retorna el hash como string.'''
@@ -48,20 +47,29 @@ def verificar_password(password:str,hash_pw:str) -> bool:
     '''Verifica si la contraseña coincide con el hash almacenado. Retorna True si coincide.''' 
     return bcrypt.checkpw(password.encode('utf-8'),hash_pw.encode('utf-8'))
 
-def registrar_usuario(email,password,nombre,rol=None) -> UsuarioDTO:
-    '''Registra un nuevo usuario tras validar email y password. Retorna el DTO del usuario creado.'''
+def registrar_usuario(rut, email, password, nombre, rol=None) -> UsuarioDTO:
+    '''Registra un nuevo usuario tras validar rut, email y password. Retorna el DTO del usuario creado.'''
+    if not validar_rut(rut):
+        raise ValidacionError("RUT inválido")
+
     if not validar_email(email):
         raise ValidacionError(MSG_ERROR_EMAIL_INVALIDO)
     
     if not validar_password(password):
         raise ValidacionError(MSG_ERROR_PASSWORD_DEBIL)
     dao = UsuarioDAO()
-    usuarioExistente = dao.obtener_por_email(email)
-    if usuarioExistente:
+    
+    # Validar unicidad
+    usuarioExistenteEmail = dao.obtener_por_email(email)
+    if usuarioExistenteEmail:
         raise ValidacionError(MSG_ERROR_EMAIL_DUPLICADO)
+
+    # Validar unicidad (opcional, pero buena práctica si el RUT debe ser único)
+    # Por ahora solo validamos formato y asumimos que DB lanzará error si hay UNIQUE index en RUT (no lo hay explícito UNIQUE en schema nuevo agregado, pero sí INDEX).
+    # Se recomienda agregar UNIQUE a RUT en DB si se requiere unicidad estricta.
     
     hashpw = hashear_password(password)
-    usuarioNuevo = UsuarioDTO(None,email,hashpw,nombre,rol or ROL_USUARIO_DEFAULT,datetime.now())
+    usuarioNuevo = UsuarioDTO(None, rut, email, hashpw, nombre, rol or ROL_USUARIO_DEFAULT, datetime.now())
     idNuevo = dao.crear(usuarioNuevo)
     usuarioNuevo.id = idNuevo
     return usuarioNuevo

@@ -29,11 +29,13 @@ USE viajes_aventura;
 -- ============================================
 CREATE TABLE Usuarios (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    rut VARCHAR(12) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     nombre VARCHAR(100) NOT NULL,
     rol ENUM('ADMIN', 'CLIENTE') NOT NULL DEFAULT 'CLIENTE',
     fecha_registro DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_rut (rut),
     INDEX idx_email (email),
     INDEX idx_rol (rol)
 ) ENGINE=InnoDB;
@@ -174,8 +176,8 @@ INSERT INTO PoliticasCancelacion (nombre, dias_aviso, porcentaje_reembolso) VALU
 
 -- Usuario administrador por defecto
 -- Credenciales: admin@viajes-aventura.com / Admin123
-INSERT INTO Usuarios (email, password_hash, nombre, rol) VALUES
-('admin@viajes-aventura.com', '$2b$12$MmQxlm77yoa.XQMHKDWffeU0KJB28f/.NDBXHG4gAu4qb4QuyTRTy', 'Administrador', 'ADMIN');
+INSERT INTO Usuarios (rut, email, password_hash, nombre, rol) VALUES
+('99.999.999-9', 'admin@viajes-aventura.com', '$2b$12$MmQxlm77yoa.XQMHKDWffeU0KJB28f/.NDBXHG4gAu4qb4QuyTRTy', 'Administrador', 'ADMIN');
 
 -- Destinos de ejemplo (con politica de cancelacion)
 -- Precios en pesos chilenos
@@ -234,10 +236,10 @@ INSERT INTO Paquete_Destino (paquete_id, destino_id, orden_visita) VALUES
 -- Usuarios cliente de ejemplo para demo
 -- Password para todos: Cliente123
 -- ============================================
-INSERT INTO Usuarios (email, password_hash, nombre, rol) VALUES
-('maria.gonzalez@email.com', '$2b$12$MmQxlm77yoa.XQMHKDWffeU0KJB28f/.NDBXHG4gAu4qb4QuyTRTy', 'Maria Gonzalez', 'CLIENTE'),
-('juan.perez@email.com', '$2b$12$MmQxlm77yoa.XQMHKDWffeU0KJB28f/.NDBXHG4gAu4qb4QuyTRTy', 'Juan Perez', 'CLIENTE'),
-('ana.martinez@email.com', '$2b$12$MmQxlm77yoa.XQMHKDWffeU0KJB28f/.NDBXHG4gAu4qb4QuyTRTy', 'Ana Martinez', 'CLIENTE');
+INSERT INTO Usuarios (rut, email, password_hash, nombre, rol) VALUES
+('11.111.111-1', 'maria.gonzalez@email.com', '$2b$12$MmQxlm77yoa.XQMHKDWffeU0KJB28f/.NDBXHG4gAu4qb4QuyTRTy', 'Maria Gonzalez', 'CLIENTE'),
+('22.222.222-2', 'juan.perez@email.com', '$2b$12$MmQxlm77yoa.XQMHKDWffeU0KJB28f/.NDBXHG4gAu4qb4QuyTRTy', 'Juan Perez', 'CLIENTE'),
+('33.333.333-3', 'ana.martinez@email.com', '$2b$12$MmQxlm77yoa.XQMHKDWffeU0KJB28f/.NDBXHG4gAu4qb4QuyTRTy', 'Ana Martinez', 'CLIENTE');
 
 -- ============================================
 -- Reservas de ejemplo para demo

@@ -56,3 +56,4 @@ tests/.gitkeep
 tests/test_usuario_service.py
 .gitignore
 requirements-dev.txt
+tests/test_suite.py

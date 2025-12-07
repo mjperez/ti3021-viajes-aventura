@@ -55,11 +55,12 @@ def opcion_registro():
         limpiar_pantalla()
         print("=== VIAJES AVENTURA: REGISTRO ===")
         nombre = input("Ingrese su nombre: ")
+        rut = input("Ingrese su RUT (ej: 12.345.678-9): ")
         email = input("Ingrese su email: ")
         password = input("Ingrese su contraseña: ")
         
         try:
-            usuario = registrar_usuario(email, password, nombre)
+            usuario = registrar_usuario(rut, email, password, nombre)
             print(f"¡Registro exitoso! Bienvenido, {usuario.nombre}. Ahora puede iniciar sesión.")
             pausar()
             break  # Salir del loop si el registro fue exitoso

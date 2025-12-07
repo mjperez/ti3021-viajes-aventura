@@ -14,9 +14,10 @@ class UsuarioDAO:
     
     def crear(self, usuario_dto: UsuarioDTO) -> int:
         # INSERT y retornar lastrowid
-        sql = "INSERT INTO Usuarios (email,password_hash, nombre, rol, fecha_registro) VALUES (%s,%s,%s,%s,%s)"
+        sql = "INSERT INTO Usuarios (rut, email, password_hash, nombre, rol, fecha_registro) VALUES (%s,%s,%s,%s,%s,%s)"
 
         params = (
+            usuario_dto.rut,
             usuario_dto.email,
             usuario_dto.password_hash,usuario_dto.nombre,
             usuario_dto.rol,
@@ -35,6 +36,7 @@ class UsuarioDAO:
         if usuario:
             return UsuarioDTO(
                 id=usuario['id'],
+                rut=usuario['rut'],
                 email=usuario['email'],
                 password_hash=usuario['password_hash'],
                 nombre=usuario['nombre'],
@@ -54,6 +56,7 @@ class UsuarioDAO:
         if usuario:
             return UsuarioDTO(
                 id=usuario['id'],
+                rut=usuario['rut'],
                 email=usuario['email'],
                 password_hash=usuario['password_hash'],
                 nombre=usuario['nombre'],
@@ -75,6 +78,7 @@ class UsuarioDAO:
             usuarios.append(
                 UsuarioDTO(
                     id=r['id'],
+                    rut=r['rut'],
                     email=r['email'],
                     password_hash=r['password_hash'],
                     nombre=r['nombre'],
@@ -87,8 +91,8 @@ class UsuarioDAO:
     
     def actualizar(self, usuario_dto: UsuarioDTO) -> bool:
         # UPDATE y retornar True si tuvo éxito
-        sql = "UPDATE Usuarios SET email = %s, password_hash = %s, nombre = %s, rol = %s, fecha_registro = %s WHERE id = %s"
-        params= (usuario_dto.email, usuario_dto.password_hash, usuario_dto.nombre, usuario_dto.rol, usuario_dto.fecha_registro, usuario_dto.id)
+        sql = "UPDATE Usuarios SET rut = %s, email = %s, password_hash = %s, nombre = %s, rol = %s, fecha_registro = %s WHERE id = %s"
+        params= (usuario_dto.rut, usuario_dto.email, usuario_dto.password_hash, usuario_dto.nombre, usuario_dto.rol, usuario_dto.fecha_registro, usuario_dto.id)
 
         filas = ejecutar_actualizacion(sql,params)
         return filas > 0
@@ -114,6 +118,7 @@ class UsuarioDAO:
         for r in rows:
             usuarios.append(UsuarioDTO(
                 id=r['id'],
+                rut=r['rut'],
                 email=r['email'],
                 password_hash=r['password_hash'],
                 nombre=r['nombre'],
