@@ -173,9 +173,9 @@ INSERT INTO PoliticasCancelacion (nombre, dias_aviso, porcentaje_reembolso) VALU
 ('Estricta', 30, 50);
 
 -- Usuario administrador por defecto
--- Contraseña: admin123 (debe hashearse en la aplicación)
+-- Credenciales: admin@viajes-aventura.com / Admin123
 INSERT INTO Usuarios (email, password_hash, nombre, rol) VALUES
-('admin@viajes-aventura.com', 'hash_aqui', 'Administrador', 'ADMIN');
+('admin@viajes-aventura.com', '$2b$12$MmQxlm77yoa.XQMHKDWffeU0KJB28f/.NDBXHG4gAu4qb4QuyTRTy', 'Administrador', 'ADMIN');
 
 -- Destinos de ejemplo (con política de cancelación)
 INSERT INTO Destinos (nombre, descripcion, costo_base, cupos_disponibles, politica_id) VALUES
@@ -220,68 +220,3 @@ INSERT INTO Paquete_Destino (paquete_id, destino_id, orden_visita) VALUES
 (2, 3, 2),
 -- Aventura Asiática: Tokio
 (3, 4, 1);
-
--- ============================================
--- Vistas útiles
--- ============================================
-
--- Vista: Paquetes con información completa
-CREATE VIEW Vista_Paquetes_Completos AS
-SELECT 
-    p.id,
-    p.nombre,
-    p.fecha_inicio,
-    p.fecha_fin,
-    p.precio_total,
-    p.cupos_disponibles,
-    pc.nombre AS politica_cancelacion,
-    pc.dias_aviso,
-    pc.porcentaje_reembolso,
-    GROUP_CONCAT(d.nombre ORDER BY pd.orden_visita SEPARATOR ' → ') AS ruta_destinos
-FROM Paquetes p
-JOIN PoliticasCancelacion pc ON p.politica_id = pc.id
-LEFT JOIN Paquete_Destino pd ON p.id = pd.paquete_id
-LEFT JOIN Destinos d ON pd.destino_id = d.id
-GROUP BY p.id, p.nombre, p.fecha_inicio, p.fecha_fin, p.precio_total, 
-         p.cupos_disponibles, pc.nombre, pc.dias_aviso, pc.porcentaje_reembolso;
-
--- Vista: Reservas con información del cliente y paquete
-CREATE VIEW Vista_Reservas_Detalladas AS
-SELECT 
-    r.id AS reserva_id,
-    r.fecha_reserva,
-    r.estado AS estado_reserva,
-    r.monto_total,
-    r.numero_personas,
-    u.nombre AS cliente_nombre,
-    u.email AS cliente_email,
-    p.nombre AS paquete_nombre,
-    p.fecha_inicio AS fecha_viaje_inicio,
-    p.fecha_fin AS fecha_viaje_fin,
-    COALESCE(SUM(pg.monto), 0) AS total_pagado,
-    (r.monto_total - COALESCE(SUM(pg.monto), 0)) AS saldo_pendiente
-FROM Reservas r
-JOIN Usuarios u ON r.usuario_id = u.id
-JOIN Paquetes p ON r.paquete_id = p.id
-LEFT JOIN Pagos pg ON r.id = pg.reserva_id AND pg.estado = 'COMPLETADO'
-GROUP BY r.id, r.fecha_reserva, r.estado, r.monto_total, r.numero_personas,
-         u.nombre, u.email, p.nombre, p.fecha_inicio, p.fecha_fin;
-
--- ============================================
--- NOTA: Los triggers fueron eliminados.
--- La lógica de cupos se maneja en Python (ReservaService)
--- para evitar duplicación y mantener consistencia.
--- ============================================
-
--- ============================================
--- Consultas útiles para verificación
--- ============================================
-
--- Mostrar todos los paquetes con sus destinos
-SELECT * FROM Vista_Paquetes_Completos;
-
--- Mostrar estructura de todas las tablas
-SHOW TABLES;
-
--- Verificar políticas de cancelación
-SELECT * FROM PoliticasCancelacion;

@@ -17,23 +17,21 @@ from src.dto.usuario_dto import UsuarioDTO
 from src.ui.menu_admin import mostrar_menu_admin
 from src.ui.menu_cliente import mostrar_menu_cliente
 from src.utils import (
-    MSG_ERROR_OPCION_INVALIDA,
     leer_opcion,
     limpiar_pantalla,
     pausar,
-    validar_opcion,
 )
 
 
 def mostrar_menu_principal(usuario: UsuarioDTO): 
-    """Redirige al menú correspondiente según el rol del usuario."""
+    '''Redirige al menú correspondiente según el rol del usuario.'''
     if usuario.rol == 'ADMIN':
         mostrar_menu_admin(usuario)
     elif usuario.rol == 'CLIENTE':
         mostrar_menu_cliente(usuario)
 
 def opcion_login(): 
-    #Maneja el proceso de login
+    '''Maneja el proceso de login'''
     limpiar_pantalla()
     print("=== VIAJES AVENTURA: LOGIN ===")
     email = input("Ingrese su email: ")
@@ -52,7 +50,7 @@ def opcion_login():
         pausar()
     
 def opcion_registro(): 
-    #Maneja el proceso de registro de cliente
+    '''Maneja el proceso de registro de cliente'''
     while True:
         limpiar_pantalla()
         print("=== VIAJES AVENTURA: REGISTRO ===")

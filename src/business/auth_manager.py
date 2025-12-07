@@ -19,7 +19,6 @@ Requiere:
     - validators para validaciones
 """
 
-import re
 from datetime import datetime
 
 import bcrypt
@@ -41,13 +40,16 @@ from src.utils.validators import validar_email, validar_password
 
 
 def hashear_password(password: str) -> str:
+    '''Hashea la contraseña usando bcrypt. Retorna el hash como string.'''
     hash_bytes = bcrypt.hashpw(password.encode('utf-8'),bcrypt.gensalt())
     return hash_bytes.decode('utf-8')
 
 def verificar_password(password:str,hash_pw:str) -> bool:
+    '''Verifica si la contraseña coincide con el hash almacenado. Retorna True si coincide.''' 
     return bcrypt.checkpw(password.encode('utf-8'),hash_pw.encode('utf-8'))
 
 def registrar_usuario(email,password,nombre,rol=None) -> UsuarioDTO:
+    '''Registra un nuevo usuario tras validar email y password. Retorna el DTO del usuario creado.'''
     if not validar_email(email):
         raise ValidacionError(MSG_ERROR_EMAIL_INVALIDO)
     
@@ -65,6 +67,7 @@ def registrar_usuario(email,password,nombre,rol=None) -> UsuarioDTO:
     return usuarioNuevo
 
 def login(email:str,passw:str) -> UsuarioDTO|None:
+    '''Login de usuario, retorna DTO si es válido'''
     dao = UsuarioDAO()
     try:
         usuario = dao.obtener_por_email(email)
@@ -76,6 +79,7 @@ def login(email:str,passw:str) -> UsuarioDTO|None:
     raise AutenticacionError(MSG_ERROR_CREDENCIALES_INVALIDAS)
 
 def cambiar_password(usuarioID: int, passwordActual: str, passwordNueva: str) -> bool:
+    '''Cambia la contraseña del usuario tras validar la actual. Retorna True si se actualizó.'''
     dao = UsuarioDAO()
     try:
         usuario = dao.obtener_por_id(usuarioID)

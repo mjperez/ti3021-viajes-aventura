@@ -10,10 +10,10 @@ from src.utils.exceptions import ValidacionError
 
 
 class DestinoService:
-    """Servicio para gestión de destinos."""
+    '''Servicio para gestión de destinos.'''
     
     def __init__(self):
-        """Inicializa el servicio con su DAO."""
+        '''Inicializa el servicio con su DAO.'''
         self.destino_dao = DestinoDAO()
     
     def crear_destino(
@@ -25,22 +25,7 @@ class DestinoService:
         cupos_disponibles: int = 50,
         politica_id: int = 1
     ) -> DestinoDTO:
-        """Crea un nuevo destino con validaciones.
-        
-        Args:
-            nombre: Nombre del destino
-            pais: País del destino
-            descripcion: Descripción del destino
-            costo_base: Costo base del destino
-            cupos_disponibles: Cupos disponibles (default 50)
-            politica_id: ID de la política de cancelación (default 1=Flexible)
-            
-        Returns:
-            DestinoDTO con el destino creado
-            
-        Raises:
-            ValidacionError: Si los datos no son válidos
-        """
+        '''Crea un nuevo destino con validaciones. Retorna DestinoDTO con el destino creado'''
         # Validaciones de negocio
         if not nombre or not nombre.strip():
             raise ValidacionError("El nombre del destino no puede estar vacío")
@@ -70,33 +55,18 @@ class DestinoService:
         return destino
     
     def obtener_destino(self, destino_id: int) -> DestinoDTO | None:
-        """Obtiene un destino por ID.
-        
-        Args:
-            destino_id: ID del destino
-            
-        Returns:
-            DestinoDTO o None si no existe
-        """
+        '''Obtiene un destino por su ID. Retorna DestinoDTO o None si no existe'''
         if destino_id <= 0:
             raise ValidacionError("El ID del destino debe ser mayor a 0")
         
         return self.destino_dao.obtener_por_id(destino_id)
     
     def listar_todos_destinos(self) -> list[DestinoDTO]:
-        """Lista todos los destinos.
-        
-        Returns:
-            Lista de DestinoDTO
-        """
+        '''Lista todos los destinos activos. Retorna lista de DestinoDTO'''
         return self.destino_dao.listar_todos()
     
     def listar_destinos_disponibles(self) -> list[DestinoDTO]:
-        """Lista destinos con cupos disponibles.
-        
-        Returns:
-            Lista de DestinoDTO con cupos > 0
-        """
+        '''Lista destinos con cupos disponibles. Retorna lista de DestinoDTO'''
         todos = self.destino_dao.listar_todos()
         return [d for d in todos if d.cupos_disponibles > 0]
     
@@ -108,25 +78,9 @@ class DestinoService:
         descripcion: str,
         costo_base: float,
         cupos_disponibles: int,
-        politica_id: int = None
+        politica_id: int | None
     ) -> DestinoDTO:
-        """Actualiza un destino existente.
-        
-        Args:
-            destino_id: ID del destino a actualizar
-            nombre: Nuevo nombre
-            pais: Nuevo país
-            descripcion: Nueva descripción
-            costo_base: Nuevo costo base
-            cupos_disponibles: Nuevos cupos disponibles
-            politica_id: Nueva política de cancelación (None para mantener)
-            
-        Returns:
-            DestinoDTO actualizado
-            
-        Raises:
-            ValidacionError: Si los datos no son válidos
-        """
+        '''Actualiza un destino existente con validaciones. Retorna el DestinoDTO actualizado'''
         # Validaciones
         if destino_id <= 0:
             raise ValidacionError("El ID del destino debe ser mayor a 0")
@@ -166,17 +120,7 @@ class DestinoService:
         return destino
     
     def eliminar_destino(self, destino_id: int) -> bool:
-        """Elimina un destino.
-        
-        Args:
-            destino_id: ID del destino a eliminar
-            
-        Returns:
-            True si se eliminó correctamente
-            
-        Raises:
-            ValidacionError: Si el ID no es válido
-        """
+        '''Elimina un destino por su ID. Retorna True si se eliminó correctamente'''
         if destino_id <= 0:
             raise ValidacionError("El ID del destino debe ser mayor a 0")
         
@@ -188,14 +132,7 @@ class DestinoService:
         return self.destino_dao.eliminar(destino_id)
     
     def buscar_destinos_por_nombre(self, nombre: str) -> list[DestinoDTO]:
-        """Busca destinos por nombre.
-        
-        Args:
-            nombre: Nombre a buscar
-            
-        Returns:
-            Lista de DestinoDTO que coinciden con el nombre
-        """
+        '''Busca destinos por nombre (parcial, case-insensitive). Retorna lista de DestinoDTO'''
         if not nombre or not nombre.strip():
             raise ValidacionError("El nombre no puede estar vacío")
         
