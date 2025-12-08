@@ -65,6 +65,26 @@ class PagoDAO():
             for row in results
         ]
     
+    def listar_todos(self) -> list[PagoDTO]:
+        """Retorna todos los pagos."""
+        sql = "SELECT * FROM Pagos ORDER BY fecha_pago DESC"
+        results = ejecutar_consulta(sql, ())  # type: ignore
+        
+        if not results:
+            return []
+        
+        return [
+            PagoDTO(
+                id=row['id'],
+                reserva_id=row['reserva_id'],
+                monto=row['monto'],
+                metodo=row['metodo'],
+                estado=row['estado'],
+                fecha_pago=row['fecha_pago']
+            )
+            for row in results
+        ]
+    
     def actualizar_estado(self, id: int, nuevo_estado: str) -> bool:
         """Cambia el estado del pago."""
         sql = "UPDATE Pagos SET estado = %s WHERE id = %s"

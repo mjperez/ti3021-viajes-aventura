@@ -1,0 +1,41 @@
+@startuml Proceso_Editar_Destino
+!theme plain
+title Diagrama 4: Proceso de Negocio - Editar Destino
+
+|Administrador|
+start
+:Acceder al módulo Destinos;
+:Seleccionar "Editar Destino";
+
+|Sistema|
+:Mostrar lista de destinos existentes;
+
+|Administrador|
+:Seleccionar destino por ID;
+
+|Sistema|
+:Buscar destino en base de datos;
+
+if (¿Destino existe?) then (sí)
+    :Mostrar datos actuales del destino;
+    
+    |Administrador|
+    :Modificar campos deseados\n(Enter para mantener valor actual);
+    
+    |Sistema|
+    :Validar nuevos datos;
+    
+    if (¿Datos válidos?) then (sí)
+        :Actualizar registro en base de datos;
+        :Mostrar mensaje de éxito;
+    else (no)
+        :Mostrar mensaje de error;
+    endif
+else (no)
+    :Mostrar "Destino no encontrado";
+endif
+
+|Administrador|
+stop
+
+@enduml

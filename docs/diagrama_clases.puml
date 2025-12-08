@@ -1,0 +1,187 @@
+@startuml Diagrama_Clases_POO
+!theme plain
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam groupInheritance 2
+
+title Diagrama de Clases - Viajes Aventura (POO)
+
+' ========== JERARQUÍA DE HERENCIA: POLÍTICAS ==========
+package "Patrón de Herencia - Políticas de Cancelación" #LightYellow {
+    
+    abstract class PoliticaCancelacion <<abstract>> {
+        # nombre: str
+        # dias_aviso: int
+        # porcentaje_reembolso: int
+        --
+        + {abstract} calcular_monto_reembolso(monto, dias): int
+        + obtener_mensaje(dias): str
+    }
+    
+    class PoliticaFlexible {
+        + nombre = "Flexible"
+        + dias_aviso = 3
+        + porcentaje_reembolso = 100
+        --
+        + calcular_monto_reembolso(monto, dias): int
+        + obtener_mensaje(dias): str
+    }
+    
+    class PoliticaEstricta {
+        + nombre = "Estricta"
+        + dias_aviso = 7
+        + porcentaje_reembolso = 50
+        --
+        + calcular_monto_reembolso(monto, dias): int
+        + obtener_mensaje(dias): str
+    }
+    
+    ' ===== RELACIÓN DE HERENCIA =====
+    PoliticaCancelacion <|-- PoliticaFlexible
+    PoliticaCancelacion <|-- PoliticaEstricta
+}
+
+note bottom of PoliticaCancelacion
+  **ABSTRACCIÓN**
+  Define el contrato que deben
+  cumplir todas las políticas
+end note
+
+note bottom of PoliticaFlexible
+  **HERENCIA**
+  Hereda atributos y métodos
+  de la clase padre
+end note
+
+note bottom of PoliticaEstricta
+  **POLIMORFISMO**
+  Mismo método, diferente
+  comportamiento
+end note
+
+' ========== SERVICES ==========
+package "Capa de Servicios (Business)" #LightBlue {
+    
+    class AuthService {
+        - usuario_dao: UsuarioDAO
+        --
+        - _hashear_password(password): str
+        - _verificar_password(pw, hash): bool
+        + registrar_usuario(...): UsuarioDTO
+        + login(email, password): UsuarioDTO
+        + cambiar_password(...): bool
+    }
+    
+    class ReservaService {
+        - reserva_dao: ReservaDAO
+        - paquete_dao: PaqueteDAO
+        - destino_dao: DestinoDAO
+        --
+        + crear_reserva_paquete(...): int
+        + crear_reserva_destino(...): int
+        + cancelar_reserva(id): dict
+        + confirmar_reserva(id): bool
+    }
+    
+    class PaqueteService {
+        - paquete_dao: PaqueteDAO
+        --
+        + crear_paquete(...): PaqueteDTO
+        + obtener_paquete(id): PaqueteDTO
+        + listar_todos_paquetes(): list
+        + eliminar_paquete(id): bool
+    }
+    
+    class DestinoService {
+        - destino_dao: DestinoDAO
+        --
+        + crear_destino(...): DestinoDTO
+        + obtener_destino(id): DestinoDTO
+        + listar_todos_destinos(): list
+        + eliminar_destino(id): bool
+    }
+}
+
+note left of AuthService
+  **ENCAPSULACIÓN**
+  Métodos privados (_)
+  ocultan implementación
+end note
+
+' ========== DTOs ==========
+package "Capa DTO (Data Transfer Objects)" #LightGreen {
+    
+    class UsuarioDTO <<DTO>> {
+        + id: int
+        + rut: str
+        + email: str
+        + nombre: str
+        + rol: str
+    }
+    
+    class ReservaDTO <<DTO>> {
+        + id: int
+        + estado: str
+        + monto_total: int
+        + usuario_id: int
+    }
+    
+    class PaqueteDTO <<DTO>> {
+        + id: int
+        + nombre: str
+        + precio_total: int
+        + politica_id: int
+    }
+    
+    class DestinoDTO <<DTO>> {
+        + id: int
+        + nombre: str
+        + costo_base: int
+        + politica_id: int
+    }
+}
+
+' ========== DAOs ==========
+package "Capa DAO (Data Access Objects)" #LightPink {
+    
+    class UsuarioDAO <<DAO>> {
+        + crear(dto): int
+        + obtener_por_id(id): DTO
+        + listar_todos(): list
+    }
+    
+    class ReservaDAO <<DAO>> {
+        + crear(dto): int
+        + obtener_por_id(id): DTO
+        + cancelar(id): bool
+    }
+    
+    class PaqueteDAO <<DAO>> {
+        + crear(dto): int
+        + obtener_por_id(id): DTO
+        + listar_todos(): list
+    }
+    
+    class DestinoDAO <<DAO>> {
+        + crear(dto): int
+        + obtener_por_id(id): DTO
+        + listar_todos(): list
+    }
+}
+
+' ========== RELACIONES ==========
+ReservaService --> PoliticaCancelacion : "usa polimorfismo\npara calcular reembolsos"
+
+AuthService --> UsuarioDAO
+AuthService ..> UsuarioDTO
+
+ReservaService --> ReservaDAO
+ReservaService ..> ReservaDTO
+
+PaqueteService --> PaqueteDAO
+PaqueteService ..> PaqueteDTO
+
+DestinoService --> DestinoDAO
+DestinoService ..> DestinoDTO
+
+@enduml

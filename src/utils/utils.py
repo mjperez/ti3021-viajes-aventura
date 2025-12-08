@@ -195,6 +195,7 @@ def mostrar_tabla_paquetes(paquetes: list, con_iva: bool = False) -> None:
         con_iva: Si es True, muestra precios con IVA (19%) incluido
     """
     from src.business.paquete_service import PaqueteService
+    from src.dao.politica_cancelacion_dao import PoliticaCancelacionDAO
     
     if not paquetes:
         print("No hay paquetes para mostrar.")
@@ -202,11 +203,15 @@ def mostrar_tabla_paquetes(paquetes: list, con_iva: bool = False) -> None:
     
     paquete_service = PaqueteService()
     
+    # Obtener políticas para mostrar nombre
+    politica_dao = PoliticaCancelacionDAO()
+    politicas = {p.id: p.nombre for p in politica_dao.listar_todas()}
+    
     # Encabezado
     precio_header = "PRECIO (IVA inc.)" if con_iva else "PRECIO"
-    print("\n" + "="*120)
-    print(f"{'ID':<5} {'NOMBRE':<35} {precio_header:<18} {'CUPOS':<8} {'FECHA INICIO':<12} {'FECHA FIN':<12}")
-    print("="*120)
+    print("\n" + "="*140)
+    print(f"{'ID':<5} {'NOMBRE':<35} {precio_header:<18} {'CUPOS':<8} {'POLITICA':<12} {'FECHA INICIO':<12} {'FECHA FIN':<12}")
+    print("="*140)
     
     for p in paquetes:
         precio_mostrar = calcular_precio_con_iva(p.precio_total) if con_iva else p.precio_total
@@ -214,23 +219,29 @@ def mostrar_tabla_paquetes(paquetes: list, con_iva: bool = False) -> None:
         fecha_inicio = str(p.fecha_inicio)[:10] if p.fecha_inicio else "N/A"
         fecha_fin = str(p.fecha_fin)[:10] if p.fecha_fin else "N/A"
         nombre = (p.nombre[:32] + "...") if len(p.nombre) > 35 else p.nombre
+        politica_nombre = politicas.get(p.politica_id, "N/A")
         
-        print(f"{p.id:<5} {nombre:<35} {precio:<18} {p.cupos_disponibles:<8} {fecha_inicio:<12} {fecha_fin:<12}")
+        print(f"{p.id:<5} {nombre:<35} {precio:<18} {p.cupos_disponibles:<8} {politica_nombre:<12} {fecha_inicio:<12} {fecha_fin:<12}")
         
-        # Mostrar actividades incluidas en el paquete
+        # Mostrar descripción si existe
+        if p.descripcion:
+            desc = p.descripcion if len(p.descripcion) <= 120 else p.descripcion[:117] + "..."
+            print(f"      Descripción: {desc}")
+        
+        # Mostrar TODAS las actividades incluidas en el paquete
         if p.id:
             actividades = paquete_service.obtener_actividades_paquete(p.id)
             if actividades:
                 print("      Actividades: ", end="")
-                acts_str = ", ".join([f"{a['nombre']} ({a['duracion_horas']}h)" for a in actividades[:3]])
-                if len(actividades) > 3:
-                    acts_str += f" +{len(actividades)-3} mas"
+                # Mostrar todas las actividades, no solo 3
+                acts_str = ", ".join([f"{a['nombre']} ({a['duracion_horas']}h)" for a in actividades])
                 print(acts_str)
-        print("-"*120)
+        print("-"*140)
     
     if con_iva:
         print("* Precios incluyen IVA (19%)")
-    print("="*120 + "\n")
+    print("="*140 + "\n")
+
 
 def mostrar_tabla_destinos(destinos: list, con_iva: bool = False) -> None:
     """Muestra lista de destinos en formato tabla con politica de cancelacion.
@@ -276,11 +287,16 @@ def mostrar_tabla_actividades(actividades: list, con_iva: bool = False) -> None:
         print("No hay actividades para mostrar.")
         return
     
+    # Obtener nombres de destinos
+    from src.dao.destino_dao import DestinoDAO
+    destino_dao = DestinoDAO()
+    destinos = {d.id: d.nombre for d in destino_dao.listar_todos()}
+    
     # Encabezado
     precio_header = "PRECIO (IVA)" if con_iva else "PRECIO"
-    print("\n" + "="*115)
-    print(f"{'ID':<5} {'NOMBRE':<30} {'DURACION':<10} {precio_header:<15} {'DESTINO':<8} {'DESCRIPCION':<40}")
-    print("="*115)
+    print("\n" + "="*125)
+    print(f"{'ID':<5} {'NOMBRE':<30} {'DURACION':<10} {precio_header:<15} {'DESTINO':<18} {'DESCRIPCION':<40}")
+    print("="*125)
     
     for a in actividades:
         duracion = f"{a.duracion_horas}h"
@@ -288,12 +304,15 @@ def mostrar_tabla_actividades(actividades: list, con_iva: bool = False) -> None:
         precio = f"${int(precio_mostrar):,}".replace(",", ".")
         descripcion = (a.descripcion[:37] + "...") if a.descripcion and len(a.descripcion) > 40 else (a.descripcion or "Sin descripcion")
         nombre = (a.nombre[:27] + "...") if len(a.nombre) > 30 else a.nombre
+        # Mostrar nombre del destino en lugar de ID
+        destino_nombre = destinos.get(a.destino_id, f"ID:{a.destino_id}")
+        destino_nombre = (destino_nombre[:15] + "...") if len(destino_nombre) > 18 else destino_nombre
         
-        print(f"{a.id:<5} {nombre:<30} {duracion:<10} {precio:<15} {a.destino_id:<8} {descripcion:<40}")
+        print(f"{a.id:<5} {nombre:<30} {duracion:<10} {precio:<15} {destino_nombre:<18} {descripcion:<40}")
     
     if con_iva:
         print("* Precios incluyen IVA (19%)")
-    print("="*115 + "\n")
+    print("="*125 + "\n")
 
 def mostrar_tabla_reservas(reservas: list) -> None:
     """Muestra lista de reservas en formato tabla con información del cliente."""

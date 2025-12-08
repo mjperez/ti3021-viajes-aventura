@@ -1,0 +1,35 @@
+@startuml CU_Gestion_Destinos
+!theme plain
+left to right direction
+title Diagrama 8: Casos de Uso - Gestión de Destinos
+
+actor "Administrador" as admin
+actor "Cliente" as cliente
+
+rectangle "Sistema Viajes Aventura" {
+    usecase "Listar destinos" as UC1
+    usecase "Agregar destino" as UC2
+    usecase "Editar destino" as UC3
+    usecase "Eliminar destino" as UC4
+    usecase "Buscar destino por nombre" as UC5
+    usecase "Asignar política de cancelación" as UC6
+}
+
+admin --> UC1
+admin --> UC2
+admin --> UC3
+admin --> UC4
+admin --> UC5
+
+cliente --> UC1
+cliente --> UC5
+
+UC2 ..> UC6 : <<include>>
+UC3 ..> UC6 : <<include>>
+
+note right of UC6
+  Se selecciona al crear
+  o editar un destino
+end note
+
+@enduml

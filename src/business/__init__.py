@@ -4,13 +4,7 @@ Capa de negocio que contiene la lógica de aplicación.
 """
 
 from .actividad_service import ActividadService
-from .auth_manager import (
-    cambiar_password,
-    hashear_password,
-    login,
-    registrar_usuario,
-    verificar_password,
-)
+from .auth_service import AuthService
 from .destino_service import DestinoService
 from .pago_service import PagoService
 from .paquete_service import PaqueteService
@@ -20,15 +14,11 @@ from .usuario_service import UsuarioService
 
 __all__ = [
     "ActividadService",
+    "AuthService",
     "DestinoService",
     "PagoService",
     "PaqueteService",
     "PoliticaCancelacionService",
     "ReservaService",
     "UsuarioService",
-    "cambiar_password",
-    "hashear_password",
-    "login",
-    "registrar_usuario",
-    "verificar_password",
 ]

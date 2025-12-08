@@ -1,0 +1,39 @@
+@startuml Proceso_Eliminar_Destino
+!theme plain
+title Diagrama 5: Proceso de Negocio - Eliminar Destino
+
+|Administrador|
+start
+:Acceder al módulo Destinos;
+:Seleccionar "Eliminar Destino";
+
+|Sistema|
+:Mostrar lista de destinos existentes;
+
+|Administrador|
+:Seleccionar destino por ID;
+
+|Sistema|
+:Buscar destino en base de datos;
+
+if (¿Destino existe?) then (sí)
+    :Mostrar datos del destino;
+    
+    |Administrador|
+    :Confirmar eliminación (s/n);
+    
+    if (¿Confirmado?) then (sí)
+        |Sistema|
+        :Eliminar registro de base de datos;
+        :Mostrar mensaje de éxito;
+    else (no)
+        :Cancelar operación;
+    endif
+else (no)
+    :Mostrar "Destino no encontrado";
+endif
+
+|Administrador|
+stop
+
+@enduml

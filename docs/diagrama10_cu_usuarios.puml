@@ -1,0 +1,39 @@
+@startuml CU_Gestion_Usuarios
+!theme plain
+left to right direction
+title Diagrama 10: Casos de Uso - Gestión de Usuarios
+
+actor "Administrador" as admin
+actor "Cliente" as cliente
+actor "Usuario no registrado" as visitante
+
+rectangle "Sistema Viajes Aventura" {
+    usecase "Registrarse" as UC1
+    usecase "Iniciar sesión" as UC2
+    usecase "Cerrar sesión" as UC3
+    usecase "Ver todos los usuarios" as UC4
+    usecase "Filtrar por rol" as UC5
+    usecase "Buscar usuario por email" as UC6
+    usecase "Ver reservas del usuario" as UC7
+}
+
+visitante --> UC1
+visitante --> UC2
+
+cliente --> UC2
+cliente --> UC3
+
+admin --> UC2
+admin --> UC3
+admin --> UC4
+admin --> UC5
+admin --> UC6
+
+UC6 ..> UC7 : <<include>>
+
+note right of UC1
+  El registro crea usuarios
+  con rol CLIENTE por defecto
+end note
+
+@enduml

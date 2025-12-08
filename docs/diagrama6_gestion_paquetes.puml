@@ -1,0 +1,55 @@
+@startuml Proceso_Gestion_Paquetes
+!theme plain
+title Diagrama 6: Proceso de Negocio - Gestión de Paquetes Turísticos
+
+|Administrador|
+start
+:Acceder al módulo Paquetes;
+
+switch (Acción a realizar)
+    case (Listar)
+        |Sistema|
+        :Obtener paquetes de BD;
+        :Mostrar tabla con nombre,\nprecio, fechas, política\ny actividades incluidas;
+        
+    case (Agregar)
+        |Sistema|
+        :Mostrar destinos disponibles;
+        
+        |Administrador|
+        :Seleccionar destino;
+        :Ingresar nombre del paquete;
+        :Ingresar descripción;
+        :Ingresar fecha inicio y fin;
+        :Ingresar precio y cupos;
+        :Seleccionar política (1 o 2);
+        
+        |Sistema|
+        if (¿Fecha inicio en pasado?) then (sí)
+            :ERROR: Fecha inválida;
+        else (no)
+            :Crear paquete en BD;
+            :Asociar destino al paquete;
+            :Mostrar éxito con ID;
+        endif
+        
+    case (Editar)
+        |Administrador|
+        :Seleccionar paquete por ID;
+        :Modificar campos;
+        
+        |Sistema|
+        :Actualizar en BD;
+        
+    case (Eliminar)
+        |Administrador|
+        :Seleccionar paquete por ID;
+        :Confirmar eliminación;
+        
+        |Sistema|
+        :Eliminar de BD;
+endswitch
+
+stop
+
+@enduml

@@ -14,9 +14,9 @@ from src.utils.exceptions import ValidacionError
 class PaqueteService:
     """Servicio para gestión de paquetes turísticos."""
     
-    def __init__(self):
-        """Inicializa el servicio con su DAO."""
-        self.paquete_dao = PaqueteDAO()
+    def __init__(self, paquete_dao: PaqueteDAO | None = None):
+        """Inicializa el servicio con su DAO. Permite inyección de dependencias."""
+        self.paquete_dao = paquete_dao or PaqueteDAO()
     
     def crear_paquete(
         self,
@@ -56,6 +56,12 @@ class PaqueteService:
             raise ValidacionError("Los cupos disponibles no pueden ser negativos")
         if fecha_fin <= fecha_inicio:
             raise ValidacionError("La fecha de fin debe ser posterior a la fecha de inicio")
+        
+        # Validar que la fecha de inicio no esté en el pasado
+        hoy = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        if fecha_inicio < hoy:
+            raise ValidacionError("La fecha de inicio no puede estar en el pasado")
+        
         if politica_id <= 0:
             raise ValidacionError("Debe especificar una política de cancelación válida")
         

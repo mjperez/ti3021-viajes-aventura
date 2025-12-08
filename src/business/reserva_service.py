@@ -28,11 +28,11 @@ TRANSICIONES_VALIDAS = {
 class ReservaService:
     """Servicio para gestión de reservas."""
     
-    def __init__(self):
-        """Inicializa el servicio con sus DAOs."""
-        self.reserva_dao = ReservaDAO()
-        self.paquete_dao = PaqueteDAO()
-        self.destino_dao = DestinoDAO()
+    def __init__(self, reserva_dao: ReservaDAO | None = None, paquete_dao: PaqueteDAO | None = None, destino_dao: DestinoDAO | None = None):
+        """Inicializa el servicio con sus DAOs. Permite inyección de dependencias."""
+        self.reserva_dao = reserva_dao or ReservaDAO()
+        self.paquete_dao = paquete_dao or PaqueteDAO()
+        self.destino_dao = destino_dao or DestinoDAO()
     
     def obtener_reserva(self, reserva_id: int) -> ReservaDTO | None:
         """Obtiene una reserva por ID.
@@ -342,40 +342,46 @@ class ReservaService:
                 """
                 politica = ejecutar_consulta_uno(politica_sql, (reserva.destino_id,))
         
-        # Calcular reembolso según política
-        porcentaje_reembolso = 100  # Por defecto, reembolso completo
-        monto_reembolso = float(reserva.monto_total)
+        # Instanciar política usando polimorfismo simple
+        from src.business.politicas import PoliticaEstricta, PoliticaFlexible
+        
+        monto_reembolso = int(reserva.monto_total)
+        porcentaje_reembolso = 100
         mensaje = "Reembolso completo (100%)"
         
         if politica and fecha_referencia:
-            hoy = datetime.now()
-            dias_hasta_fecha = (fecha_referencia - hoy).days
-            dias_minimos = politica['dias_aviso']
+            # Crear instancia de la política adecuada
+            nombre_politica = politica['nombre']
+            dias_aviso = politica['dias_aviso']
+            porcentaje_configurado = politica['porcentaje_reembolso']
             
-            # Si no cumple días mínimos de aviso
-            if dias_hasta_fecha < dias_minimos:
-                # Para reservas PENDIENTES, no permitir cancelar
-                if estado_actual == "PENDIENTE":
+            politica_obj = None
+            if nombre_politica == "Flexible":
+                politica_obj = PoliticaFlexible(nombre_politica, dias_aviso, porcentaje_configurado)
+            elif nombre_politica == "Estricta":
+                politica_obj = PoliticaEstricta(nombre_politica, dias_aviso, porcentaje_configurado)
+            
+            if politica_obj:
+                hoy = datetime.now()
+                dias_hasta_fecha = (fecha_referencia - hoy).days
+                
+                # Validar restricción para reservas pendientes
+                if dias_hasta_fecha < dias_aviso and estado_actual == "PENDIENTE":
                     tipo_reserva = "paquete" if reserva.paquete_id else "destino"
                     raise ValidacionError(
-                        f"No se puede cancelar. Política '{politica['nombre']}' requiere "
-                        f"{dias_minimos} días de aviso. Quedan {dias_hasta_fecha} días para el {tipo_reserva}."
+                        f"No se puede cancelar. Política '{nombre_politica}' requiere "
+                        f"{dias_aviso} días de aviso. Quedan {dias_hasta_fecha} días para el {tipo_reserva}."
                     )
-                # Para PAGADA o CONFIRMADA, aplicar porcentaje reducido (o 0%)
-                porcentaje_reembolso = 0.0
-                monto_reembolso = 0.0
-                mensaje = f"Sin reembolso - Cancelación tardía (menos de {dias_minimos} días de aviso)"
-            else:
-                # Cumple con días de aviso, aplicar porcentaje de la política
-                porcentaje_reembolso = int(politica['porcentaje_reembolso'])
-                monto_reembolso = float(reserva.monto_total) * (porcentaje_reembolso / 100)
                 
-                if porcentaje_reembolso == 100:
-                    mensaje = f"Reembolso completo (100%) - Política '{politica['nombre']}'"
-                elif porcentaje_reembolso > 0:
-                    mensaje = f"Reembolso parcial ({porcentaje_reembolso}%) - Política '{politica['nombre']}'"
+                # Calcular reembolso usando polimorfismo
+                monto_reembolso = politica_obj.calcular_monto_reembolso(int(reserva.monto_total), dias_hasta_fecha)
+                mensaje = politica_obj.obtener_mensaje(dias_hasta_fecha)
+                
+                # Calcular porcentaje real aplicado (para display)
+                if reserva.monto_total > 0:
+                    porcentaje_reembolso = int((monto_reembolso / reserva.monto_total) * 100)
                 else:
-                    mensaje = f"Sin reembolso - Política '{politica['nombre']}'"
+                    porcentaje_reembolso = 0
         
         # Mostrar información de reembolso al cliente
         print(f"\n{'='*50}")

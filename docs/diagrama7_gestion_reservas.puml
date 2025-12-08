@@ -1,0 +1,49 @@
+@startuml Proceso_Gestion_Reservas
+!theme plain
+title Diagrama 7: Proceso de Negocio - Gestión de Reservas
+
+|Cliente|
+start
+:Iniciar sesión;
+:Ver paquetes/destinos disponibles;
+:Seleccionar producto;
+:Indicar número de personas;
+
+|Sistema|
+if (¿Hay cupos suficientes?) then (sí)
+    :Crear reserva PENDIENTE;
+    :Descontar cupos;
+    :Mostrar resumen de reserva;
+else (no)
+    :ERROR: Cupos insuficientes;
+    stop
+endif
+
+|Cliente|
+:Acceder a "Mis Reservas";
+:Seleccionar "Pagar";
+:Elegir método de pago;
+
+|Sistema|
+:Registrar pago;
+:Cambiar estado a PAGADA;
+
+|Administrador|
+:Ver reservas PAGADAS;
+:Seleccionar reserva;
+:Confirmar reserva;
+
+|Sistema|
+:Cambiar estado a CONFIRMADA;
+:Notificar al cliente;
+
+|Cliente|
+stop
+
+note right
+  Estados posibles:
+  PENDIENTE → PAGADA → CONFIRMADA
+  Cualquier estado → CANCELADA
+end note
+
+@enduml

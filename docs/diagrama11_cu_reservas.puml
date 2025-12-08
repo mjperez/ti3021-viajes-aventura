@@ -1,0 +1,44 @@
+@startuml CU_Reserva_Paquetes
+!theme plain
+left to right direction
+title Diagrama 11: Casos de Uso - Reserva de Paquetes Turísticos
+
+actor "Cliente" as cliente
+actor "Administrador" as admin
+
+rectangle "Sistema Viajes Aventura" {
+    usecase "Ver paquetes disponibles" as UC1
+    usecase "Realizar reserva" as UC2
+    usecase "Ver mis reservas" as UC3
+    usecase "Pagar reserva" as UC4
+    usecase "Cancelar reserva" as UC5
+    usecase "Confirmar reserva" as UC6
+    usecase "Calcular reembolso" as UC7
+    usecase "Devolver cupos" as UC8
+}
+
+cliente --> UC1
+cliente --> UC2
+cliente --> UC3
+cliente --> UC4
+cliente --> UC5
+
+admin --> UC6
+
+UC2 ..> UC1 : <<include>>
+UC5 ..> UC7 : <<include>>
+UC5 ..> UC8 : <<include>>
+UC6 ..> UC4 : <<precondition>>
+
+note right of UC7
+  Usa polimorfismo:
+  el cálculo depende de
+  la política asignada
+end note
+
+note bottom of UC6
+  Solo reservas en estado
+  PAGADA pueden confirmarse
+end note
+
+@enduml

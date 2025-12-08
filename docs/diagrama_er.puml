@@ -1,0 +1,137 @@
+@startuml Diagrama_ER_Database
+!theme plain
+skinparam linetype ortho
+
+title Diagrama Entidad-Relación - Base de Datos Viajes Aventura
+
+' ========== ENTIDADES ==========
+
+entity "Usuarios" as usuarios {
+    * **id** : INT <<PK>>
+    --
+    * rut : VARCHAR(12) <<UK>>
+    * email : VARCHAR(255) <<UK>>
+    * password_hash : VARCHAR(255)
+    * nombre : VARCHAR(100)
+    * rol : ENUM('ADMIN','CLIENTE')
+    fecha_registro : DATETIME
+}
+
+entity "PoliticasCancelacion" as politicas {
+    * **id** : INT <<PK>>
+    --
+    * nombre : ENUM('Flexible','Estricta')
+    * dias_aviso : INT
+    * porcentaje_reembolso : INT
+}
+
+entity "Destinos" as destinos {
+    * **id** : INT <<PK>>
+    --
+    * nombre : VARCHAR(100)
+    descripcion : VARCHAR(500)
+    * costo_base : INT
+    cupos_disponibles : INT
+    * politica_id : INT <<FK>>
+}
+
+entity "Actividades" as actividades {
+    * **id** : INT <<PK>>
+    --
+    * nombre : VARCHAR(100)
+    descripcion : VARCHAR(500)
+    * duracion_horas : INT
+    * precio_base : INT
+    * destino_id : INT <<FK>>
+}
+
+entity "Paquetes" as paquetes {
+    * **id** : INT <<PK>>
+    --
+    * nombre : VARCHAR(100)
+    descripcion : TEXT
+    * fecha_inicio : DATETIME
+    * fecha_fin : DATETIME
+    * precio_total : INT
+    cupos_disponibles : INT
+    * politica_id : INT <<FK>>
+}
+
+entity "Paquete_Destino" as paquete_destino {
+    * **paquete_id** : INT <<PK,FK>>
+    * **destino_id** : INT <<PK,FK>>
+    --
+    orden_visita : INT
+}
+
+entity "Reservas" as reservas {
+    * **id** : INT <<PK>>
+    --
+    * fecha_reserva : DATETIME
+    * estado : ENUM('PENDIENTE','PAGADA','CONFIRMADA','CANCELADA','COMPLETADA')
+    * monto_total : INT
+    * numero_personas : INT
+    * usuario_id : INT <<FK>>
+    paquete_id : INT <<FK>> NULL
+    destino_id : INT <<FK>> NULL
+}
+
+entity "Pagos" as pagos {
+    * **id** : INT <<PK>>
+    --
+    * monto : INT
+    * fecha_pago : DATETIME
+    * metodo : ENUM('EFECTIVO','TARJETA','TRANSFERENCIA')
+    * estado : ENUM('PENDIENTE','COMPLETADO','FALLIDO','REEMBOLSADO')
+    * reserva_id : INT <<FK>>
+}
+
+' ========== RELACIONES ==========
+
+' Un usuario puede tener muchas reservas
+usuarios ||--o{ reservas : "realiza"
+
+' Una política puede aplicar a muchos destinos
+politicas ||--o{ destinos : "aplica a"
+
+' Una política puede aplicar a muchos paquetes
+politicas ||--o{ paquetes : "aplica a"
+
+' Un destino puede tener muchas actividades
+destinos ||--o{ actividades : "contiene"
+
+' Relación N:M entre Paquetes y Destinos
+paquetes ||--o{ paquete_destino : "incluye"
+destinos ||--o{ paquete_destino : "pertenece a"
+
+' Una reserva puede tener un paquete (opcional)
+paquetes ||--o{ reservas : "reservado en"
+
+' Una reserva puede tener un destino (opcional)
+destinos ||--o{ reservas : "reservado en"
+
+' Una reserva puede tener muchos pagos
+reservas ||--o{ pagos : "genera"
+
+' ========== NOTAS ==========
+
+note right of reservas
+  Una reserva es de tipo:
+  - Paquete (paquete_id NOT NULL)
+  - Destino (destino_id NOT NULL)
+  Nunca ambos a la vez.
+end note
+
+note right of paquete_destino
+  Tabla intermedia para
+  relación N:M entre
+  Paquetes y Destinos
+end note
+
+note bottom of politicas
+  Solo 2 políticas predefinidas:
+  1. Flexible (3 días, 100%)
+  2. Estricta (7 días, 50%)
+end note
+
+@enduml

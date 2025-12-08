@@ -1,0 +1,33 @@
+@startuml Proceso_Agregar_Destino
+!theme plain
+title Diagrama 3: Proceso de Negocio - Agregar Destino
+
+|Administrador|
+start
+:Acceder al módulo Destinos;
+:Seleccionar "Agregar Destino";
+
+|Sistema|
+:Mostrar formulario vacío;
+
+|Administrador|
+:Ingresar nombre del destino;
+:Ingresar descripción;
+:Ingresar costo base;
+:Ingresar cupos disponibles;
+:Seleccionar política de cancelación\n(1=Flexible, 2=Estricta);
+
+|Sistema|
+:Validar datos ingresados;
+
+if (¿Datos válidos?) then (sí)
+    :Crear registro en tabla Destinos;
+    :Mostrar mensaje de éxito\ncon ID asignado;
+else (no)
+    :Mostrar mensaje de error;
+endif
+
+|Administrador|
+stop
+
+@enduml

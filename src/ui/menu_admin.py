@@ -109,8 +109,11 @@ def menu_admin_destinos():
                 print("\nPolíticas de cancelación disponibles:")
                 print("  1. Flexible (3 días aviso, 100% reembolso)")
                 print("  2. Estricta (7 días aviso, 50% reembolso)")
-                politica_str = input("Seleccione política (Enter=1 Flexible): ") or "1"
-                politica_id = int(politica_str) if politica_str in ["1", "2"] else 1
+                politica_str = input("Seleccione política (1 o 2, Enter=1 Flexible): ") or "1"
+                while politica_str not in ["1", "2"]:
+                    print("ERROR: Opción inválida. Debe ser 1 (Flexible) o 2 (Estricta).")
+                    politica_str = input("Seleccione política (1 o 2): ")
+                politica_id = int(politica_str)
                 
                 print(f"Agregando destino '{nombre}'...")
                 new_destino = destino_service.crear_destino(nombre, "País", descripcion, costo_base, cupos, politica_id)
@@ -243,24 +246,55 @@ def menu_admin_actividades():
             pausar()
         elif opcion == 2:
             print("=== VIAJES AVENTURA: AGREGAR ACTIVIDAD ===")
-            # Listar destinos disponibles
+            print("(Escriba 'cancelar' para abortar)\n")
+            # Listar destinos disponibles PRIMERO
             destinos = destino_service.listar_todos_destinos()
             if not destinos:
                 print("No hay destinos disponibles. Cree destinos primero.")
                 pausar()
                 continue
-            print("\nDestinos disponibles:")
+            print("Destinos disponibles:")
             mostrar_tabla_destinos(destinos)
             
             try:
-                nombre = input("\nNombre de la actividad: ")
+                # Elegir destino PRIMERO
+                destino_id_str = input("\nID del destino para la actividad (o 'cancelar'): ")
+                if destino_id_str.lower() == 'cancelar':
+                    print("\nINFO: Operación cancelada.")
+                    pausar()
+                    continue
+                destino_id = int(destino_id_str)
+                if not destino_service.obtener_destino(destino_id):
+                    print(f"ERROR: No existe destino con ID {destino_id}")
+                    pausar()
+                    continue
+                
+                nombre = input("Nombre de la actividad: ")
+                if not nombre:
+                    print("ERROR: El nombre no puede estar vacío.")
+                    pausar()
+                    continue
+                    
                 descripcion = input("Descripción: ")
-                duracion = int(input("Duración (horas): "))
-                precio = int(input("Precio base: "))
-                destino_id = int(input("ID del destino: "))
+                
+                duracion_str = input("Duración (horas): ")
+                if not duracion_str:
+                    print("ERROR: La duración no puede estar vacía.")
+                    pausar()
+                    continue
+                duracion = int(duracion_str)
+                
+                precio_str = input("Precio base: ")
+                if not precio_str:
+                    print("ERROR: El precio no puede estar vacío.")
+                    pausar()
+                    continue
+                precio = int(precio_str)
                 
                 nueva_actividad = actividad_service.crear_actividad(nombre, descripcion, duracion, precio, destino_id)
                 print(f"EXITO: Actividad creada con ID: {nueva_actividad.id}")
+            except ValueError:
+                print("ERROR: Debe ingresar valores numéricos válidos.")
             except Exception as e:
                 print(f"ERROR: Error al crear actividad: {e}")
             pausar()
@@ -381,18 +415,28 @@ def menu_admin_paquetes():
                     else:
                         break
                 nombre = input("\nNombre del paquete: ")
+                descripcion = input("Descripción del paquete: ")
                 fecha_inicio_str = input("Fecha inicio (YYYY-MM-DD): ")
                 fecha_fin_str = input("Fecha fin (YYYY-MM-DD): ")
                 precio = int(input("Precio total: "))
                 cupos = int(input("Cupos disponibles: "))
-                politica_id = int(input("ID política de cancelación (ej: 1): "))
+                
+                # Mostrar políticas disponibles con nombres
+                print("\nPolíticas de cancelación:")
+                print("  1. Flexible (3 días aviso, 100% reembolso)")
+                print("  2. Estricta (7 días aviso, 50% reembolso)")
+                politica_str = input("Seleccione política (1 o 2): ")
+                while politica_str not in ["1", "2"]:
+                    print("ERROR: Opción inválida. Debe ser 1 (Flexible) o 2 (Estricta).")
+                    politica_str = input("Seleccione política (1 o 2): ")
+                politica_id = int(politica_str)
                 
                 fecha_inicio = datetime.strptime(fecha_inicio_str, "%Y-%m-%d")
                 fecha_fin = datetime.strptime(fecha_fin_str, "%Y-%m-%d")
                 
                 nuevo_paquete = paquete_service.crear_paquete(
                     nombre=nombre,
-                    descripcion="",
+                    descripcion=descripcion,
                     fecha_inicio=fecha_inicio,
                     fecha_fin=fecha_fin,
                     precio_total=precio,
@@ -540,6 +584,15 @@ def menu_admin_usuarios():
                     print(f"Email: {usuario.email}")
                     print(f"Rol: {usuario.rol}")
                     print(f"Fecha registro: {usuario.fecha_registro}")
+                    
+                    # Mostrar reservas del usuario
+                    print("\n--- Reservas del usuario ---")
+                    reserva_service = ReservaService()
+                    reservas = reserva_service.listar_reservas_cliente(usuario.id)
+                    if reservas:
+                        mostrar_tabla_reservas(reservas)
+                    else:
+                        print("Este usuario no tiene reservas.")
                 else:
                     print(f"No se encontró usuario con email '{email}'")
             except Exception as e:
@@ -784,7 +837,7 @@ def menu_admin_reportes():
             print("0. Todas")
             for i, estado in enumerate(ESTADOS_RESERVA, 1):
                 print(f"{i}. {estado}")
-            filtro = input("\nSeleccione opci�n (Enter=Todas): ")
+            filtro = input("\nSeleccione opción (Enter=Todas): ")
             
             try:
                 if not filtro or filtro == '0':
@@ -807,36 +860,79 @@ def menu_admin_reportes():
         elif opcion == 2:
             print("=== VIAJES AVENTURA: REPORTE DE VENTAS ===")
             try:
-                fecha_inicio = input("Fecha inicio (YYYY-MM-DD): ")
+                # Obtener rango de fechas de pagos existentes
+                todos_pagos = pago_service.pago_dao.listar_todos()
+                if todos_pagos:
+                    fechas = [p.fecha_pago for p in todos_pagos if p.fecha_pago]
+                    if fechas:
+                        fecha_min = min(fechas)
+                        fecha_max = max(fechas)
+                        print(f"\nRango de pagos disponibles: {str(fecha_min)[:10]} al {str(fecha_max)[:10]}")
+                    else:
+                        print("\nNo hay pagos registrados con fecha.")
+                        pausar()
+                        continue
+                else:
+                    print("\nNo hay pagos registrados en el sistema.")
+                    pausar()
+                    continue
+                
+                fecha_inicio = input("\nFecha inicio (YYYY-MM-DD): ")
                 fecha_fin = input("Fecha fin (YYYY-MM-DD): ")
+                
+                # Validar formato de fechas
+                try:
+                    from datetime import datetime as dt
+                    fecha_inicio_dt = dt.strptime(fecha_inicio, "%Y-%m-%d")
+                    fecha_fin_dt = dt.strptime(fecha_fin, "%Y-%m-%d")
+                    
+                    if fecha_inicio_dt > fecha_fin_dt:
+                        print("ERROR: La fecha de inicio no puede ser posterior a la fecha de fin.")
+                        pausar()
+                        continue
+                except ValueError:
+                    print("ERROR: Formato de fecha inválido. Use YYYY-MM-DD (ej: 2025-01-15)")
+                    pausar()
+                    continue
                 
                 reporte = pago_service.generar_reporte_ventas(fecha_inicio, fecha_fin)
                 print("\n--- REPORTE DE VENTAS ---")
-                print(f"Per�odo: {reporte['fecha_inicio']} al {reporte['fecha_fin']}")
+                print(f"Período: {reporte['fecha_inicio']} al {reporte['fecha_fin']}")
                 print(f"Total de pagos: {reporte['cantidad_pagos']}")
-                print(f"Monto total: ${reporte['total']:.2f}")
+                monto_total = int(reporte['total'])
+                print(f"Monto total: ${monto_total:,}".replace(",", "."))
                 
                 if reporte['pagos']:
                     print("\nDetalle de pagos:")
                     for p in reporte['pagos']:
-                        print(f"  ID: {p.id} | Reserva: {p.reserva_id} | ${p.monto} | {p.metodo_pago} | {p.fecha_pago}")
+                        monto = f"${int(p.monto):,}".replace(",", ".")
+                        print(f"  ID: {p.id} | Reserva: {p.reserva_id} | {monto} | {p.metodo} | {str(p.fecha_pago)[:10]}")
+                else:
+                    print("\nNo se encontraron pagos en el período especificado.")
             except Exception as e:
-                print(f"ERROR: Error: {e}")
+                print(f"ERROR: {e}")
             pausar()
         elif opcion == 3:
             print("=== VIAJES AVENTURA: REPORTE DE CLIENTES ===")
             try:
                 todos_usuarios = usuario_service.listar_todos_usuarios()
-                clientes = [u for u in todos_usuarios if u.rol == 'cliente']
+                clientes = [u for u in todos_usuarios if u.rol == 'CLIENTE']
                 print(f"\nTotal de clientes registrados: {len(clientes)}")
-                print("\n" + "="*70)
-                for c in clientes:
-                    print(f"ID: {c.id} | {c.nombre}")
-                    print(f"  Email: {c.email}")
-                    print(f"  Registro: {c.fecha_registro}")
-                    print("-" * 70)
+                
+                if not clientes:
+                    print("No hay clientes registrados.")
+                else:
+                    print("\n" + "="*80)
+                    print(f"{'ID':<5} {'NOMBRE':<25} {'EMAIL':<35} {'REGISTRO':<15}")
+                    print("="*80)
+                    for c in clientes:
+                        fecha = str(c.fecha_registro)[:10] if c.fecha_registro else "N/A"
+                        nombre = (c.nombre[:22] + "...") if len(c.nombre) > 25 else c.nombre
+                        email = (c.email[:32] + "...") if len(c.email) > 35 else c.email
+                        print(f"{c.id:<5} {nombre:<25} {email:<35} {fecha:<15}")
+                    print("="*80)
             except Exception as e:
-                print(f"ERROR: Error: {e}")
+                print(f"ERROR: {e}")
             pausar()
         elif opcion == 4:
             break
@@ -882,18 +978,44 @@ def menu_admin_politicas():
             
         elif opcion == 2:
             print("=== VIAJES AVENTURA: AGREGAR POLÍTICA ===")
-            print("(Presione Enter, '0' o 'cancelar' para abortar)\n")
+            print("(Escriba 'cancelar' para abortar en cualquier momento)\n")
             try:
-                nombre = validar_cancelacion(input("Nombre de la política: "))
-                dias_aviso_str = validar_cancelacion(input("Días de aviso requeridos (0-365): "))
+                nombre = input("Nombre de la política: ")
+                if nombre.lower() == 'cancelar':
+                    print("\nINFO: Operación cancelada.")
+                    pausar()
+                    continue
+                if not nombre:
+                    print("ERROR: El nombre no puede estar vacío.")
+                    pausar()
+                    continue
+                
+                dias_aviso_str = input("Días de aviso requeridos (0-365): ")
+                if dias_aviso_str.lower() == 'cancelar':
+                    print("\nINFO: Operación cancelada.")
+                    pausar()
+                    continue
+                if not dias_aviso_str:
+                    print("ERROR: Los días de aviso no pueden estar vacíos.")
+                    pausar()
+                    continue
                 dias_aviso = int(dias_aviso_str)
-                porcentaje_str = validar_cancelacion(input("Porcentaje de reembolso (0-100): "))
+                
+                porcentaje_str = input("Porcentaje de reembolso (0-100): ")
+                if porcentaje_str.lower() == 'cancelar':
+                    print("\nINFO: Operación cancelada.")
+                    pausar()
+                    continue
+                if not porcentaje_str:
+                    print("ERROR: El porcentaje no puede estar vacío.")
+                    pausar()
+                    continue
                 porcentaje_reembolso = int(porcentaje_str)
                 
                 nueva_politica = politica_service.crear_politica(nombre, dias_aviso, porcentaje_reembolso)
                 print(f"\nEXITO: Política '{nueva_politica.nombre}' creada con ID: {nueva_politica.id}")
-            except OperacionCancelada:
-                print("\nINFO: Operación cancelada.")
+            except ValueError:
+                print("\nERROR: Debe ingresar valores numéricos válidos.")
             except Exception as e:
                 print(f"\nERROR: {e}")
             pausar()

@@ -9,10 +9,7 @@ Navegación:
     2. Registro → crea nuevo cliente
     3. Salir
 '''
-from src.business.auth_manager import (
-    login,
-    registrar_usuario,
-)
+from src.business.auth_service import AuthService
 from src.dto.usuario_dto import UsuarioDTO
 from src.ui.menu_admin import mostrar_menu_admin
 from src.ui.menu_cliente import mostrar_menu_cliente
@@ -36,8 +33,9 @@ def opcion_login():
     print("=== VIAJES AVENTURA: LOGIN ===")
     email = input("Ingrese su email: ")
     password = input("Ingrese su contraseña: ")
+    auth_service = AuthService()
     try:
-        usuario = login(email,password)
+        usuario = auth_service.login(email, password)
         if usuario:
             print(f"¡Bienvenido, {usuario.nombre}!")
             pausar()
@@ -51,6 +49,7 @@ def opcion_login():
     
 def opcion_registro(): 
     '''Maneja el proceso de registro de cliente'''
+    auth_service = AuthService()
     while True:
         limpiar_pantalla()
         print("=== VIAJES AVENTURA: REGISTRO ===")
@@ -60,7 +59,7 @@ def opcion_registro():
         password = input("Ingrese su contraseña: ")
         
         try:
-            usuario = registrar_usuario(rut, email, password, nombre)
+            usuario = auth_service.registrar_usuario(rut, email, password, nombre)
             print(f"¡Registro exitoso! Bienvenido, {usuario.nombre}. Ahora puede iniciar sesión.")
             pausar()
             break  # Salir del loop si el registro fue exitoso

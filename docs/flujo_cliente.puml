@@ -1,0 +1,33 @@
+@startuml Flujo_Cliente_Simple
+!theme plain
+
+title Flujo del Cliente
+
+start
+
+if (¿Tiene cuenta?) then (no)
+    :Registrarse;
+else (sí)
+    :Iniciar Sesión;
+endif
+
+:Menú Cliente;
+
+repeat
+    switch (Opción)
+        case (Ver Destinos/Paquetes)
+            :Mostrar catálogo;
+        case (Hacer Reserva)
+            :Elegir destino o paquete;
+            :Indicar personas;
+            :Reserva = PENDIENTE;
+        case (Mis Reservas)
+            :Ver/Pagar/Cancelar;
+        case (Cerrar Sesión)
+            break
+    endswitch
+repeat while (Continuar)
+
+stop
+
+@enduml

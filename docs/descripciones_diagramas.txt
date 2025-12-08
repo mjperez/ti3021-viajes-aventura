@@ -1,0 +1,170 @@
+Diagrama 1: Modelo de Base de Datos (Entidad-Relación)
+
+Descripción: Este diagrama muestra la estructura de la base de datos del sistema, con las tablas, sus columnas, claves primarias y las relaciones entre ellas.
+
+Entidades y Relaciones Principales:
+
+- Usuarios: Guarda los datos de acceso y el rol (Cliente o Admin) de cada usuario. La contraseña se almacena encriptada por seguridad.
+
+- Reservas: Es la tabla principal del sistema. Tiene una característica importante: puede estar asociada a un paquete O a un destino, pero nunca a ambos al mismo tiempo. Maneja estados como PENDIENTE, PAGADA, CONFIRMADA, CANCELADA y COMPLETADA.
+
+- Paquetes y Destinos: Son los productos que vende la agencia. Se conectan mediante la tabla Paquete_Destino, lo que permite que un mismo destino aparezca en varios paquetes diferentes.
+
+- Actividades: Contiene las actividades disponibles en cada destino (con duración y precio), complementando la información del destino.
+
+- PoliticasCancelacion: Guarda las reglas de cancelación (cuántos días de aviso se necesitan y qué porcentaje se devuelve). Al tenerlas en una tabla separada, se pueden modificar sin cambiar el código del programa.
+
+- Pagos: Registra cada pago realizado. El estado del pago es independiente del estado de la reserva, lo que permite manejar situaciones como pagos parciales o reembolsos.
+
+
+================================================================================
+
+
+Diagrama 2: Diagrama de Clases
+
+Descripción: Este diagrama muestra cómo está organizado el código del sistema usando el patrón de capas. Cada capa tiene una responsabilidad específica y se comunica solo con las capas adyacentes.
+
+Clases y Componentes Principales:
+
+- Jerarquía de Políticas (Herencia y Polimorfismo): PoliticaCancelacion es una clase abstracta que define qué deben hacer todas las políticas. PoliticaFlexible y PoliticaEstricta heredan de ella y cada una implementa su propio cálculo de reembolso. Cuando el sistema necesita calcular un reembolso, llama al método sin saber qué tipo de política es, y el resultado correcto se calcula automáticamente.
+
+- DTOs (Data Transfer Objects): Son clases simples como UsuarioDTO, ReservaDTO, PaqueteDTO y DestinoDTO. Solo contienen datos (atributos), sin ninguna lógica. Se usan para pasar información de una capa a otra.
+
+- DAOs (Data Access Objects): Clases como UsuarioDAO, ReservaDAO y PaqueteDAO que se encargan de ejecutar las consultas SQL. Separan la lógica de base de datos del resto del sistema.
+
+- Services (Capa de Negocio): Clases como AuthService, ReservaService y PaqueteService que contienen las reglas del negocio. Por ejemplo, AuthService tiene métodos privados para encriptar y verificar contraseñas, mostrando el concepto de encapsulación.
+
+- Relaciones: Las flechas muestran que la UI usa los Services, los Services usan los DAOs, y los DAOs devuelven DTOs. Esta separación hace que el código sea más fácil de mantener y probar.
+
+
+================================================================================
+
+
+Diagrama 3: Proceso de Negocio - Agregar Destino
+
+Descripción: Este diagrama muestra el flujo de trabajo cuando un administrador agrega un nuevo destino al sistema.
+
+Flujo del proceso:
+- El administrador accede al módulo de destinos y selecciona "Agregar".
+- El sistema muestra un formulario donde se ingresan: nombre, descripción, costo base, cupos disponibles y política de cancelación.
+- El sistema valida que los datos sean correctos (campos no vacíos, números válidos, política 1 o 2).
+- Si todo es válido, se crea el registro en la base de datos y se muestra el ID asignado.
+- Si hay errores, se muestra un mensaje y no se guarda nada.
+
+
+================================================================================
+
+
+Diagrama 4: Proceso de Negocio - Editar Destino
+
+Descripción: Este diagrama muestra el flujo de trabajo para modificar un destino existente.
+
+Flujo del proceso:
+- El administrador accede al módulo de destinos y selecciona "Editar".
+- El sistema muestra la lista de destinos disponibles.
+- El administrador elige un destino por su ID.
+- El sistema busca el destino y muestra sus datos actuales.
+- El administrador modifica los campos que desea (presionando Enter mantiene el valor actual).
+- El sistema valida los nuevos datos y actualiza el registro en la base de datos.
+
+
+================================================================================
+
+
+Diagrama 5: Proceso de Negocio - Eliminar Destino
+
+Descripción: Este diagrama muestra el flujo de trabajo para eliminar un destino del sistema.
+
+Flujo del proceso:
+- El administrador accede al módulo de destinos y selecciona "Eliminar".
+- El sistema muestra la lista de destinos disponibles.
+- El administrador elige un destino por su ID.
+- El sistema muestra los datos del destino y pide confirmación.
+- Si el administrador confirma (s), el registro se elimina de la base de datos.
+- Si no confirma (n), la operación se cancela y no se elimina nada.
+
+
+================================================================================
+
+
+Diagrama 6: Proceso de Negocio - Gestión de Paquetes Turísticos
+
+Descripción: Este diagrama muestra las cuatro operaciones principales para gestionar paquetes: listar, agregar, editar y eliminar.
+
+Flujo del proceso:
+- Listar: El sistema obtiene todos los paquetes de la base de datos y los muestra en una tabla con nombre, precio, fechas, política y actividades incluidas.
+- Agregar: Se selecciona primero un destino, luego se ingresan los datos del paquete. El sistema valida que la fecha de inicio no esté en el pasado. Si es válido, se crea el paquete y se asocia al destino.
+- Editar: Se selecciona un paquete por ID, se modifican los campos deseados y se actualiza en la base de datos.
+- Eliminar: Se selecciona un paquete por ID, se confirma la eliminación y se borra de la base de datos.
+
+
+================================================================================
+
+
+Diagrama 7: Proceso de Negocio - Gestión de Reservas
+
+Descripción: Este diagrama muestra el ciclo completo de una reserva, desde que el cliente la crea hasta que el administrador la confirma.
+
+Flujo del proceso:
+- El cliente inicia sesión y ve los paquetes o destinos disponibles.
+- Selecciona un producto e indica el número de personas.
+- El sistema verifica si hay cupos suficientes. Si los hay, crea la reserva en estado PENDIENTE y descuenta los cupos.
+- El cliente accede a "Mis Reservas" y selecciona "Pagar".
+- El sistema registra el pago y cambia el estado a PAGADA.
+- El administrador ve las reservas PAGADAS, selecciona una y la confirma.
+- El sistema cambia el estado a CONFIRMADA.
+
+Estados posibles: PENDIENTE, PAGADA, CONFIRMADA, CANCELADA, COMPLETADA.
+
+
+================================================================================
+
+
+Diagrama 8: Casos de Uso - Gestión de Destinos
+
+Descripción: Este diagrama muestra qué acciones puede realizar cada actor sobre los destinos.
+
+Actores y casos de uso:
+- Administrador: Puede listar destinos, agregar destinos, editar destinos, eliminar destinos y buscar destinos por nombre.
+- Cliente: Solo puede listar destinos y buscar por nombre (no puede modificar).
+- Relaciones: Al agregar o editar un destino, se incluye obligatoriamente la asignación de una política de cancelación.
+
+
+================================================================================
+
+
+Diagrama 9: Casos de Uso - Gestión de Paquetes Turísticos
+
+Descripción: Este diagrama muestra qué acciones puede realizar cada actor sobre los paquetes.
+
+Actores y casos de uso:
+- Administrador: Puede listar, agregar, editar y eliminar paquetes.
+- Cliente: Puede listar paquetes y ver las actividades incluidas.
+- Relaciones: Al agregar un paquete, se deben asociar destinos, definir fechas y asignar política. Se valida que la fecha de inicio no esté en el pasado.
+
+
+================================================================================
+
+
+Diagrama 10: Casos de Uso - Gestión de Usuarios
+
+Descripción: Este diagrama muestra las acciones relacionadas con usuarios y autenticación.
+
+Actores y casos de uso:
+- Usuario no registrado: Puede registrarse e iniciar sesión.
+- Cliente: Puede iniciar y cerrar sesión.
+- Administrador: Puede ver todos los usuarios, filtrar por rol (cliente/admin), buscar por email y ver las reservas de un usuario.
+- Relaciones: Al buscar un usuario por email, automáticamente se muestran sus reservas.
+
+
+================================================================================
+
+
+Diagrama 11: Casos de Uso - Reserva de Paquetes Turísticos
+
+Descripción: Este diagrama muestra las acciones relacionadas con el proceso de reserva.
+
+Actores y casos de uso:
+- Cliente: Puede ver paquetes disponibles, realizar reserva, ver sus reservas, pagar reserva y cancelar reserva.
+- Administrador: Puede confirmar reservas (solo las que están en estado PAGADA).
+- Relaciones: Para realizar una reserva se debe ver primero los paquetes. Al cancelar, se calcula el reembolso usando polimorfismo (según la política asignada) y se devuelven los cupos.

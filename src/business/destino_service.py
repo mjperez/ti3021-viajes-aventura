@@ -12,9 +12,9 @@ from src.utils.exceptions import ValidacionError
 class DestinoService:
     '''Servicio para gestión de destinos.'''
     
-    def __init__(self):
-        '''Inicializa el servicio con su DAO.'''
-        self.destino_dao = DestinoDAO()
+    def __init__(self, destino_dao: DestinoDAO | None = None):
+        '''Inicializa el servicio con su DAO. Permite inyección de dependencias.'''
+        self.destino_dao = destino_dao or DestinoDAO()
     
     def crear_destino(
         self,
