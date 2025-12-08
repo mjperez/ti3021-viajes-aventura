@@ -21,7 +21,7 @@ class ActividadService:
         nombre: str,
         descripcion: str,
         duracion_horas: int,
-        precio_base: float,
+        precio_base: int,
         destino_id: int
     ) -> ActividadDTO:
         """Crea una nueva actividad con validaciones.
@@ -107,7 +107,7 @@ class ActividadService:
         nombre: str,
         descripcion: str,
         duracion_horas: int,
-        precio_base: float,
+        precio_base: int,
         destino_id: int
     ) -> ActividadDTO:
         """Actualiza una actividad existente.

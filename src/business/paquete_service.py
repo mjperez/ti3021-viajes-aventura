@@ -24,7 +24,7 @@ class PaqueteService:
         descripcion: str,
         fecha_inicio: datetime,
         fecha_fin: datetime,
-        precio_total: float,
+        precio_total: int,
         cupos_disponibles: int,
         politica_id: int,
         destino_id: int | None = None
@@ -118,7 +118,7 @@ class PaqueteService:
         descripcion: str,
         fecha_inicio: datetime,
         fecha_fin: datetime,
-        precio_total: float,
+        precio_total: int,
         cupos_disponibles: int,
         politica_id: int
     ) -> PaqueteDTO:

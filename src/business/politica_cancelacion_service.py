@@ -40,7 +40,7 @@ class PoliticaCancelacionService:
         """
         return self.politica_dao.listar_todas()
     
-    def crear_politica(self, nombre: str, dias_aviso: int, porcentaje_reembolso: float) -> PoliticaCancelacionDTO:
+    def crear_politica(self, nombre: str, dias_aviso: int, porcentaje_reembolso: int) -> PoliticaCancelacionDTO:
         """Crea una nueva política de cancelación.
         
         Args:
@@ -70,7 +70,7 @@ class PoliticaCancelacionService:
         
         return self.politica_dao.crear(nombre.strip(), dias_aviso, porcentaje_reembolso)
     
-    def actualizar_politica(self, id: int, nombre: str, dias_aviso: int, porcentaje_reembolso: float) -> PoliticaCancelacionDTO:
+    def actualizar_politica(self, id: int, nombre: str, dias_aviso: int, porcentaje_reembolso: int) -> PoliticaCancelacionDTO:
         """Actualiza una política de cancelación existente.
         
         Args:

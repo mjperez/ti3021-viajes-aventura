@@ -343,7 +343,7 @@ class ReservaService:
                 politica = ejecutar_consulta_uno(politica_sql, (reserva.destino_id,))
         
         # Calcular reembolso según política
-        porcentaje_reembolso = 100.0  # Por defecto, reembolso completo
+        porcentaje_reembolso = 100  # Por defecto, reembolso completo
         monto_reembolso = float(reserva.monto_total)
         mensaje = "Reembolso completo (100%)"
         
@@ -367,7 +367,7 @@ class ReservaService:
                 mensaje = f"Sin reembolso - Cancelación tardía (menos de {dias_minimos} días de aviso)"
             else:
                 # Cumple con días de aviso, aplicar porcentaje de la política
-                porcentaje_reembolso = float(politica['porcentaje_reembolso'])
+                porcentaje_reembolso = int(politica['porcentaje_reembolso'])
                 monto_reembolso = float(reserva.monto_total) * (porcentaje_reembolso / 100)
                 
                 if porcentaje_reembolso == 100:
@@ -383,7 +383,7 @@ class ReservaService:
         print(f"{'='*50}")
         print(f"Estado actual de la reserva: {estado_actual}")
         print(f"Monto total pagado: ${int(reserva.monto_total):,}".replace(",", "."))
-        print(f"Porcentaje de reembolso: {porcentaje_reembolso}%")
+        print(f"Porcentaje de reembolso: {int(porcentaje_reembolso)}%")
         print(f"Monto a reembolsar: ${int(monto_reembolso):,}".replace(",", "."))
         print(f"Detalle: {mensaje}")
         print(f"{'='*50}\n")
@@ -392,7 +392,7 @@ class ReservaService:
         if not self.reserva_dao.cancelar(reserva_id):
             return {
                 "cancelada": False,
-                "monto_total": float(reserva.monto_total),
+                "monto_total": int(reserva.monto_total),
                 "porcentaje_reembolso": 0,
                 "monto_reembolso": 0,
                 "mensaje": "Error al cancelar la reserva"
@@ -408,9 +408,9 @@ class ReservaService:
         
         return {
             "cancelada": True,
-            "monto_total": float(reserva.monto_total),
-            "porcentaje_reembolso": porcentaje_reembolso,
-            "monto_reembolso": monto_reembolso,
+            "monto_total": int(reserva.monto_total),
+            "porcentaje_reembolso": int(porcentaje_reembolso),
+            "monto_reembolso": int(monto_reembolso),
             "mensaje": mensaje
         }
     

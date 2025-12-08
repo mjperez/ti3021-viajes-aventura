@@ -148,7 +148,7 @@ def menu_admin_destinos():
                 print(f"Política actual: {politica_actual}")
                 nuevo_nombre = input(f"Nuevo nombre (Enter para mantener '{destino.nombre}'): ") or destino.nombre
                 nueva_descripcion = input("Nueva descripción (Enter para mantener): ") or destino.descripcion
-                nuevo_costo_base_str = input(f"Nuevo costo base (Enter para mantener '{destino.costo_base}'): ")
+                nuevo_costo_base_str = input(f"Nuevo costo base (Enter para mantener '{destino.costo_base}'): ").replace("$", "").replace(".", "").replace(",", "")
                 nuevo_costo_base = float(nuevo_costo_base_str) if nuevo_costo_base_str else destino.costo_base
                 nuevos_cupos_str = input(f"Nuevos cupos (Enter para mantener '{destino.cupos_disponibles}'): ")
                 nuevos_cupos = int(nuevos_cupos_str) if nuevos_cupos_str else destino.cupos_disponibles
@@ -256,7 +256,7 @@ def menu_admin_actividades():
                 nombre = input("\nNombre de la actividad: ")
                 descripcion = input("Descripción: ")
                 duracion = int(input("Duración (horas): "))
-                precio = float(input("Precio base: "))
+                precio = int(input("Precio base: "))
                 destino_id = int(input("ID del destino: "))
                 
                 nueva_actividad = actividad_service.crear_actividad(nombre, descripcion, duracion, precio, destino_id)
@@ -383,7 +383,7 @@ def menu_admin_paquetes():
                 nombre = input("\nNombre del paquete: ")
                 fecha_inicio_str = input("Fecha inicio (YYYY-MM-DD): ")
                 fecha_fin_str = input("Fecha fin (YYYY-MM-DD): ")
-                precio = float(input("Precio total: "))
+                precio = int(input("Precio total: "))
                 cupos = int(input("Cupos disponibles: "))
                 politica_id = int(input("ID política de cancelación (ej: 1): "))
                 
@@ -888,7 +888,7 @@ def menu_admin_politicas():
                 dias_aviso_str = validar_cancelacion(input("Días de aviso requeridos (0-365): "))
                 dias_aviso = int(dias_aviso_str)
                 porcentaje_str = validar_cancelacion(input("Porcentaje de reembolso (0-100): "))
-                porcentaje_reembolso = float(porcentaje_str)
+                porcentaje_reembolso = int(porcentaje_str)
                 
                 nueva_politica = politica_service.crear_politica(nombre, dias_aviso, porcentaje_reembolso)
                 print(f"\nEXITO: Política '{nueva_politica.nombre}' creada con ID: {nueva_politica.id}")
@@ -927,7 +927,7 @@ def menu_admin_politicas():
                 nuevos_dias_str = input(f"Nuevos días de aviso (Enter para mantener {politica.dias_aviso}): ")
                 nuevos_dias = int(nuevos_dias_str) if nuevos_dias_str else politica.dias_aviso
                 nuevo_porcentaje_str = input(f"Nuevo % reembolso (Enter para mantener {politica.porcentaje_reembolso}): ")
-                nuevo_porcentaje = float(nuevo_porcentaje_str) if nuevo_porcentaje_str else politica.porcentaje_reembolso
+                nuevo_porcentaje = int(nuevo_porcentaje_str) if nuevo_porcentaje_str else politica.porcentaje_reembolso
                 
                 politica_actualizada = politica_service.actualizar_politica(
                     id_editar, nuevo_nombre, nuevos_dias, nuevo_porcentaje

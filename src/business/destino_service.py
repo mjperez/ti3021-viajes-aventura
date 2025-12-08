@@ -21,7 +21,7 @@ class DestinoService:
         nombre: str,
         pais: str,
         descripcion: str,
-        costo_base: float,
+        costo_base: int,
         cupos_disponibles: int = 50,
         politica_id: int = 1
     ) -> DestinoDTO:
@@ -76,7 +76,7 @@ class DestinoService:
         nombre: str,
         pais: str,
         descripcion: str,
-        costo_base: float,
+        costo_base: int,
         cupos_disponibles: int,
         politica_id: int | None
     ) -> DestinoDTO:

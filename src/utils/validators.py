@@ -79,16 +79,16 @@ def validar_password(password: str) -> bool:
         return False
     return re.match(REGEX_PASSWORD,password) is not None # match devuelve none si no hay match en la comparacion.
 
-def validar_numero_positivo(numero: float) -> bool:
+def validar_numero_positivo(numero: int | float) -> bool:
     #Valida que sea número positivo
     try:
         return float(numero) > 0
     except (ValueError,TypeError):
         return False
 
-def validar_monto(monto:float) -> bool:
+def validar_monto(monto: int) -> bool:
     try:
-        return float(monto) >= MIN_MONTO
+        return int(monto) >= MIN_MONTO
     except (ValueError,TypeError):
         return False
     
@@ -148,10 +148,10 @@ def validar_dias_aviso(dias: int) -> bool:
     except (ValueError, TypeError):
         return False
 
-def validar_porcentaje_reembolso(porcentaje: float) -> bool:
+def validar_porcentaje_reembolso(porcentaje: int) -> bool:
     """Valida que el porcentaje de reembolso esté entre 0 y 100."""
     try:
-        p = float(porcentaje)
+        p = int(porcentaje)
         return 0 <= p <= 100
     except (ValueError, TypeError):
         return False

@@ -2,21 +2,6 @@
 
 Maneja la lógica de negocio para autenticación y autorización.
 Utiliza bcrypt para hashear contraseñas de forma segura.
-
-Funciones esperadas:
-    - registrar_usuario(email, password, nombre, rol): Registra nuevo usuario con hash
-    - login(email, password): Autentica usuario y retorna DTO si es válido
-    - hashear_password(password): Genera hash bcrypt de la contraseña
-    - verificar_password(password, hash): Verifica contraseña contra hash
-    - cambiar_password(usuario_id, password_actual, password_nueva): Cambia contraseña
-    - validar_email(email): Valida formato de email
-    - validar_password_segura(password): Valida requisitos de seguridad
-    - obtener_usuario_actual(): Retorna el usuario autenticado en sesión
-
-Requiere:
-    - bcrypt para hashing
-    - usuario_dao para acceso a datos
-    - validators para validaciones
 """
 
 from datetime import datetime
@@ -64,9 +49,10 @@ def registrar_usuario(rut, email, password, nombre, rol=None) -> UsuarioDTO:
     if usuarioExistenteEmail:
         raise ValidacionError(MSG_ERROR_EMAIL_DUPLICADO)
 
-    # Validar unicidad (opcional, pero buena práctica si el RUT debe ser único)
-    # Por ahora solo validamos formato y asumimos que DB lanzará error si hay UNIQUE index en RUT (no lo hay explícito UNIQUE en schema nuevo agregado, pero sí INDEX).
-    # Se recomienda agregar UNIQUE a RUT en DB si se requiere unicidad estricta.
+    # Validar unicidad (RUT debe ser único)
+    usuarioExistenteRut = dao.obtener_por_rut(rut)
+    if usuarioExistenteRut:
+        raise ValidacionError("RUT duplicado")
     
     hashpw = hashear_password(password)
     usuarioNuevo = UsuarioDTO(None, rut, email, hashpw, nombre, rol or ROL_USUARIO_DEFAULT, datetime.now())

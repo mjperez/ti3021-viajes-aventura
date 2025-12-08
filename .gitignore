@@ -57,3 +57,4 @@ tests/test_usuario_service.py
 .gitignore
 requirements-dev.txt
 tests/test_suite.py
+!tests/test_suite.py

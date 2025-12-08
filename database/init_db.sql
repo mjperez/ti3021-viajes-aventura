@@ -29,7 +29,7 @@ USE viajes_aventura;
 -- ============================================
 CREATE TABLE Usuarios (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    rut VARCHAR(12) NOT NULL,
+    rut VARCHAR(12) NOT NULL UNIQUE,
     email VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     nombre VARCHAR(100) NOT NULL,
