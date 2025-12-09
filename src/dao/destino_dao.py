@@ -48,32 +48,21 @@ class DestinoDAO():
         return filas > 0
     
     def eliminar(self, id: int) -> bool:
-        """Elimina un destino con lógica híbrida:
-        - Si tiene paquetes asociados: borrado lógico (activo=FALSE)
-        - Si NO tiene paquetes: borrado físico (DELETE)
-        """
-        # Verificar si el destino está en uso en Paquete_Destino
-        sql_check = "SELECT COUNT(*) as count FROM Paquete_Destino WHERE destino_id=%s"
-        params_check = (id,)
-        resultado = ejecutar_consulta_uno(sql_check, params_check)
-        
-        en_uso = resultado['count'] > 0 if resultado else False
-        
-        if en_uso:
-            # Borrado lógico: desactivar el destino
-            sql = "UPDATE Destinos SET activo = FALSE WHERE id=%s"
-            params = (id,)
-            filas = ejecutar_actualizacion(sql, params)
-            return filas > 0
-        else:
-            # Borrado físico: eliminar completamente
-            sql = "DELETE FROM Destinos WHERE id=%s"
-            params = (id,)
-            filas = ejecutar_actualizacion(sql, params)
-            return filas > 0
+        """Soft delete: desactiva el destino en lugar de eliminarlo."""
+        sql = "UPDATE Destinos SET activo = FALSE WHERE id=%s"
+        params = (id,)
+        filas = ejecutar_actualizacion(sql, params)
+        return filas > 0
+    
+    def reactivar(self, id: int) -> bool:
+        """Reactiva un destino desactivado."""
+        sql = "UPDATE Destinos SET activo = TRUE WHERE id=%s"
+        params = (id,)
+        filas = ejecutar_actualizacion(sql, params)
+        return filas > 0
     
     def listar_todos(self) -> list[DestinoDTO]:
-        """Retorna lista de todos los destinos activos."""
+        """Retorna lista de todos los destinos activos (para clientes)."""
         sql = "SELECT * FROM Destinos WHERE activo = 1 ORDER BY id ASC"
         destinos = ejecutar_consulta(sql)        
         if not destinos:
@@ -88,6 +77,26 @@ class DestinoDAO():
                 cupos_disponibles=d['cupos_disponibles'],
                 politica_id=d.get('politica_id', 1)
             )
+            for d in destinos
+        ]
+    
+    def listar_todos_admin(self) -> list[dict]:
+        """Retorna lista de TODOS los destinos incluyendo inactivos (para admin)."""
+        sql = "SELECT * FROM Destinos ORDER BY activo DESC, id ASC"
+        destinos = ejecutar_consulta(sql)        
+        if not destinos:
+            return []
+        
+        return [
+            {
+                'id': d['id'],
+                'nombre': d['nombre'],
+                'descripcion': d['descripcion'],
+                'costo_base': d['costo_base'],
+                'cupos_disponibles': d['cupos_disponibles'],
+                'politica_id': d.get('politica_id', 1),
+                'activo': d['activo']
+            }
             for d in destinos
         ]
     

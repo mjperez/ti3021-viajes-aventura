@@ -80,9 +80,11 @@ CREATE TABLE Actividades (
     descripcion VARCHAR(500),
     duracion_horas INT NOT NULL,
     precio_base INT NOT NULL DEFAULT 0,
+    activo BOOLEAN NOT NULL DEFAULT TRUE,
     destino_id INT NOT NULL,
     FOREIGN KEY (destino_id) REFERENCES Destinos(id) ON DELETE CASCADE,
-    INDEX idx_destino (destino_id)
+    INDEX idx_destino (destino_id),
+    INDEX idx_activo (activo)
 ) ENGINE=InnoDB;
 
 -- ============================================
@@ -97,13 +99,15 @@ CREATE TABLE Paquetes (
     fecha_fin DATETIME NOT NULL,
     precio_total INT NOT NULL,
     cupos_disponibles INT NOT NULL,
+    activo BOOLEAN NOT NULL DEFAULT TRUE,
     politica_id INT NOT NULL,
     FOREIGN KEY (politica_id) REFERENCES PoliticasCancelacion(id),
     CHECK (fecha_fin > fecha_inicio),
     CHECK (cupos_disponibles >= 0),
     CHECK (precio_total >= 0),
     INDEX idx_fechas (fecha_inicio, fecha_fin),
-    INDEX idx_disponibilidad (cupos_disponibles)
+    INDEX idx_disponibilidad (cupos_disponibles),
+    INDEX idx_activo (activo)
 ) ENGINE=InnoDB;
 
 -- ============================================
@@ -119,6 +123,21 @@ CREATE TABLE Paquete_Destino (
     FOREIGN KEY (destino_id) REFERENCES Destinos(id) ON DELETE CASCADE,
     INDEX idx_paquete (paquete_id),
     INDEX idx_destino (destino_id)
+) ENGINE=InnoDB;
+
+-- ============================================
+-- Tabla: Paquete_Actividad
+-- Relación muchos a muchos entre Paquetes y Actividades
+-- Permite asociar actividades específicas a cada paquete
+-- ============================================
+CREATE TABLE Paquete_Actividad (
+    paquete_id INT NOT NULL,
+    actividad_id INT NOT NULL,
+    PRIMARY KEY (paquete_id, actividad_id),
+    FOREIGN KEY (paquete_id) REFERENCES Paquetes(id) ON DELETE CASCADE,
+    FOREIGN KEY (actividad_id) REFERENCES Actividades(id) ON DELETE CASCADE,
+    INDEX idx_paquete (paquete_id),
+    INDEX idx_actividad (actividad_id)
 ) ENGINE=InnoDB;
 
 -- ============================================

@@ -160,7 +160,7 @@ class ReservaDAO():
     
     def listar_todas(self) -> list[ReservaDTO]:
         """Retorna todas las reservas del sistema."""
-        sql = "SELECT * FROM Reservas ORDER BY fecha_reserva DESC"
+        sql = "SELECT * FROM Reservas ORDER BY id ASC"
         reservas = ejecutar_consulta(sql)
         
         if not reservas:

@@ -80,7 +80,7 @@ def leer_decimal_seguro(prompt: str, minimo: float | None = None) -> float | Non
     """
     try:
         valor = input(prompt).strip()
-        if not valor or valor.lower() in ['0', 'cancelar', 'cancel']:
+        if not valor or valor.lower() in ['cancelar', 'cancel']:
             return None
         
         numero = float(sanitizar_numero(valor))
@@ -136,10 +136,10 @@ def validar_cancelacion(valor: str) -> str:
         El valor original si no es cancelación
         
     Raises:
-        OperacionCancelada: Si el valor es '0', 'cancelar', 'cancel' o vacío (Enter)
+        OperacionCancelada: Si el valor es 'cancelar', 'cancel' o vacío (Enter)
     """
     valor_limpio = valor.strip()
-    if valor_limpio.lower() in ['0', 'cancelar', 'cancel', '']:
+    if valor_limpio.lower() in ['cancelar', 'cancel', '']:
         raise OperacionCancelada("Operación cancelada por el usuario")
     return valor
 

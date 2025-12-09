@@ -35,8 +35,8 @@ class DestinoService:
             raise ValidacionError("La descripción no puede estar vacía")
         if costo_base <= 0:
             raise ValidacionError("El costo base debe ser mayor a 0")
-        if cupos_disponibles < 0:
-            raise ValidacionError("Los cupos disponibles no pueden ser negativos")
+        if cupos_disponibles < 1:
+            raise ValidacionError("Los cupos disponibles deben ser al menos 1")
         if politica_id <= 0:
             raise ValidacionError("El ID de política debe ser mayor a 0")
         
@@ -65,10 +65,20 @@ class DestinoService:
         '''Lista todos los destinos activos. Retorna lista de DestinoDTO'''
         return self.destino_dao.listar_todos()
     
+    def listar_todos_destinos_admin(self) -> list[dict]:
+        '''Lista TODOS los destinos incluyendo inactivos (para admin). Retorna lista de dicts'''
+        return self.destino_dao.listar_todos_admin()
+    
     def listar_destinos_disponibles(self) -> list[DestinoDTO]:
-        '''Lista destinos con cupos disponibles. Retorna lista de DestinoDTO'''
+        '''Lista destinos activos con cupos disponibles. Retorna lista de DestinoDTO'''
         todos = self.destino_dao.listar_todos()
         return [d for d in todos if d.cupos_disponibles > 0]
+    
+    def reactivar_destino(self, destino_id: int) -> bool:
+        '''Reactiva un destino desactivado. Retorna True si se reactivó correctamente'''
+        if destino_id <= 0:
+            raise ValidacionError("El ID del destino debe ser mayor a 0")
+        return self.destino_dao.reactivar(destino_id)
     
     def actualizar_destino(
         self,
@@ -92,8 +102,8 @@ class DestinoService:
             raise ValidacionError("La descripción no puede estar vacía")
         if costo_base <= 0:
             raise ValidacionError("El costo base debe ser mayor a 0")
-        if cupos_disponibles < 0:
-            raise ValidacionError("Los cupos disponibles no pueden ser negativos")
+        if cupos_disponibles < 1:
+            raise ValidacionError("Los cupos disponibles deben ser al menos 1")
         
         # Verificar existencia
         destino_existente = self.destino_dao.obtener_por_id(destino_id)

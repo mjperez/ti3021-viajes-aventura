@@ -80,15 +80,23 @@ class ActividadService:
         return self.actividad_dao.obtener_por_id(actividad_id)
     
     def listar_todas_actividades(self) -> list[ActividadDTO]:
-        """Lista todas las actividades.
+        """Lista todas las actividades activas.
         
         Returns:
             Lista de ActividadDTO
         """
         return self.actividad_dao.listar_todas()
     
+    def listar_todas_actividades_admin(self) -> list[dict]:
+        """Lista TODAS las actividades incluyendo inactivas (para admin).
+        
+        Returns:
+            Lista de dicts con info de actividades
+        """
+        return self.actividad_dao.listar_todas_admin()
+    
     def listar_actividades_por_destino(self, destino_id: int) -> list[ActividadDTO]:
-        """Lista actividades de un destino específico.
+        """Lista actividades activas de un destino específico.
         
         Args:
             destino_id: ID del destino
@@ -100,6 +108,19 @@ class ActividadService:
             raise ValidacionError("El ID del destino debe ser mayor a 0")
         
         return self.actividad_dao.listar_por_destino(destino_id)
+    
+    def reactivar_actividad(self, actividad_id: int) -> bool:
+        """Reactiva una actividad desactivada.
+        
+        Args:
+            actividad_id: ID de la actividad a reactivar
+            
+        Returns:
+            True si se reactivó correctamente
+        """
+        if actividad_id <= 0:
+            raise ValidacionError("El ID de la actividad debe ser mayor a 0")
+        return self.actividad_dao.reactivar(actividad_id)
     
     def actualizar_actividad(
         self,

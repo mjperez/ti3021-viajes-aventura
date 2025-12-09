@@ -42,15 +42,22 @@ class ActividadDAO():
         return filas > 0
     
     def eliminar(self, id: int) -> bool: 
-        #Elimina una actividad
-        sql = "DELETE FROM Actividades WHERE id=%s"
+        """Soft delete: desactiva la actividad en lugar de eliminarla."""
+        sql = "UPDATE Actividades SET activo = FALSE WHERE id=%s"
+        params = (id,)
+        filas = ejecutar_actualizacion(sql, params)
+        return filas > 0
+    
+    def reactivar(self, id: int) -> bool:
+        """Reactiva una actividad desactivada."""
+        sql = "UPDATE Actividades SET activo = TRUE WHERE id=%s"
         params = (id,)
         filas = ejecutar_actualizacion(sql, params)
         return filas > 0
     
     def listar_todas(self) -> list[ActividadDTO]:
-        #Retorna lista de todas las actividades
-        sql = "SELECT * FROM Actividades ORDER BY id ASC"
+        """Retorna lista de todas las actividades activas (para clientes)."""
+        sql = "SELECT * FROM Actividades WHERE activo = 1 ORDER BY id ASC"
         actividades = ejecutar_consulta(sql)        
         if not actividades:
             return []
@@ -67,9 +74,29 @@ class ActividadDAO():
             for a in actividades
         ]
     
+    def listar_todas_admin(self) -> list[dict]:
+        """Retorna TODAS las actividades incluyendo inactivas (para admin)."""
+        sql = "SELECT * FROM Actividades ORDER BY activo DESC, id ASC"
+        actividades = ejecutar_consulta(sql)        
+        if not actividades:
+            return []
+        
+        return [
+            {
+                'id': a['id'],
+                'nombre': a['nombre'],
+                'descripcion': a['descripcion'],
+                'duracion_horas': a['duracion_horas'],
+                'precio_base': a['precio_base'],
+                'destino_id': a['destino_id'],
+                'activo': a['activo']
+            }
+            for a in actividades
+        ]
+    
     def listar_por_destino(self, destino_id: int) -> list[ActividadDTO]: 
-        #Retorna actividades de un destino específico
-        sql = "SELECT * FROM Actividades WHERE destino_id=%s"
+        """Retorna actividades activas de un destino específico."""
+        sql = "SELECT * FROM Actividades WHERE destino_id=%s AND activo = 1"
         params = (destino_id,)
         actividades = ejecutar_consulta(sql, params)
         

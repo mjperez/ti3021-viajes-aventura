@@ -67,7 +67,7 @@ class PagoDAO():
     
     def listar_todos(self) -> list[PagoDTO]:
         """Retorna todos los pagos."""
-        sql = "SELECT * FROM Pagos ORDER BY fecha_pago DESC"
+        sql = "SELECT * FROM Pagos ORDER BY id ASC"
         results = ejecutar_consulta(sql, ())  # type: ignore
         
         if not results:
@@ -108,7 +108,7 @@ class PagoDAO():
         sql = """
             SELECT * FROM Pagos 
             WHERE fecha_pago BETWEEN %s AND %s
-            ORDER BY fecha_pago DESC
+            ORDER BY id ASC
         """
         results = ejecutar_consulta(sql, (fecha_inicio, fecha_fin))  # type: ignore
         

@@ -101,21 +101,42 @@ class PaqueteService:
         return self.paquete_dao.obtener_por_id(paquete_id)
     
     def listar_todos_paquetes(self) -> list[PaqueteDTO]:
-        """Lista todos los paquetes.
+        """Lista todos los paquetes activos.
         
         Returns:
             Lista de PaqueteDTO
         """
         return self.paquete_dao.listar_todos()
     
+    def listar_todos_paquetes_admin(self) -> list[dict]:
+        """Lista TODOS los paquetes incluyendo inactivos (para admin).
+        
+        Returns:
+            Lista de dicts con info de paquetes
+        """
+        return self.paquete_dao.listar_todos_admin()
+    
     def listar_paquetes_disponibles(self) -> list[PaqueteDTO]:
-        """Lista paquetes con cupos disponibles.
+        """Lista paquetes activos con cupos disponibles.
         
         Returns:
             Lista de PaqueteDTO con cupos > 0
         """
         todos = self.paquete_dao.listar_todos()
         return [p for p in todos if p.cupos_disponibles > 0]
+    
+    def reactivar_paquete(self, paquete_id: int) -> bool:
+        """Reactiva un paquete desactivado.
+        
+        Args:
+            paquete_id: ID del paquete a reactivar
+            
+        Returns:
+            True si se reactivó correctamente
+        """
+        if paquete_id <= 0:
+            raise ValidacionError("El ID del paquete debe ser mayor a 0")
+        return self.paquete_dao.reactivar(paquete_id)
     
     def actualizar_paquete(
         self,

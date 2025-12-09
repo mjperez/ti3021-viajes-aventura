@@ -44,15 +44,22 @@ class PaqueteDAO():
         return filas > 0
     
     def eliminar(self, id: int) -> bool: 
-        #Elimina un paquete
-        sql = "DELETE FROM Paquetes WHERE id=%s"
+        """Soft delete: desactiva el paquete en lugar de eliminarlo."""
+        sql = "UPDATE Paquetes SET activo = FALSE WHERE id=%s"
+        params = (id,)
+        filas = ejecutar_actualizacion(sql, params)
+        return filas > 0
+    
+    def reactivar(self, id: int) -> bool:
+        """Reactiva un paquete desactivado."""
+        sql = "UPDATE Paquetes SET activo = TRUE WHERE id=%s"
         params = (id,)
         filas = ejecutar_actualizacion(sql, params)
         return filas > 0
     
     def listar_todos(self) -> list[PaqueteDTO]: 
-        #Retorna lista de todos los paquetes
-        sql = "SELECT * FROM Paquetes ORDER BY id ASC"
+        """Retorna lista de todos los paquetes activos (para clientes)."""
+        sql = "SELECT * FROM Paquetes WHERE activo = 1 ORDER BY id ASC"
         paquetes = ejecutar_consulta(sql)
         
         if not paquetes:
@@ -72,9 +79,32 @@ class PaqueteDAO():
             for p in paquetes
         ]
     
+    def listar_todos_admin(self) -> list[dict]: 
+        """Retorna TODOS los paquetes incluyendo inactivos (para admin)."""
+        sql = "SELECT * FROM Paquetes ORDER BY activo DESC, id ASC"
+        paquetes = ejecutar_consulta(sql)
+        
+        if not paquetes:
+            return []
+        
+        return [
+            {
+                'id': p['id'],
+                'nombre': p['nombre'],
+                'fecha_inicio': p['fecha_inicio'],
+                'fecha_fin': p['fecha_fin'],
+                'precio_total': p['precio_total'],
+                'cupos_disponibles': p['cupos_disponibles'],
+                'politica_id': p['politica_id'],
+                'descripcion': p.get('descripcion') or '',
+                'activo': p['activo']
+            }
+            for p in paquetes
+        ]
+    
     def listar_disponibles(self) -> list[PaqueteDTO]: 
-        #Retorna paquetes con cupos > 0
-        sql = "SELECT * FROM Paquetes WHERE cupos_disponibles > 0 ORDER BY id ASC"
+        """Retorna paquetes activos con cupos > 0"""
+        sql = "SELECT * FROM Paquetes WHERE cupos_disponibles > 0 AND activo = 1 ORDER BY id ASC"
         paquetes = ejecutar_consulta(sql)
         
         if not paquetes:

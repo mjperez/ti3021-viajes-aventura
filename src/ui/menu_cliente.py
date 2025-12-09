@@ -85,7 +85,7 @@ def ver_actividades_disponibles():
         print("1. Ver todas las actividades")
         print("2. Buscar por destino")
         print("3. Volver")
-        opcion = input("\nSeleccione una opcion: ")
+        opcion = input("\nSeleccione una opción: ")
         
         if opcion == "2":
             limpiar_pantalla()
@@ -141,9 +141,11 @@ def ver_destinos_disponibles():
 
 def ver_paquetes_disponibles():
     """Lista paquetes con cupos disponibles y sus actividades."""
+    from src.dao.paquete_actividad_dao import PaqueteActividadDAO
     paquete_service = PaqueteService()
+    paquete_actividad_dao = PaqueteActividadDAO()
     limpiar_pantalla()
-    print("=== PAQUETES DISPONIBLES ===")
+    print("=== PAQUETES DISPONIBLES ===\n")
     
     try:
         paquetes = paquete_service.listar_paquetes_disponibles()
@@ -151,6 +153,40 @@ def ver_paquetes_disponibles():
             print("No hay paquetes disponibles en este momento.")
         else:
             mostrar_tabla_paquetes(paquetes, con_iva=True)
+            
+            # Opción para ver actividades de un paquete
+            print("\n¿Ver actividades incluidas en un paquete?")
+            ver_detalles = input("Ingrese ID del paquete (Enter para omitir): ")
+            
+            if ver_detalles:
+                try:
+                    paquete_id = int(ver_detalles)
+                    paquete = paquete_service.obtener_paquete(paquete_id)
+                    if paquete:
+                        limpiar_pantalla()
+                        print(f"=== PAQUETE: {paquete.nombre} ===\n")
+                        print(f"Descripción: {paquete.descripcion}")
+                        print(f"Fechas: {paquete.fecha_inicio} al {paquete.fecha_fin}")
+                        print(f"Precio base: ${int(paquete.precio_total):,}".replace(",", "."))
+                        print(f"Cupos disponibles: {paquete.cupos_disponibles}")
+                        
+                        # Mostrar actividades incluidas
+                        actividades = paquete_actividad_dao.listar_actividades_por_paquete(paquete_id)
+                        if actividades:
+                            print("\n📋 ACTIVIDADES INCLUIDAS:")
+                            print("-"*60)
+                            total_actividades = 0
+                            for a in actividades:
+                                print(f"  • {a['nombre']} - ${int(a['precio_base']):,} ({a['duracion_horas']}h)".replace(",", "."))
+                                total_actividades += a['precio_base']
+                            print("-"*60)
+                            print(f"  Valor total actividades: ${total_actividades:,}".replace(",", "."))
+                        else:
+                            print("\n📋 Este paquete no tiene actividades asociadas.")
+                    else:
+                        print("Paquete no encontrado.")
+                except ValueError:
+                    print("ID inválido.")
     except Exception as e:
         print(f"ERROR: Error al cargar paquetes: {e}")
     pausar()
@@ -161,7 +197,7 @@ def crear_reserva(cliente_id: int):
     paquete_service = PaqueteService()
     limpiar_pantalla()
     print("=== CREAR RESERVA ===")
-    print("(Presione Enter, '0' o 'cancelar' en cualquier momento para abortar)\n")
+    print("(Escriba 'cancelar' para abortar)\n")
     
     try:
         # Mostrar paquetes disponibles
@@ -198,11 +234,22 @@ def crear_reserva(cliente_id: int):
             return
         
         # Mostrar resumen antes de confirmar
+        from src.dao.paquete_actividad_dao import PaqueteActividadDAO
+        paquete_actividad_dao = PaqueteActividadDAO()
+        
         print("\n=== RESUMEN DE LA RESERVA ===")
         print(f"Paquete: {paquete_seleccionado.nombre}")
         print(f"Fecha inicio: {paquete_seleccionado.fecha_inicio}")
         print(f"Fecha fin: {paquete_seleccionado.fecha_fin}")
-        print(f"Número de personas: {num_personas}")
+        
+        # Mostrar actividades incluidas
+        actividades = paquete_actividad_dao.listar_actividades_por_paquete(paquete_id)
+        if actividades:
+            print("\nActividades incluidas:")
+            for a in actividades:
+                print(f"  • {a['nombre']}")
+        
+        print(f"\nNúmero de personas: {num_personas}")
         print(f"Precio por persona: ${int(paquete_seleccionado.precio_total):,}".replace(",", "."))
         print(f"Monto total: ${int(paquete_seleccionado.precio_total * num_personas):,}".replace(",", "."))
         
@@ -234,7 +281,7 @@ def crear_reserva_destino(cliente_id: int):
     destino_service = DestinoService()
     limpiar_pantalla()
     print("=== CREAR RESERVA DE DESTINO ===")
-    print("(Presione Enter, '0' o 'cancelar' en cualquier momento para abortar)\n")
+    print("(Escriba 'cancelar' para abortar)\n")
     
     try:
         # Mostrar destinos disponibles

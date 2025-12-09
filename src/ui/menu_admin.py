@@ -1,4 +1,4 @@
-"""Men� de Administrador - Interfaz de Usuario por Consola
+"""Menú de Administrador - Interfaz de Usuario por Consola
 
 Interfaz para funciones administrativas del sistema.
 Solo accesible para usuarios con rol 'administrador'.
@@ -73,30 +73,35 @@ def menu_admin_destinos():
         print("1. Listar Destinos")
         print("2. Agregar Destino")
         print("3. Editar Destino")
-        print("4. Eliminar Destino")
-        print("5. Volver")
+        print("4. Desactivar Destino")
+        print("5. Reactivar Destino")
+        print("6. Volver")
         opcion = leer_opcion()
         
-        if not validar_opcion(opcion, 1, 5):
+        if not validar_opcion(opcion, 1, 6):
             print(MSG_ERROR_OPCION_INVALIDA)
             pausar()
             continue
         limpiar_pantalla()
         if opcion == 1:
             print("=== VIAJES AVENTURA: LISTAR DESTINOS ===")
-            dest = input("Ingrese nombre de destino a buscar (o Enter para todos): ")
-            if dest:
-                print(f"Mostrando destinos que coinciden con '{dest}'...")
-                destinos = destino_service.buscar_destinos_por_nombre(dest)
-                mostrar_tabla_destinos(destinos)
+            destinos = destino_service.listar_todos_destinos_admin()
+            if not destinos:
+                print("No hay destinos registrados.")
             else:
-                print("Mostrando todos los destinos...")
-                destinos = destino_service.listar_todos_destinos()
-                mostrar_tabla_destinos(destinos)
+                # Mostrar tabla con estado
+                print("="*110)
+                print(f"{'ID':<5} {'NOMBRE':<25} {'COSTO BASE':<15} {'CUPOS':<10} {'POLÍTICA':<12} {'ESTADO':<10}")
+                print("="*110)
+                for d in destinos:
+                    politica = "Flexible" if d['politica_id'] == 1 else "Estricta"
+                    estado = "ACTIVO" if d['activo'] else "INACTIVO"
+                    print(f"{d['id']:<5} {d['nombre'][:24]:<25} ${d['costo_base']:>12,} {d['cupos_disponibles']:<10} {politica:<12} {estado:<10}".replace(",", "."))
+                print("="*110)
             pausar()
         elif opcion == 2:
             print("=== VIAJES AVENTURA: AGREGAR DESTINO ===")
-            print("(Presione Enter, '0' o 'cancelar' para abortar)\n")
+            print("(Escriba 'cancelar' para abortar)\n")
             try:
                 nombre = validar_cancelacion(input("Nombre del destino: "))
                 descripcion = validar_cancelacion(input("Descripción: "))
@@ -125,7 +130,7 @@ def menu_admin_destinos():
             pausar()
         elif opcion == 3:
             print("=== VIAJES AVENTURA: EDITAR DESTINO ===")
-            print("(Presione Enter, '0' o 'cancelar' para abortar)\n")
+            print("(Escriba 'cancelar' para abortar)\n")
             try:
                 destinos = destino_service.listar_todos_destinos()
                 if destinos:
@@ -160,8 +165,15 @@ def menu_admin_destinos():
                 print("\nPolíticas de cancelación:")
                 print("  1. Flexible (3 días aviso, 100% reembolso)")
                 print("  2. Estricta (7 días aviso, 50% reembolso)")
-                nueva_politica_str = input(f"Nueva política (Enter para mantener '{politica_actual}'): ")
-                nueva_politica_id = int(nueva_politica_str) if nueva_politica_str in ["1", "2"] else destino.politica_id
+                nueva_politica_str = input(f"Nueva política (1 o 2, Enter para mantener '{politica_actual}'): ")
+                if nueva_politica_str == "":
+                    nueva_politica_id = destino.politica_id
+                elif nueva_politica_str in ["1", "2"]:
+                    nueva_politica_id = int(nueva_politica_str)
+                else:
+                    print("ERROR: Política inválida. Debe ser 1 (Flexible) o 2 (Estricta).")
+                    pausar()
+                    continue
                 
                 print(f"\nActualizando destino ID {id_editar}...")
                 destino_actualizado = destino_service.actualizar_destino(
@@ -180,40 +192,79 @@ def menu_admin_destinos():
                 print(f"ERROR: Error al editar destino: {e}")
             pausar()
         elif opcion == 4:
-            print("=== VIAJES AVENTURA: ELIMINAR DESTINO ===")
-            destinos = destino_service.listar_todos_destinos()
-            if destinos:
-                print("Destinos disponibles:")
-                mostrar_tabla_destinos(destinos)
+            print("=== VIAJES AVENTURA: DESACTIVAR DESTINO ===")
+            destinos = destino_service.listar_todos_destinos_admin()
+            activos = [d for d in destinos if d['activo']]
+            if activos:
+                print("Destinos activos:")
+                print("="*80)
+                print(f"{'ID':<5} {'NOMBRE':<30} {'CUPOS':<10}")
+                print("="*80)
+                for d in activos:
+                    print(f"{d['id']:<5} {d['nombre'][:29]:<30} {d['cupos_disponibles']:<10}")
+                print("="*80)
             else:
-                print("No hay destinos registrados.")
+                print("No hay destinos activos.")
                 pausar()
                 continue
-            id_eliminar = int(input("\nIngrese el ID del destino a eliminar: "))
-            destino = destino_service.obtener_destino(id_eliminar)
-            if not destino:
-                print(f"No se encontró destino con ID {id_eliminar}.")
-                pausar()
-                continue
-            print(f"Destino a eliminar: {destino.nombre}")
-            confirmar = input("¿Está seguro? (s/n): ")
-            if confirmar.lower() != 's':    
-                print("Eliminación cancelada.")
-                pausar()
-                continue
-            print(f"Eliminando destino ID {id_eliminar}...")
-            # Lógica para eliminar destino
             try:
-                eliminado = destino_service.eliminar_destino(id_eliminar)
-                if eliminado:
-                    print(f"Destino ID {id_eliminar} eliminado exitosamente.")
+                id_desactivar = int(input("\nIngrese el ID del destino a desactivar: "))
+                destino = destino_service.obtener_destino(id_desactivar)
+                if not destino:
+                    print(f"No se encontró destino activo con ID {id_desactivar}.")
+                    pausar()
+                    continue
+                print(f"Destino a desactivar: {destino.nombre}")
+                confirmar = input("¿Está seguro? (s/n): ")
+                if confirmar.lower() != 's':    
+                    print("Operación cancelada.")
+                    pausar()
+                    continue
+                desactivado = destino_service.eliminar_destino(id_desactivar)
+                if desactivado:
+                    print(f"EXITO: Destino '{destino.nombre}' desactivado exitosamente.")
                 else:
-                    print(f"No se pudo eliminar el destino ID {id_eliminar}.")
+                    print(f"No se pudo desactivar el destino ID {id_desactivar}.")
+            except ValueError:
+                print("ERROR: Debe ingresar un número válido.")
             except Exception as e:
-                print(f"Error al eliminar destino: {e}")
-      
+                print(f"ERROR: {e}")
             pausar()
         elif opcion == 5:
+            print("=== VIAJES AVENTURA: REACTIVAR DESTINO ===")
+            destinos = destino_service.listar_todos_destinos_admin()
+            inactivos = [d for d in destinos if not d['activo']]
+            if inactivos:
+                print("Destinos inactivos:")
+                print("="*80)
+                print(f"{'ID':<5} {'NOMBRE':<30} {'CUPOS':<10}")
+                print("="*80)
+                for d in inactivos:
+                    print(f"{d['id']:<5} {d['nombre'][:29]:<30} {d['cupos_disponibles']:<10}")
+                print("="*80)
+            else:
+                print("No hay destinos inactivos para reactivar.")
+                pausar()
+                continue
+            try:
+                id_reactivar = int(input("\nIngrese el ID del destino a reactivar: "))
+                # Verificar que está en la lista de inactivos
+                destino_inactivo = next((d for d in inactivos if d['id'] == id_reactivar), None)
+                if not destino_inactivo:
+                    print(f"No se encontró destino inactivo con ID {id_reactivar}.")
+                    pausar()
+                    continue
+                reactivado = destino_service.reactivar_destino(id_reactivar)
+                if reactivado:
+                    print(f"EXITO: Destino '{destino_inactivo['nombre']}' reactivado exitosamente.")
+                else:
+                    print(f"No se pudo reactivar el destino ID {id_reactivar}.")
+            except ValueError:
+                print("ERROR: Debe ingresar un número válido.")
+            except Exception as e:
+                print(f"ERROR: {e}")
+            pausar()
+        elif opcion == 6:
             break
 
 
@@ -228,21 +279,30 @@ def menu_admin_actividades():
         print("1. Listar Actividades")
         print("2. Agregar Actividad")
         print("3. Editar Actividad")
-        print("4. Eliminar Actividad")
-        print("5. Volver")
+        print("4. Desactivar Actividad")
+        print("5. Reactivar Actividad")
+        print("6. Volver")
         opcion = leer_opcion()
-        if not validar_opcion(opcion, 1, 5):
+        if not validar_opcion(opcion, 1, 6):
             print(MSG_ERROR_OPCION_INVALIDA)
             pausar()
             continue
         limpiar_pantalla()
         if opcion == 1:
             print("=== VIAJES AVENTURA: LISTAR ACTIVIDADES ===")
-            actividades = actividad_service.listar_todas_actividades()
+            actividades = actividad_service.listar_todas_actividades_admin()
             if not actividades:
                 print("No hay actividades registradas.")
             else:
-                mostrar_tabla_actividades(actividades)
+                print("="*100)
+                print(f"{'ID':<5} {'NOMBRE':<25} {'DESTINO':<20} {'PRECIO':<12} {'ESTADO':<10}")
+                print("="*100)
+                for a in actividades:
+                    destino = destino_service.obtener_destino(a['destino_id'])
+                    destino_nombre = destino.nombre[:19] if destino else "Desconocido"
+                    estado = "ACTIVO" if a['activo'] else "INACTIVO"
+                    print(f"{a['id']:<5} {a['nombre'][:24]:<25} {destino_nombre:<20} ${a['precio_base']:>10,} {estado:<10}".replace(",", "."))
+                print("="*100)
             pausar()
         elif opcion == 2:
             print("=== VIAJES AVENTURA: AGREGAR ACTIVIDAD ===")
@@ -314,17 +374,34 @@ def menu_admin_actividades():
                     continue
                 
                 print(f"\nActividad actual: {actividad.nombre}")
+                print(f"Destino actual ID: {actividad.destino_id}")
+                
                 nuevo_nombre = input(f"Nuevo nombre (Enter='{actividad.nombre}'): ") or actividad.nombre
                 nueva_descripcion = input(f"Nueva descripción (Enter='{actividad.descripcion}'): ") or actividad.descripcion
                 nueva_duracion = input(f"Nueva duración (Enter={actividad.duracion_horas}h): ")
                 nuevo_precio = input(f"Nuevo precio (Enter=${actividad.precio_base}): ")
-                nuevo_destino = input(f"Nuevo destino ID (Enter={actividad.destino_id}): ")
+                
+                # Mostrar destinos disponibles para cambiar
+                print("\nDestinos disponibles:")
+                destinos = destino_service.listar_todos_destinos()
+                for d in destinos:
+                    print(f"  ID {d.id}: {d.nombre}")
+                nuevo_destino_str = input(f"Nuevo destino ID (Enter para mantener {actividad.destino_id}): ")
+                
+                # Validar destino si se cambió
+                nuevo_destino_id = actividad.destino_id
+                if nuevo_destino_str:
+                    nuevo_destino_id = int(nuevo_destino_str)
+                    if not destino_service.obtener_destino(nuevo_destino_id):
+                        print(f"ERROR: No existe destino con ID {nuevo_destino_id}")
+                        pausar()
+                        continue
                 
                 actividad.nombre = nuevo_nombre
                 actividad.descripcion = nueva_descripcion
                 actividad.duracion_horas = int(nueva_duracion) if nueva_duracion else actividad.duracion_horas
                 actividad.precio_base = int(nuevo_precio) if nuevo_precio else actividad.precio_base
-                actividad.destino_id = int(nuevo_destino) if nuevo_destino else actividad.destino_id
+                actividad.destino_id = nuevo_destino_id
                 
                 actividad_service.actualizar_actividad(
                     id_editar,
@@ -339,33 +416,75 @@ def menu_admin_actividades():
                 print(f"ERROR: Error: {e}")
             pausar()
         elif opcion == 4:
-            print("=== VIAJES AVENTURA: ELIMINAR ACTIVIDAD ===")
+            print("=== VIAJES AVENTURA: DESACTIVAR ACTIVIDAD ===")
             try:
-                actividades = actividad_service.listar_todas_actividades()
-                if not actividades:
-                    print("No hay actividades registradas.")
-                else:
-                    mostrar_tabla_actividades(actividades)
-                id_eliminar = int(input("\nID de la actividad a eliminar: "))
-                actividad = actividad_service.obtener_actividad(id_eliminar)
+                actividades = actividad_service.listar_todas_actividades_admin()
+                activas = [a for a in actividades if a['activo']]
+                if not activas:
+                    print("No hay actividades activas.")
+                    pausar()
+                    continue
+                print("="*80)
+                print(f"{'ID':<5} {'NOMBRE':<30} {'PRECIO':<15}")
+                print("="*80)
+                for a in activas:
+                    print(f"{a['id']:<5} {a['nombre'][:29]:<30} ${a['precio_base']:>12,}".replace(",", "."))
+                print("="*80)
+                
+                id_desactivar = int(input("\nID de la actividad a desactivar: "))
+                actividad = actividad_service.obtener_actividad(id_desactivar)
                 if not actividad:
-                    print(f"No se encontró actividad con ID {id_eliminar}")
+                    print(f"No se encontró actividad activa con ID {id_desactivar}")
                     pausar()
                     continue
                 
                 print(f"\nActividad: {actividad.nombre}")
                 confirmacion = input("¿Está seguro? (s/n): ")
                 if confirmacion.lower() == 's':
-                    if actividad_service.eliminar_actividad(id_eliminar):
-                        print("EXITO: Actividad eliminada exitosamente")
+                    if actividad_service.eliminar_actividad(id_desactivar):
+                        print("EXITO: Actividad desactivada exitosamente")
                     else:
-                        print("ERROR: No se pudo eliminar la actividad")
+                        print("ERROR: No se pudo desactivar la actividad")
                 else:
-                    print("Eliminación cancelada")
+                    print("Operación cancelada")
+            except ValueError:
+                print("ERROR: Debe ingresar un número válido.")
             except Exception as e:
-                print(f"ERROR: Error: {e}")
+                print(f"ERROR: {e}")
             pausar()
         elif opcion == 5:
+            print("=== VIAJES AVENTURA: REACTIVAR ACTIVIDAD ===")
+            try:
+                actividades = actividad_service.listar_todas_actividades_admin()
+                inactivas = [a for a in actividades if not a['activo']]
+                if not inactivas:
+                    print("No hay actividades inactivas para reactivar.")
+                    pausar()
+                    continue
+                print("="*80)
+                print(f"{'ID':<5} {'NOMBRE':<30} {'PRECIO':<15}")
+                print("="*80)
+                for a in inactivas:
+                    print(f"{a['id']:<5} {a['nombre'][:29]:<30} ${a['precio_base']:>12,}".replace(",", "."))
+                print("="*80)
+                
+                id_reactivar = int(input("\nID de la actividad a reactivar: "))
+                actividad_inactiva = next((a for a in inactivas if a['id'] == id_reactivar), None)
+                if not actividad_inactiva:
+                    print(f"No se encontró actividad inactiva con ID {id_reactivar}")
+                    pausar()
+                    continue
+                
+                if actividad_service.reactivar_actividad(id_reactivar):
+                    print(f"EXITO: Actividad '{actividad_inactiva['nombre']}' reactivada exitosamente")
+                else:
+                    print("ERROR: No se pudo reactivar la actividad")
+            except ValueError:
+                print("ERROR: Debe ingresar un número válido.")
+            except Exception as e:
+                print(f"ERROR: {e}")
+            pausar()
+        elif opcion == 6:
             break
 
 
@@ -380,10 +499,12 @@ def menu_admin_paquetes():
         print("1. Listar Paquetes")
         print("2. Agregar Paquete")
         print("3. Editar Paquete")
-        print("4. Eliminar Paquete")
-        print("5. Volver")
+        print("4. Gestionar Actividades del Paquete")
+        print("5. Desactivar Paquete")
+        print("6. Reactivar Paquete")
+        print("7. Volver")
         opcion = leer_opcion()
-        if not validar_opcion(opcion, 1, 5):
+        if not validar_opcion(opcion, 1, 7):
             print(MSG_ERROR_OPCION_INVALIDA)
             pausar()
             continue
@@ -416,8 +537,33 @@ def menu_admin_paquetes():
                         break
                 nombre = input("\nNombre del paquete: ")
                 descripcion = input("Descripción del paquete: ")
-                fecha_inicio_str = input("Fecha inicio (YYYY-MM-DD): ")
-                fecha_fin_str = input("Fecha fin (YYYY-MM-DD): ")
+                
+                # Validar fechas con retry
+                while True:
+                    fecha_inicio_str = input("Fecha inicio (YYYY-MM-DD): ")
+                    if not fecha_inicio_str:
+                        print("ERROR: La fecha de inicio es obligatoria.")
+                        continue
+                    try:
+                        fecha_inicio = datetime.strptime(fecha_inicio_str, "%Y-%m-%d")
+                        break
+                    except ValueError:
+                        print("ERROR: Formato inválido. Use YYYY-MM-DD (ej: 2025-01-15)")
+                
+                while True:
+                    fecha_fin_str = input("Fecha fin (YYYY-MM-DD): ")
+                    if not fecha_fin_str:
+                        print("ERROR: La fecha de fin es obligatoria.")
+                        continue
+                    try:
+                        fecha_fin = datetime.strptime(fecha_fin_str, "%Y-%m-%d")
+                        if fecha_fin <= fecha_inicio:
+                            print("ERROR: La fecha de fin debe ser posterior a la de inicio.")
+                            continue
+                        break
+                    except ValueError:
+                        print("ERROR: Formato inválido. Use YYYY-MM-DD (ej: 2025-01-15)")
+                
                 precio = int(input("Precio total: "))
                 cupos = int(input("Cupos disponibles: "))
                 
@@ -430,9 +576,6 @@ def menu_admin_paquetes():
                     print("ERROR: Opción inválida. Debe ser 1 (Flexible) o 2 (Estricta).")
                     politica_str = input("Seleccione política (1 o 2): ")
                 politica_id = int(politica_str)
-                
-                fecha_inicio = datetime.strptime(fecha_inicio_str, "%Y-%m-%d")
-                fecha_fin = datetime.strptime(fecha_fin_str, "%Y-%m-%d")
                 
                 nuevo_paquete = paquete_service.crear_paquete(
                     nombre=nombre,
@@ -464,13 +607,45 @@ def menu_admin_paquetes():
                     continue
                 
                 print(f"\nPaquete actual: {paquete.nombre}")
+                print(f"Fecha inicio actual: {paquete.fecha_inicio}")
+                print(f"Fecha fin actual: {paquete.fecha_fin}")
+                politica_actual = "Flexible" if paquete.politica_id == 1 else "Estricta"
+                print(f"Política actual: {politica_actual}")
+                
                 nuevo_nombre = input(f"Nuevo nombre (Enter='{paquete.nombre}'): ") or paquete.nombre
+                nueva_descripcion = input("Nueva descripción (Enter para mantener): ") or paquete.descripcion
                 nuevo_precio = input(f"Nuevo precio (Enter=${paquete.precio_total}): ")
                 nuevos_cupos = input(f"Nuevos cupos (Enter={paquete.cupos_disponibles}): ")
                 
+                # Fechas
+                nueva_fecha_inicio_str = input("Nueva fecha inicio YYYY-MM-DD (Enter para mantener): ")
+                nueva_fecha_fin_str = input("Nueva fecha fin YYYY-MM-DD (Enter para mantener): ")
+                
+                # Opción de cambiar política
+                print("\nPolíticas de cancelación:")
+                print("  1. Flexible (3 días aviso, 100% reembolso)")
+                print("  2. Estricta (7 días aviso, 50% reembolso)")
+                nueva_politica_str = input(f"Nueva política (1 o 2, Enter para mantener '{politica_actual}'): ")
+                if nueva_politica_str == "":
+                    nueva_politica_id = paquete.politica_id
+                elif nueva_politica_str in ["1", "2"]:
+                    nueva_politica_id = int(nueva_politica_str)
+                else:
+                    print("ERROR: Política inválida. Debe ser 1 (Flexible) o 2 (Estricta).")
+                    pausar()
+                    continue
+                
                 paquete.nombre = nuevo_nombre
+                paquete.descripcion = nueva_descripcion
                 paquete.precio_total = int(nuevo_precio) if nuevo_precio else paquete.precio_total
                 paquete.cupos_disponibles = int(nuevos_cupos) if nuevos_cupos else paquete.cupos_disponibles
+                paquete.politica_id = nueva_politica_id
+                
+                # Parsear fechas si se proporcionaron
+                if nueva_fecha_inicio_str:
+                    paquete.fecha_inicio = datetime.strptime(nueva_fecha_inicio_str, "%Y-%m-%d")
+                if nueva_fecha_fin_str:
+                    paquete.fecha_fin = datetime.strptime(nueva_fecha_fin_str, "%Y-%m-%d")
                 
                 paquete_service.actualizar_paquete(
                     id_editar,
@@ -487,33 +662,160 @@ def menu_admin_paquetes():
                 print(f"ERROR: Error: {e}")
             pausar()
         elif opcion == 4:
-            print("=== VIAJES AVENTURA: ELIMINAR PAQUETE ===")
+            # Gestionar actividades del paquete
+            print("=== VIAJES AVENTURA: GESTIONAR ACTIVIDADES DEL PAQUETE ===")
             try:
+                from src.dao.paquete_actividad_dao import PaqueteActividadDAO
+                paquete_actividad_dao = PaqueteActividadDAO()
+                actividad_service = ActividadService()
+                
                 paquetes = paquete_service.listar_todos_paquetes()
                 if not paquetes:
                     print("No hay paquetes registrados.")
-                else:
-                    mostrar_tabla_paquetes(paquetes)                
-                id_eliminar = int(input("\nID del paquete a eliminar: "))
-                paquete = paquete_service.obtener_paquete(id_eliminar)
+                    pausar()
+                    continue
+                
+                mostrar_tabla_paquetes(paquetes)
+                paquete_id = int(input("\nID del paquete a gestionar: "))
+                paquete = paquete_service.obtener_paquete(paquete_id)
                 if not paquete:
-                    print(f"No se encontró paquete con ID {id_eliminar}")
+                    print(f"No se encontró paquete con ID {paquete_id}")
+                    pausar()
+                    continue
+                
+                while True:
+                    limpiar_pantalla()
+                    print(f"=== ACTIVIDADES DEL PAQUETE: {paquete.nombre} ===\n")
+                    
+                    # Mostrar actividades actuales
+                    actividades_paquete = paquete_actividad_dao.listar_actividades_por_paquete(paquete_id)
+                    if actividades_paquete:
+                        print("Actividades incluidas:")
+                        print("-"*60)
+                        for a in actividades_paquete:
+                            print(f"  ID {a['id']}: {a['nombre']} (${a['precio_base']:,})".replace(",", "."))
+                        print("-"*60)
+                    else:
+                        print("Este paquete no tiene actividades asociadas.\n")
+                    
+                    print("\n1. Agregar actividad")
+                    print("2. Quitar actividad")
+                    print("3. Volver")
+                    sub_opcion = leer_opcion()
+                    
+                    if sub_opcion == 1:
+                        # Mostrar actividades disponibles
+                        todas_actividades = actividad_service.listar_todas_actividades()
+                        ids_actuales = [a['id'] for a in actividades_paquete]
+                        disponibles = [a for a in todas_actividades if a.id not in ids_actuales]
+                        
+                        if not disponibles:
+                            print("\nNo hay más actividades disponibles para agregar.")
+                            pausar()
+                            continue
+                        
+                        print("\nActividades disponibles:")
+                        for a in disponibles:
+                            print(f"  ID {a.id}: {a.nombre} (${a.precio_base:,})".replace(",", "."))
+                        
+                        actividad_id = int(input("\nID de la actividad a agregar: "))
+                        if paquete_actividad_dao.agregar_actividad(paquete_id, actividad_id):
+                            print("EXITO: Actividad agregada al paquete.")
+                        else:
+                            print("ERROR: No se pudo agregar la actividad.")
+                        pausar()
+                    elif sub_opcion == 2:
+                        if not actividades_paquete:
+                            print("\nNo hay actividades para quitar.")
+                            pausar()
+                            continue
+                        
+                        actividad_id = int(input("\nID de la actividad a quitar: "))
+                        if paquete_actividad_dao.eliminar_actividad(paquete_id, actividad_id):
+                            print("EXITO: Actividad quitada del paquete.")
+                        else:
+                            print("ERROR: No se pudo quitar la actividad.")
+                        pausar()
+                    elif sub_opcion == 3:
+                        break
+            except ValueError:
+                print("ERROR: Debe ingresar un número válido.")
+                pausar()
+            except Exception as e:
+                print(f"ERROR: {e}")
+                pausar()
+        elif opcion == 5:
+            print("=== VIAJES AVENTURA: DESACTIVAR PAQUETE ===")
+            try:
+                paquetes = paquete_service.listar_todos_paquetes_admin()
+                activos = [p for p in paquetes if p['activo']]
+                if not activos:
+                    print("No hay paquetes activos.")
+                    pausar()
+                    continue
+                print("Paquetes activos:")
+                print("="*90)
+                print(f"{'ID':<5} {'NOMBRE':<30} {'PRECIO':<15} {'CUPOS':<10} {'ESTADO':<10}")
+                print("="*90)
+                for p in activos:
+                    print(f"{p['id']:<5} {p['nombre'][:29]:<30} ${p['precio_total']:>12,} {p['cupos_disponibles']:<10} ACTIVO".replace(",", "."))
+                print("="*90)
+                
+                id_desactivar = int(input("\nID del paquete a desactivar: "))
+                paquete = paquete_service.obtener_paquete(id_desactivar)
+                if not paquete:
+                    print(f"No se encontró paquete activo con ID {id_desactivar}")
                     pausar()
                     continue
                 
                 print(f"\nPaquete: {paquete.nombre}")
                 confirmacion = input("¿Está seguro? (s/n): ")
                 if confirmacion.lower() == 's':
-                    if paquete_service.eliminar_paquete(id_eliminar):
-                        print("EXITO: Paquete eliminado exitosamente")
+                    if paquete_service.eliminar_paquete(id_desactivar):
+                        print("EXITO: Paquete desactivado exitosamente")
                     else:
-                        print("ERROR: No se pudo eliminar el paquete")
+                        print("ERROR: No se pudo desactivar el paquete")
                 else:
-                    print("Eliminación cancelada")
+                    print("Operación cancelada")
+            except ValueError:
+                print("ERROR: Debe ingresar un número válido.")
             except Exception as e:
-                print(f"ERROR: Error: {e}")
+                print(f"ERROR: {e}")
             pausar()
-        elif opcion == 5:
+        elif opcion == 6:
+            print("=== VIAJES AVENTURA: REACTIVAR PAQUETE ===")
+            try:
+                paquetes = paquete_service.listar_todos_paquetes_admin()
+                inactivos = [p for p in paquetes if not p['activo']]
+                if not inactivos:
+                    print("No hay paquetes inactivos para reactivar.")
+                    pausar()
+                    continue
+                print("Paquetes inactivos:")
+                print("="*90)
+                print(f"{'ID':<5} {'NOMBRE':<30} {'PRECIO':<15} {'CUPOS':<10}")
+                print("="*90)
+                for p in inactivos:
+                    print(f"{p['id']:<5} {p['nombre'][:29]:<30} ${p['precio_total']:>12,} {p['cupos_disponibles']:<10}".replace(",", "."))
+                print("="*90)
+                
+                id_reactivar = int(input("\nID del paquete a reactivar: "))
+                paquete_inactivo = next((p for p in inactivos if p['id'] == id_reactivar), None)
+                if not paquete_inactivo:
+                    print(f"No se encontró paquete inactivo con ID {id_reactivar}")
+                    pausar()
+                    continue
+                
+                if paquete_service.reactivar_paquete(id_reactivar):
+                    print(f"EXITO: Paquete '{paquete_inactivo['nombre']}' reactivado exitosamente")
+                else:
+                    print("ERROR: No se pudo reactivar el paquete")
+            except ValueError:
+                print("ERROR: Debe ingresar un número válido.")
+            except Exception as e:
+                print(f"ERROR: {e}")
+            pausar()
+        elif opcion == 7:
             break
 
 
@@ -810,295 +1112,126 @@ def menu_admin_reservas():
 
 
 def menu_admin_reportes():
-    """Submenú para reportes administrativos."""
+    """Dashboard rápido con estadísticas clave del sistema."""
     from src.business.pago_service import PagoService
     from src.utils.constants import ESTADOS_RESERVA
     
     reserva_service = ReservaService()
     usuario_service = UsuarioService()
     pago_service = PagoService()
+    destino_service = DestinoService()
+    paquete_service = PaqueteService()
     
     while True:
         limpiar_pantalla()
-        print("=== VIAJES AVENTURA: REPORTES ===")
-        print("1. Ver todas las Reservas")
-        print("2. Reporte de Ventas")
-        print("3. Reporte de Clientes")
-        print("4. Volver")
-        opcion = leer_opcion()
-        if not validar_opcion(opcion, 1, 4):
-            print(MSG_ERROR_OPCION_INVALIDA)
-            pausar()
-            continue
-        limpiar_pantalla()
-        if opcion == 1:
-            print("=== VIAJES AVENTURA: TODAS LAS RESERVAS ===")
-            print("\nFiltrar por estado:")
-            print("0. Todas")
-            for i, estado in enumerate(ESTADOS_RESERVA, 1):
-                print(f"{i}. {estado}")
-            filtro = input("\nSeleccione opción (Enter=Todas): ")
+        print("=== VIAJES AVENTURA: DASHBOARD ===\n")
+        
+        try:
+            # Obtener datos
+            todas_reservas = reserva_service.listar_todas_reservas()
+            todos_pagos = pago_service.pago_dao.listar_todos()
+            todos_usuarios = usuario_service.listar_todos_usuarios()
+            todos_destinos = destino_service.listar_todos_destinos_admin()
+            todos_paquetes = paquete_service.listar_todos_paquetes_admin()
             
-            try:
-                if not filtro or filtro == '0':
-                    # Listar todas las reservas
-                    todas_reservas = reserva_service.listar_todas_reservas()
-                    print(f"\nTotal de reservas: {len(todas_reservas)}")
-                    if todas_reservas:
-                        mostrar_tabla_reservas(todas_reservas)
-                else:
-                    estado_seleccionado = ESTADOS_RESERVA[int(filtro) - 1]
-                    # Filtrar manualmente por estado
-                    todas_reservas = reserva_service.listar_todas_reservas()
-                    reservas = [r for r in todas_reservas if r.estado == estado_seleccionado]
-                    print(f"\nReservas en estado '{estado_seleccionado}': {len(reservas)}")
-                    if reservas:
-                        mostrar_tabla_reservas(reservas)
-            except Exception as e:
-                print(f"ERROR: Error: {e}")
-            pausar()
-        elif opcion == 2:
-            print("=== VIAJES AVENTURA: REPORTE DE VENTAS ===")
-            try:
-                # Obtener rango de fechas de pagos existentes
-                todos_pagos = pago_service.pago_dao.listar_todos()
-                if todos_pagos:
-                    fechas = [p.fecha_pago for p in todos_pagos if p.fecha_pago]
-                    if fechas:
-                        fecha_min = min(fechas)
-                        fecha_max = max(fechas)
-                        print(f"\nRango de pagos disponibles: {str(fecha_min)[:10]} al {str(fecha_max)[:10]}")
-                    else:
-                        print("\nNo hay pagos registrados con fecha.")
-                        pausar()
-                        continue
-                else:
-                    print("\nNo hay pagos registrados en el sistema.")
-                    pausar()
-                    continue
-                
-                fecha_inicio = input("\nFecha inicio (YYYY-MM-DD): ")
-                fecha_fin = input("Fecha fin (YYYY-MM-DD): ")
-                
-                # Validar formato de fechas
-                try:
-                    from datetime import datetime as dt
-                    fecha_inicio_dt = dt.strptime(fecha_inicio, "%Y-%m-%d")
-                    fecha_fin_dt = dt.strptime(fecha_fin, "%Y-%m-%d")
-                    
-                    if fecha_inicio_dt > fecha_fin_dt:
-                        print("ERROR: La fecha de inicio no puede ser posterior a la fecha de fin.")
-                        pausar()
-                        continue
-                except ValueError:
-                    print("ERROR: Formato de fecha inválido. Use YYYY-MM-DD (ej: 2025-01-15)")
-                    pausar()
-                    continue
-                
-                reporte = pago_service.generar_reporte_ventas(fecha_inicio, fecha_fin)
-                print("\n--- REPORTE DE VENTAS ---")
-                print(f"Período: {reporte['fecha_inicio']} al {reporte['fecha_fin']}")
-                print(f"Total de pagos: {reporte['cantidad_pagos']}")
-                monto_total = int(reporte['total'])
-                print(f"Monto total: ${monto_total:,}".replace(",", "."))
-                
-                if reporte['pagos']:
-                    print("\nDetalle de pagos:")
-                    for p in reporte['pagos']:
-                        monto = f"${int(p.monto):,}".replace(",", ".")
-                        print(f"  ID: {p.id} | Reserva: {p.reserva_id} | {monto} | {p.metodo} | {str(p.fecha_pago)[:10]}")
-                else:
-                    print("\nNo se encontraron pagos en el período especificado.")
-            except Exception as e:
-                print(f"ERROR: {e}")
-            pausar()
-        elif opcion == 3:
-            print("=== VIAJES AVENTURA: REPORTE DE CLIENTES ===")
-            try:
-                todos_usuarios = usuario_service.listar_todos_usuarios()
-                clientes = [u for u in todos_usuarios if u.rol == 'CLIENTE']
-                print(f"\nTotal de clientes registrados: {len(clientes)}")
-                
-                if not clientes:
-                    print("No hay clientes registrados.")
-                else:
-                    print("\n" + "="*80)
-                    print(f"{'ID':<5} {'NOMBRE':<25} {'EMAIL':<35} {'REGISTRO':<15}")
-                    print("="*80)
-                    for c in clientes:
-                        fecha = str(c.fecha_registro)[:10] if c.fecha_registro else "N/A"
-                        nombre = (c.nombre[:22] + "...") if len(c.nombre) > 25 else c.nombre
-                        email = (c.email[:32] + "...") if len(c.email) > 35 else c.email
-                        print(f"{c.id:<5} {nombre:<25} {email:<35} {fecha:<15}")
-                    print("="*80)
-            except Exception as e:
-                print(f"ERROR: {e}")
-            pausar()
-        elif opcion == 4:
+            clientes = [u for u in todos_usuarios if u.rol == 'CLIENTE']
+            
+            # === SECCIÓN 1: RESUMEN GENERAL ===
+            print("╔════════════════════════════════════════════════════════════════╗")
+            print("║                       RESUMEN GENERAL                          ║")
+            print("╠════════════════════════════════════════════════════════════════╣")
+            print(f"║  Total de Clientes:     {len(clientes):<35} ║")
+            print(f"║  Destinos Activos:      {len([d for d in todos_destinos if d['activo']]):<35} ║")
+            print(f"║  Paquetes Activos:      {len([p for p in todos_paquetes if p['activo']]):<35} ║")
+            print(f"║  Total de Reservas:     {len(todas_reservas):<35} ║")
+            print("╚════════════════════════════════════════════════════════════════╝")
+            
+            # === SECCIÓN 2: RESERVAS POR ESTADO ===
+            print("\n╔════════════════════════════════════════════════════════════════╗")
+            print("║                     RESERVAS POR ESTADO                        ║")
+            print("╠════════════════════════════════════════════════════════════════╣")
+            for estado in ESTADOS_RESERVA:
+                count = len([r for r in todas_reservas if r.estado == estado])
+                barra = "█" * min(count, 20)
+                print(f"║  {estado:<12}: {count:>3} {barra:<20}                  ║")
+            print("╚════════════════════════════════════════════════════════════════╝")
+            
+            # === SECCIÓN 3: INGRESOS ===
+            pagos_completados = [p for p in todos_pagos if p.estado == 'COMPLETADO']
+            total_ingresos = sum(p.monto for p in pagos_completados)
+            print("\n╔════════════════════════════════════════════════════════════════╗")
+            print("║                       INGRESOS                                 ║")
+            print("╠════════════════════════════════════════════════════════════════╣")
+            print(f"║  Pagos Completados:        {len(pagos_completados):<35} ║")
+            total_formateado = f"${int(total_ingresos):,}".replace(",", ".")
+            print(f"║  Total Recaudado:          {total_formateado:<35} ║")
+            print("╚════════════════════════════════════════════════════════════════╝")
+            
+            # === SECCIÓN 4: TOP 3 DESTINOS ===
+            print("\n╔════════════════════════════════════════════════════════════════╗")
+            print("║                    TOP DESTINOS (por reservas)                 ║")
+            print("╠════════════════════════════════════════════════════════════════╣")
+            
+            # Contar reservas por destino
+            destino_counts = {}
+            for r in todas_reservas:
+                if r.destino_id:
+                    destino_counts[r.destino_id] = destino_counts.get(r.destino_id, 0) + 1
+            
+            # Ordenar y mostrar top 3
+            top_destinos = sorted(destino_counts.items(), key=lambda x: x[1], reverse=True)[:3]
+            if top_destinos:
+                for i, (destino_id, count) in enumerate(top_destinos, 1):
+                    destino = next((d for d in todos_destinos if d['id'] == destino_id), None)
+                    nombre = destino['nombre'][:30] if destino else "Desconocido"
+                    print(f"║  {i}. {nombre:<35} ({count} reservas)     ║")
+            else:
+                print("║  No hay reservas de destinos aún                               ║")
+            print("╚════════════════════════════════════════════════════════════════╝")
+            
+        except Exception as e:
+            print(f"ERROR al cargar dashboard: {e}")
+        
+        print("\n1. Actualizar Dashboard")
+        print("2. Volver")
+        opcion = leer_opcion()
+        if opcion == 2:
             break
 
 
 def menu_admin_politicas():
-    """Submenú para gestión completa de políticas de cancelación."""
+    """Muestra las políticas de cancelación fijas del sistema.
+    
+    Las políticas son subclases fijas (PoliticaFlexible, PoliticaEstricta) 
+    y no se pueden crear/editar/eliminar desde el menú.
+    """
     from src.business.politica_cancelacion_service import PoliticaCancelacionService
     
     politica_service = PoliticaCancelacionService()
     
-    while True:
-        limpiar_pantalla()
-        print("=== VIAJES AVENTURA: POLÍTICAS DE CANCELACIÓN ===")
-        print("1. Listar Políticas")
-        print("2. Agregar Política")
-        print("3. Editar Política")
-        print("4. Eliminar Política")
-        print("5. Volver")
-        opcion = leer_opcion()
-        
-        if not validar_opcion(opcion, 1, 5):
-            print(MSG_ERROR_OPCION_INVALIDA)
-            pausar()
-            continue
-        limpiar_pantalla()
-        if opcion == 1:
-            print("=== VIAJES AVENTURA: LISTAR POLÍTICAS ===\n")
-            try:
-                politicas = politica_service.listar_todas_politicas()
-                if not politicas:
-                    print("No hay políticas de cancelación registradas.")
-                else:
-                    print("="*100)
-                    print(f"{'ID':<5} {'NOMBRE':<30} {'DÍAS DE AVISO':<20} {'% REEMBOLSO':<20}")
-                    print("="*100)
-                    for p in politicas:
-                        print(f"{p.id:<5} {p.nombre:<30} {p.dias_aviso:<20} {p.porcentaje_reembolso}%")
-                    print("="*100)
-            except Exception as e:
-                print(f"ERROR: Error al cargar políticas: {e}")
-            pausar()
+    limpiar_pantalla()
+    print("=== VIAJES AVENTURA: POLÍTICAS DE CANCELACIÓN ===\n")
+    print("Las políticas de cancelación son tipos fijos del sistema:")
+    print("(Basadas en herencia de clases - no modificables)\n")
+    
+    try:
+        politicas = politica_service.listar_todas_politicas()
+        if not politicas:
+            print("No hay políticas registradas en la base de datos.")
+        else:
+            print("="*70)
+            print(" POLÍTICAS DISPONIBLES".center(70))
+            print("="*70)
+            for p in politicas:
+                print(f"  {p.id}. {p.nombre}")
+                print(f"     -> {p.dias_aviso} días de aviso, {p.porcentaje_reembolso}% reembolso")
+                print()
+            print("="*70)
             
-        elif opcion == 2:
-            print("=== VIAJES AVENTURA: AGREGAR POLÍTICA ===")
-            print("(Escriba 'cancelar' para abortar en cualquier momento)\n")
-            try:
-                nombre = input("Nombre de la política: ")
-                if nombre.lower() == 'cancelar':
-                    print("\nINFO: Operación cancelada.")
-                    pausar()
-                    continue
-                if not nombre:
-                    print("ERROR: El nombre no puede estar vacío.")
-                    pausar()
-                    continue
-                
-                dias_aviso_str = input("Días de aviso requeridos (0-365): ")
-                if dias_aviso_str.lower() == 'cancelar':
-                    print("\nINFO: Operación cancelada.")
-                    pausar()
-                    continue
-                if not dias_aviso_str:
-                    print("ERROR: Los días de aviso no pueden estar vacíos.")
-                    pausar()
-                    continue
-                dias_aviso = int(dias_aviso_str)
-                
-                porcentaje_str = input("Porcentaje de reembolso (0-100): ")
-                if porcentaje_str.lower() == 'cancelar':
-                    print("\nINFO: Operación cancelada.")
-                    pausar()
-                    continue
-                if not porcentaje_str:
-                    print("ERROR: El porcentaje no puede estar vacío.")
-                    pausar()
-                    continue
-                porcentaje_reembolso = int(porcentaje_str)
-                
-                nueva_politica = politica_service.crear_politica(nombre, dias_aviso, porcentaje_reembolso)
-                print(f"\nEXITO: Política '{nueva_politica.nombre}' creada con ID: {nueva_politica.id}")
-            except ValueError:
-                print("\nERROR: Debe ingresar valores numéricos válidos.")
-            except Exception as e:
-                print(f"\nERROR: {e}")
-            pausar()
-            
-        elif opcion == 3:
-            print("=== VIAJES AVENTURA: EDITAR POLÍTICA ===")
-            print("(Presione Enter, '0' o 'cancelar' para abortar)\n")
-            try:
-                # Mostrar políticas disponibles
-                politicas = politica_service.listar_todas_politicas()
-                if not politicas:
-                    print("No hay políticas para editar.")
-                    pausar()
-                    continue
-                    
-                print("Políticas disponibles:")
-                for p in politicas:
-                    print(f"  ID {p.id}: {p.nombre} ({p.dias_aviso} días, {p.porcentaje_reembolso}% reembolso)")
-                
-                id_editar_str = validar_cancelacion(input("\nIngrese ID de la política a editar: "))
-                id_editar = int(id_editar_str)
-                
-                politica = politica_service.obtener_politica(id_editar)
-                if not politica:
-                    print(f"\nERROR: No se encontró política con ID {id_editar}")
-                    pausar()
-                    continue
-                
-                print(f"\nPolítica actual: {politica.nombre}")
-                nuevo_nombre = input(f"Nuevo nombre (Enter para mantener '{politica.nombre}'): ") or politica.nombre
-                nuevos_dias_str = input(f"Nuevos días de aviso (Enter para mantener {politica.dias_aviso}): ")
-                nuevos_dias = int(nuevos_dias_str) if nuevos_dias_str else politica.dias_aviso
-                nuevo_porcentaje_str = input(f"Nuevo % reembolso (Enter para mantener {politica.porcentaje_reembolso}): ")
-                nuevo_porcentaje = int(nuevo_porcentaje_str) if nuevo_porcentaje_str else politica.porcentaje_reembolso
-                
-                politica_actualizada = politica_service.actualizar_politica(
-                    id_editar, nuevo_nombre, nuevos_dias, nuevo_porcentaje
-                )
-                print(f"\nEXITO: Política '{politica_actualizada.nombre}' actualizada correctamente.")
-            except OperacionCancelada:
-                print("\nINFO: Operación cancelada.")
-            except Exception as e:
-                print(f"\nERROR: {e}")
-            pausar()
-            
-        elif opcion == 4:
-            print("=== VIAJES AVENTURA: ELIMINAR POLÍTICA ===")
-            try:
-                # Mostrar políticas disponibles
-                politicas = politica_service.listar_todas_politicas()
-                if not politicas:
-                    print("No hay políticas para eliminar.")
-                    pausar()
-                    continue
-                    
-                print("Políticas disponibles:")
-                for p in politicas:
-                    print(f"  ID {p.id}: {p.nombre}")
-                
-                id_eliminar = int(input("\nIngrese ID de la política a eliminar (0 para cancelar): "))
-                if id_eliminar == 0:
-                    continue
-                
-                politica = politica_service.obtener_politica(id_eliminar)
-                if not politica:
-                    print(f"\nERROR: No se encontró política con ID {id_eliminar}")
-                    pausar()
-                    continue
-                
-                print(f"\nPolítica a eliminar: {politica.nombre}")
-                confirmar = input("¿Está seguro? (s/n): ")
-                if confirmar.lower() != 's':
-                    print("Eliminación cancelada.")
-                    pausar()
-                    continue
-                
-                if politica_service.eliminar_politica(id_eliminar):
-                    print(f"\nEXITO: Política '{politica.nombre}' eliminada correctamente.")
-                else:
-                    print("\nERROR: No se pudo eliminar la política.")
-            except Exception as e:
-                print(f"\nERROR: {e}")
-            pausar()
-            
-        elif opcion == 5:
-            break
+            print("\nEstas políticas se asignan a Destinos y Paquetes al crearlos/editarlos.")
+            print("Cada política tiene su propia lógica de cálculo de reembolso (herencia).")
+    except Exception as e:
+        print(f"ERROR al cargar políticas: {e}")
+    
+    pausar()
+
