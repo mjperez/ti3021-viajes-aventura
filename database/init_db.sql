@@ -256,9 +256,9 @@ INSERT INTO Paquete_Destino (paquete_id, destino_id, orden_visita) VALUES
 -- Password para todos: Cliente123
 -- ============================================
 INSERT INTO Usuarios (rut, email, password_hash, nombre, rol) VALUES
-('11.111.111-1', 'maria.gonzalez@email.com', '$2b$12$MmQxlm77yoa.XQMHKDWffeU0KJB28f/.NDBXHG4gAu4qb4QuyTRTy', 'Maria Gonzalez', 'CLIENTE'),
-('22.222.222-2', 'juan.perez@email.com', '$2b$12$MmQxlm77yoa.XQMHKDWffeU0KJB28f/.NDBXHG4gAu4qb4QuyTRTy', 'Juan Perez', 'CLIENTE'),
-('33.333.333-3', 'ana.martinez@email.com', '$2b$12$MmQxlm77yoa.XQMHKDWffeU0KJB28f/.NDBXHG4gAu4qb4QuyTRTy', 'Ana Martinez', 'CLIENTE');
+('11.111.111-1', 'maria.gonzalez@email.com', '$2b$12$0qZjAUYWO441vHTsJ0ivyunq0j.Z6BoWUJA24q2xW7IqsRlyDe4He', 'Maria Gonzalez', 'CLIENTE'),
+('22.222.222-2', 'juan.perez@email.com', '$2b$12$0qZjAUYWO441vHTsJ0ivyunq0j.Z6BoWUJA24q2xW7IqsRlyDe4He', 'Juan Perez', 'CLIENTE'),
+('33.333.333-3', 'ana.martinez@email.com', '$2b$12$0qZjAUYWO441vHTsJ0ivyunq0j.Z6BoWUJA24q2xW7IqsRlyDe4He', 'Ana Martinez', 'CLIENTE');
 
 -- ============================================
 -- Reservas de ejemplo para demo

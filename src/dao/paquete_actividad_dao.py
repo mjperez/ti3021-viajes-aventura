@@ -14,7 +14,7 @@ class PaqueteActividadDAO:
     """Maneja operaciones de la tabla Paquete_Actividad."""
     
     def agregar_actividad(self, paquete_id: int, actividad_id: int) -> bool:
-        """Asocia una actividad a un paquete."""
+        """Asocia una actividad a un paquete. Retorna True si tuvo éxito"""
         sql = "INSERT INTO Paquete_Actividad (paquete_id, actividad_id) VALUES (%s, %s)"
         params = (paquete_id, actividad_id)
         try:
@@ -24,14 +24,14 @@ class PaqueteActividadDAO:
             return False
     
     def eliminar_actividad(self, paquete_id: int, actividad_id: int) -> bool:
-        """Desasocia una actividad de un paquete."""
+        """Desasocia una actividad de un paquete. Retorna True si se eliminó"""
         sql = "DELETE FROM Paquete_Actividad WHERE paquete_id=%s AND actividad_id=%s"
         params = (paquete_id, actividad_id)
         filas = ejecutar_actualizacion(sql, params)
         return filas > 0
     
     def listar_actividades_por_paquete(self, paquete_id: int) -> list[dict]:
-        """Retorna actividades asociadas a un paquete con detalles."""
+        """Retorna actividades asociadas a un paquete con detalles. Retorna Lista de dicts"""
         sql = """
             SELECT a.id, a.nombre, a.descripcion, a.duracion_horas, a.precio_base, a.destino_id
             FROM Actividades a
@@ -58,13 +58,13 @@ class PaqueteActividadDAO:
         ]
     
     def eliminar_todas_actividades(self, paquete_id: int) -> int:
-        """Elimina todas las actividades de un paquete."""
+        """Elimina todas las actividades de un paquete. Retorna int con filas afectadas"""
         sql = "DELETE FROM Paquete_Actividad WHERE paquete_id=%s"
         params = (paquete_id,)
         return ejecutar_actualizacion(sql, params)
     
     def existe_asociacion(self, paquete_id: int, actividad_id: int) -> bool:
-        """Verifica si una actividad ya está asociada a un paquete."""
+        """Verifica si una actividad ya está asociada a un paquete. Retorna True si existe asociación"""
         sql = "SELECT COUNT(*) as count FROM Paquete_Actividad WHERE paquete_id=%s AND actividad_id=%s"
         params = (paquete_id, actividad_id)
         from src.config.db_connection import ejecutar_consulta_uno

@@ -1,6 +1,5 @@
 class DestinoDTO:
-    # Clase que representa los datos de un destino turistico.
-    # Precios en pesos chilenos (enteros, sin decimales)
+    """Transfer Object para Destino. Representa los datos de un destino turístico."""
     def __init__(self, id:int | None, nombre:str, descripcion:str, costo_base:int, cupos_disponibles:int = 50, politica_id:int = 1):
         self.id=id
         self.nombre=nombre

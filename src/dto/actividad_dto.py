@@ -1,6 +1,5 @@
 class ActividadDTO:
-    # Clase que representa los datos de una actividad turistica.
-    # Precios en pesos chilenos (enteros, sin decimales)
+    """Transfer Object para Actividad. Representa los datos de una actividad turística."""
     def __init__(self, id:int | None, nombre:str, descripcion: str, duracion_horas: int, precio_base: int, destino_id:int):
         self.id=id
         self.nombre=nombre

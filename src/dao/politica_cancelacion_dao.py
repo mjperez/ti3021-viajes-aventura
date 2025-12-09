@@ -14,14 +14,7 @@ class PoliticaCancelacionDAO:
     """Maneja operaciones de base de datos para Políticas de Cancelación."""
     
     def obtener_por_id(self, id: int) -> PoliticaCancelacionDTO | None:
-        """Obtiene una política por ID.
-        
-        Args:
-            id: ID de la política a buscar
-            
-        Returns:
-            PoliticaCancelacionDTO si se encuentra, None si no existe
-        """
+        """Obtiene una política por ID. Retorna PoliticaCancelacionDTO si se encuentra, None si no existe"""
         sql = "SELECT * FROM PoliticasCancelacion WHERE id = %s"
         politica = ejecutar_consulta_uno(sql, (id,))
         
@@ -36,11 +29,7 @@ class PoliticaCancelacionDAO:
         )
     
     def listar_todas(self) -> list[PoliticaCancelacionDTO]:
-        """Retorna todas las políticas de cancelación.
-        
-        Returns:
-            Lista de PoliticaCancelacionDTO ordenadas por ID
-        """
+        """Retorna todas las políticas de cancelación. Retorna Lista de PoliticaCancelacionDTO ordenadas por ID"""
         sql = "SELECT * FROM PoliticasCancelacion ORDER BY id ASC"
         politicas = ejecutar_consulta(sql)
         
@@ -58,16 +47,7 @@ class PoliticaCancelacionDAO:
         ]
     
     def crear(self, nombre: str, dias_aviso: int, porcentaje_reembolso: float) -> PoliticaCancelacionDTO:
-        """Crea una nueva política de cancelación.
-        
-        Args:
-            nombre: Nombre de la política
-            dias_aviso: Días de aviso requeridos
-            porcentaje_reembolso: Porcentaje de reembolso (0-100)
-            
-        Returns:
-            PoliticaCancelacionDTO con la política creada
-        """
+        """Crea una nueva política de cancelación. Retorna PoliticaCancelacionDTO con la política creada"""
         from src.config.db_connection import ejecutar_insercion
         
         sql = """INSERT INTO PoliticasCancelacion (nombre, dias_aviso, porcentaje_reembolso) 
@@ -82,17 +62,7 @@ class PoliticaCancelacionDAO:
         )
     
     def actualizar(self, id: int, nombre: str, dias_aviso: int, porcentaje_reembolso: float) -> PoliticaCancelacionDTO:
-        """Actualiza una política de cancelación existente.
-        
-        Args:
-            id: ID de la política a actualizar
-            nombre: Nuevo nombre
-            dias_aviso: Nuevos días de aviso
-            porcentaje_reembolso: Nuevo porcentaje de reembolso
-            
-        Returns:
-            PoliticaCancelacionDTO con los datos actualizados
-        """
+        """Actualiza una política de cancelación existente. Retorna PoliticaCancelacionDTO con los datos actualizados"""
         from src.config.db_connection import ejecutar_actualizacion
         
         sql = """UPDATE PoliticasCancelacion 
@@ -108,14 +78,7 @@ class PoliticaCancelacionDAO:
         )
     
     def eliminar(self, id: int) -> bool:
-        """Elimina una política de cancelación.
-        
-        Args:
-            id: ID de la política a eliminar
-            
-        Returns:
-            True si se eliminó correctamente
-        """
+        """Elimina una política de cancelación. Retorna True si se eliminó correctamente"""
         from src.config.db_connection import ejecutar_actualizacion
         
         sql = "DELETE FROM PoliticasCancelacion WHERE id = %s"

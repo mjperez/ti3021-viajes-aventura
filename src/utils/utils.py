@@ -4,22 +4,12 @@ import re
 
 
 class OperacionCancelada(Exception):
-    """Excepción lanzada cuando el usuario cancela una operación."""
+    """Excepción lanzada cuando el usuario cancela una operación. Retorna Exception"""
     pass
 
 
 def sanitizar_numero(valor: str) -> str:
-    """Limpia un string para convertirlo a número.
-    
-    Elimina puntos de miles, espacios, y símbolos de moneda.
-    Reemplaza coma decimal por punto.
-    
-    Args:
-        valor: String con el número a limpiar
-        
-    Returns:
-        String limpio listo para convertir a int/float
-    """
+    """Limpia un string para convertirlo a número. Retorna string limpio listo para convertir a int/float."""
     if not valor:
         return "0"
     # Eliminar espacios, símbolo $, puntos de miles
@@ -38,16 +28,7 @@ def sanitizar_numero(valor: str) -> str:
 
 
 def leer_entero_seguro(prompt: str, minimo: int | None = None, maximo: int | None = None) -> int | None:
-    """Lee un entero del usuario con sanitización.
-    
-    Args:
-        prompt: Mensaje a mostrar
-        minimo: Valor mínimo permitido (opcional)
-        maximo: Valor máximo permitido (opcional)
-        
-    Returns:
-        Entero válido o None si cancela/inválido
-    """
+    """Lee un entero del usuario con sanitización. Retorna Entero válido o None si cancela/inválido"""
     try:
         valor = input(prompt).strip()
         if not valor or valor.lower() in ['0', 'cancelar', 'cancel']:
@@ -69,15 +50,7 @@ def leer_entero_seguro(prompt: str, minimo: int | None = None, maximo: int | Non
 
 
 def leer_decimal_seguro(prompt: str, minimo: float | None = None) -> float | None:
-    """Lee un decimal del usuario con sanitización.
-    
-    Args:
-        prompt: Mensaje a mostrar
-        minimo: Valor mínimo permitido (opcional)
-        
-    Returns:
-        Float válido o None si cancela/inválido
-    """
+    """Lee un decimal del usuario con sanitización. Retorna Float válido o None si cancela/inválido"""
     try:
         valor = input(prompt).strip()
         if not valor or valor.lower() in ['cancelar', 'cancel']:
@@ -96,48 +69,19 @@ def leer_decimal_seguro(prompt: str, minimo: float | None = None) -> float | Non
 
 
 def calcular_precio_con_iva(precio_base: int | float, iva: float = 0.19) -> int:
-    """Calcula el precio total incluyendo IVA, redondeando al techo.
-    
-    En Chile no existen decimales en la moneda, por lo que se redondea
-    hacia arriba (ceil) para no perder centavos.
-    
-    Args:
-        precio_base: Precio sin IVA (entero o float)
-        iva: Tasa de IVA (default 19%)
-        
-    Returns:
-        Precio con IVA incluido, redondeado al entero superior
-    """
+    """Calcula el precio total incluyendo IVA, redondeando al techo. Retorna Precio con IVA incluido, redondeado al entero superior"""
     return math.ceil(precio_base * (1 + iva))
 
 
 def formatear_precio(precio: int | float, con_iva: bool = False) -> str:
-    """Formatea un precio en formato chileno con símbolo $.
-    
-    Args:
-        precio: Monto a formatear
-        con_iva: Si es True, agrega 19% de IVA al precio
-        
-    Returns:
-        String formateado como "$1.234.567"
-    """
+    """Formatea un precio en formato chileno con símbolo $. Retorna String formateado como "$1.234.567"""
     if con_iva:
         precio = calcular_precio_con_iva(precio)
     return f"${int(precio):,}".replace(",", ".")
 
 
 def validar_cancelacion(valor: str) -> str:
-    """Verifica si el usuario desea cancelar. Si es así, lanza OperacionCancelada.
-    
-    Args:
-        valor: String ingresado por el usuario
-        
-    Returns:
-        El valor original si no es cancelación
-        
-    Raises:
-        OperacionCancelada: Si el valor es 'cancelar', 'cancel' o vacío (Enter)
-    """
+    """Verifica si el usuario desea cancelar. Si es así, lanza OperacionCancelada. Retorna El valor original si no es cancelación"""
     valor_limpio = valor.strip()
     if valor_limpio.lower() in ['cancelar', 'cancel', '']:
         raise OperacionCancelada("Operación cancelada por el usuario")
@@ -145,7 +89,7 @@ def validar_cancelacion(valor: str) -> str:
 
 
 def validar_opcion(opcion:int, min:int, max:int) -> bool:
-    #Valida entrada del usuario
+    """Valida entrada del usuario. Retorna True si es valida, False si no"""
     if not isinstance(opcion,int) and not isinstance(min,int) and not isinstance(max,int):
         print("La opción y los minimos y máximos deben ser numeros.")
         return False
@@ -153,7 +97,7 @@ def validar_opcion(opcion:int, min:int, max:int) -> bool:
 
 
 def leer_opcion(prompt: str = "Elija su opción: ") -> int:
-    """Lee una opción numérica del usuario, devolviendo -1 si es inválida."""
+    """Lee una opción numérica del usuario. Retorna -1 si es inválida, int si es válida"""
     try:
         valor = input(prompt).strip()
         if not valor:
@@ -164,11 +108,7 @@ def leer_opcion(prompt: str = "Elija su opción: ") -> int:
 
 
 def leer_entero(prompt: str, valor_cancelar: int = 0) -> int | None:
-    """Lee un número entero del usuario.
-    
-    Returns:
-        El número ingresado, o None si el usuario cancela o ingresa valor inválido.
-    """
+    """Lee un número entero del usuario. Retorna el número ingresado, o None si el usuario cancela o ingresa valor inválido."""
     try:
         valor = input(prompt).strip()
         if not valor or int(valor) == valor_cancelar:
@@ -180,20 +120,15 @@ def leer_entero(prompt: str, valor_cancelar: int = 0) -> int | None:
 
 
 def limpiar_pantalla():
-    #Limpia la consola
+    """Limpia la consola. Retorna None"""
     os.system("cls")
 
 def pausar():
-    #Espera input del usuario antes de continuar
+    """Espera input del usuario antes de continuar. Retorna None"""
     input("Presione Enter para continuar...")
 
 def mostrar_tabla_paquetes(paquetes: list, con_iva: bool = False) -> None:
-    """Muestra lista de paquetes en formato tabla.
-    
-    Args:
-        paquetes: Lista de PaqueteDTO
-        con_iva: Si es True, muestra precios con IVA (19%) incluido
-    """
+    """Muestra lista de paquetes en formato tabla.  Retorna None si no hay paquetes."""
     from src.business.paquete_service import PaqueteService
     from src.dao.politica_cancelacion_dao import PoliticaCancelacionDAO
     
@@ -208,10 +143,10 @@ def mostrar_tabla_paquetes(paquetes: list, con_iva: bool = False) -> None:
     politicas = {p.id: p.nombre for p in politica_dao.listar_todas()}
     
     # Encabezado
-    precio_header = "PRECIO (IVA inc.)" if con_iva else "PRECIO"
-    print("\n" + "="*140)
-    print(f"{'ID':<5} {'NOMBRE':<35} {precio_header:<18} {'CUPOS':<8} {'POLITICA':<12} {'FECHA INICIO':<12} {'FECHA FIN':<12}")
-    print("="*140)
+    precio_header = "PRECIO (IVA)" if con_iva else "PRECIO"
+    print("\n" + "="*145)
+    print(f"{'ID':<5} {'NOMBRE':<35} {precio_header:<15} {'CUPOS':<8} {'POLITICA':<12} {'INICIO':<12} {'FIN':<12} {'ESTADO':<10}")
+    print("="*145)
     
     for p in paquetes:
         precio_mostrar = calcular_precio_con_iva(p.precio_total) if con_iva else p.precio_total
@@ -221,35 +156,40 @@ def mostrar_tabla_paquetes(paquetes: list, con_iva: bool = False) -> None:
         nombre = (p.nombre[:32] + "...") if len(p.nombre) > 35 else p.nombre
         politica_nombre = politicas.get(p.politica_id, "N/A")
         
-        print(f"{p.id:<5} {nombre:<35} {precio:<18} {p.cupos_disponibles:<8} {politica_nombre:<12} {fecha_inicio:<12} {fecha_fin:<12}")
+        # Determinar estado si existe el atributo (para admin), sino asumir activo
+        estado = "ACTIVO" 
+        if hasattr(p, 'activo'): # Si es dict
+             estado = "ACTIVO" if p.get('activo') else "INACTIVO"
+        elif hasattr(p, '__dict__') and 'activo' in p.__dict__:
+             estado = "ACTIVO" if p.activo else "INACTIVO" # type: ignore
+
+        print(f"{p.id:<5} {nombre:<35} {precio:<15} {p.cupos_disponibles:<8} {politica_nombre:<12} {fecha_inicio:<12} {fecha_fin:<12} {estado:<10}")
         
         # Mostrar descripción si existe
         if p.descripcion:
-            desc = p.descripcion if len(p.descripcion) <= 120 else p.descripcion[:117] + "..."
-            print(f"      Descripción: {desc}")
+            desc = p.descripcion if len(p.descripcion) <= 100 else p.descripcion[:97] + "..."
+            print(f"      Desc: {desc}")
         
         # Mostrar TODAS las actividades incluidas en el paquete
         if p.id:
             actividades = paquete_service.obtener_actividades_paquete(p.id)
             if actividades:
                 print("      Actividades: ", end="")
-                # Mostrar todas las actividades, no solo 3
-                acts_str = ", ".join([f"{a['nombre']} ({a['duracion_horas']}h)" for a in actividades])
-                print(acts_str)
-        print("-"*140)
+                acts_str = ", ".join([f"{a['nombre']} (${int(a['precio_base']):,})" for a in actividades]).replace(",", ".")
+                # Basic word wrap for activities
+                if len(acts_str) > 110:
+                    print(acts_str[:110] + "...")
+                else:
+                    print(acts_str)
+        print("-"*145)
     
     if con_iva:
         print("* Precios incluyen IVA (19%)")
-    print("="*140 + "\n")
+    print("="*145 + "\n")
 
 
 def mostrar_tabla_destinos(destinos: list, con_iva: bool = False) -> None:
-    """Muestra lista de destinos en formato tabla con politica de cancelacion.
-    
-    Args:
-        destinos: Lista de DestinoDTO
-        con_iva: Si es True, muestra precios con IVA (19%) incluido
-    """
+    """Muestra lista de destinos en formato tabla con politica de cancelacion. Retorna None si no hay destinos."""
     if not destinos:
         print("No hay destinos para mostrar.")
         return
@@ -260,29 +200,28 @@ def mostrar_tabla_destinos(destinos: list, con_iva: bool = False) -> None:
     politicas = {p.id: p.nombre for p in politica_dao.listar_todas()}
     
     # Encabezado
-    costo_header = "COSTO (IVA inc.)" if con_iva else "COSTO BASE"
-    print("\n" + "="*125)
-    print(f"{'ID':<5} {'NOMBRE':<25} {costo_header:<18} {'CUPOS':<8} {'POLITICA':<12} {'DESCRIPCION':<50}")
-    print("="*125)
+    costo_header = "COSTO (IVA)" if con_iva else "COSTO BASE"
+    print("\n" + "="*85)
+    print(f"{'ID':<5} {'NOMBRE':<25} {costo_header:<15} {'CUPOS':<8} {'POLITICA':<12}")
+    print("="*85)
     
     for d in destinos:
         costo_mostrar = calcular_precio_con_iva(d.costo_base) if con_iva else d.costo_base
         costo = f"${int(costo_mostrar):,}".replace(",", ".")
-        descripcion = (d.descripcion[:47] + "...") if len(d.descripcion) > 50 else d.descripcion
         politica_nombre = politicas.get(d.politica_id, "Flexible")
-        print(f"{d.id:<5} {d.nombre:<25} {costo:<18} {d.cupos_disponibles:<8} {politica_nombre:<12} {descripcion:<50}")
+        
+        print(f"{d.id:<5} {d.nombre:<25} {costo:<15} {d.cupos_disponibles:<8} {politica_nombre:<12}")
+        
+        # Mostrar descripción completa en nueva línea
+        if d.descripcion:
+            print(f"      Desc: {d.descripcion}")
     
     if con_iva:
         print("* Precios incluyen IVA (19%)")
-    print("="*125 + "\n")
+    print("="*85 + "\n")
 
 def mostrar_tabla_actividades(actividades: list, con_iva: bool = False) -> None:
-    """Muestra lista de actividades en formato tabla.
-    
-    Args:
-        actividades: Lista de ActividadDTO
-        con_iva: Si es True, muestra precios con IVA (19%) incluido
-    """
+    """Muestra lista de actividades en formato tabla. Retorna None si no hay actividades."""
     if not actividades:
         print("No hay actividades para mostrar.")
         return
@@ -294,28 +233,31 @@ def mostrar_tabla_actividades(actividades: list, con_iva: bool = False) -> None:
     
     # Encabezado
     precio_header = "PRECIO (IVA)" if con_iva else "PRECIO"
-    print("\n" + "="*125)
-    print(f"{'ID':<5} {'NOMBRE':<30} {'DURACION':<10} {precio_header:<15} {'DESTINO':<18} {'DESCRIPCION':<40}")
-    print("="*125)
+    print("\n" + "="*130)
+    print(f"{'ID':<5} {'NOMBRE':<30} {'DUR.':<6} {precio_header:<15} {'DESTINO':<20} {'DESCRIPCION':<40}")
+    print("="*130)
     
     for a in actividades:
         duracion = f"{a.duracion_horas}h"
         precio_mostrar = calcular_precio_con_iva(a.precio_base) if con_iva else a.precio_base
         precio = f"${int(precio_mostrar):,}".replace(",", ".")
-        descripcion = (a.descripcion[:37] + "...") if a.descripcion and len(a.descripcion) > 40 else (a.descripcion or "Sin descripcion")
-        nombre = (a.nombre[:27] + "...") if len(a.nombre) > 30 else a.nombre
-        # Mostrar nombre del destino en lugar de ID
-        destino_nombre = destinos.get(a.destino_id, f"ID:{a.destino_id}")
-        destino_nombre = (destino_nombre[:15] + "...") if len(destino_nombre) > 18 else destino_nombre
         
-        print(f"{a.id:<5} {nombre:<30} {duracion:<10} {precio:<15} {destino_nombre:<18} {descripcion:<40}")
+        # Truncate fields to fit
+        descripcion = (a.descripcion[:37] + "...") if a.descripcion and len(a.descripcion) > 40 else (a.descripcion or "")
+        nombre = (a.nombre[:27] + "...") if len(a.nombre) > 30 else a.nombre
+        
+        # Mostrar nombre del destino 
+        destino_nombre = destinos.get(a.destino_id, f"ID:{a.destino_id}")
+        destino_nombre = (destino_nombre[:17] + "...") if len(destino_nombre) > 20 else destino_nombre
+        
+        print(f"{a.id:<5} {nombre:<30} {duracion:<6} {precio:<15} {destino_nombre:<20} {descripcion:<40}")
     
     if con_iva:
         print("* Precios incluyen IVA (19%)")
-    print("="*125 + "\n")
+    print("="*130 + "\n")
 
-def mostrar_tabla_reservas(reservas: list) -> None:
-    """Muestra lista de reservas en formato tabla con información del cliente."""
+def mostrar_tabla_reservas(reservas: list, mostrar_cliente: bool = True) -> None:
+    """Muestra lista de reservas en formato tabla. Retorna None si no hay reservas."""
     from src.dao.destino_dao import DestinoDAO
     from src.dao.paquete_dao import PaqueteDAO
     from src.dao.usuario_dao import UsuarioDAO
@@ -326,21 +268,32 @@ def mostrar_tabla_reservas(reservas: list) -> None:
     
     paquete_dao = PaqueteDAO()
     destino_dao = DestinoDAO()
-    usuario_dao = UsuarioDAO()
     
-    # Encabezado
-    print("\n" + "="*140)
-    print(f"{'ID':<5} {'CLIENTE':<20} {'TIPO':<10} {'NOMBRE':<25} {'ESTADO':<12} {'PERS':<6} {'MONTO':<15} {'FECHA':<20}")
-    print("="*140)
+    # Preparar el DAO de usuario solo si es necesario mostrar cliente
+    usuario_dao = UsuarioDAO() if mostrar_cliente else None
+    
+    # Definir ancho total y encabezado según si se muestra cliente o no
+    if mostrar_cliente:
+        ancho_total = 140
+        encabezado = f"{'ID':<5} {'CLIENTE':<20} {'TIPO':<10} {'NOMBRE':<25} {'ESTADO':<12} {'PERS':<6} {'MONTO':<15} {'FECHA':<20}"
+    else:
+        ancho_total = 120
+        encabezado = f"{'ID':<5} {'TIPO':<10} {'NOMBRE':<25} {'ESTADO':<12} {'PERS':<6} {'MONTO':<15} {'FECHA':<20}"
+
+    print("\n" + "="*ancho_total)
+    print(encabezado)
+    print("="*ancho_total)
     
     for r in reservas:
         monto = f"${int(r.monto_total):,}".replace(",", ".")
         fecha = str(r.fecha_reserva)[:16] if r.fecha_reserva else "N/A"
         
-        # Obtener nombre del cliente
-        usuario = usuario_dao.obtener_por_id(r.usuario_id)
-        cliente = usuario.nombre if usuario else f"Usuario #{r.usuario_id}"
-        cliente = (cliente[:17] + "...") if len(cliente) > 20 else cliente
+        # Obtener nombre del cliente si es necesario
+        cliente_str = ""
+        if mostrar_cliente and usuario_dao:
+            usuario = usuario_dao.obtener_por_id(r.usuario_id)
+            cliente = usuario.nombre if usuario else f"Usuario #{r.usuario_id}"
+            cliente_str = (cliente[:17] + "...") if len(cliente) > 20 else cliente
         
         # Determinar tipo y nombre según sea paquete o destino
         if r.paquete_id:
@@ -356,12 +309,16 @@ def mostrar_tabla_reservas(reservas: list) -> None:
             nombre = "N/A"
         
         nombre = (nombre[:22] + "...") if len(nombre) > 25 else nombre
-        print(f"{r.id:<5} {cliente:<20} {tipo:<10} {nombre:<25} {r.estado:<12} {r.numero_personas:<6} {monto:<15} {fecha:<20}")
+        
+        if mostrar_cliente:
+            print(f"{r.id:<5} {cliente_str:<20} {tipo:<10} {nombre:<25} {r.estado:<12} {r.numero_personas:<6} {monto:<15} {fecha:<20}")
+        else:
+            print(f"{r.id:<5} {tipo:<10} {nombre:<25} {r.estado:<12} {r.numero_personas:<6} {monto:<15} {fecha:<20}")
     
-    print("="*140 + "\n")
+    print("="*ancho_total + "\n")
 
 def mostrar_tabla_pagos(pagos: list) -> None:
-    """Muestra lista de pagos en formato tabla."""
+    """Muestra lista de pagos en formato tabla. Retorna None si no hay pagos."""
     from src.dao.destino_dao import DestinoDAO
     from src.dao.paquete_dao import PaqueteDAO
     from src.dao.reserva_dao import ReservaDAO
@@ -408,7 +365,7 @@ def mostrar_tabla_pagos(pagos: list) -> None:
 
 
 def mostrar_actividades_paquete(actividades: list) -> None:
-    """Muestra las actividades incluidas en un paquete en formato compacto."""
+    """Muestra las actividades incluidas en un paquete en formato compacto. Retorna None si no hay actividades."""
     if not actividades:
         return
     

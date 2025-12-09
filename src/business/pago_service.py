@@ -21,18 +21,7 @@ class PagoService:
         self.reserva_dao = ReservaDAO()
     
     def procesar_pago(self, reserva_id: int, metodo_pago: str) -> int:
-        """Procesa un pago completado y marca la reserva como pagada.
-        
-        Args:
-            reserva_id: ID de la reserva
-            metodo_pago: Método de pago (EFECTIVO, TARJETA, TRANSFERENCIA)
-            
-        Returns:
-            ID del pago creado
-            
-        Raises:
-            ValidacionError: Si los datos no son válidos
-        """
+        """Procesa un pago completado y marca la reserva como pagada. Retorna ID del pago creado"""
         # Validaciones
         if reserva_id <= 0:
             raise ValidacionError("El ID de la reserva debe ser mayor a 0")
@@ -61,17 +50,7 @@ class PagoService:
         return pago_id
     
     def verificar_estado_pago(self, reserva_id: int) -> bool:
-        """Verifica si existe un pago completado para la reserva.
-        
-        Args:
-            reserva_id: ID de la reserva
-            
-        Returns:
-            True si hay un pago completado
-            
-        Raises:
-            ValidacionError: Si los datos no son válidos
-        """
+        """Verifica si existe un pago completado para la reserva. Retorna True si hay un pago completado"""
         if reserva_id <= 0:
             raise ValidacionError("El ID de la reserva debe ser mayor a 0")
         
@@ -85,35 +64,14 @@ class PagoService:
         return False
     
     def obtener_historial_pagos(self, reserva_id: int) -> list[PagoDTO]:
-        """Retorna el historial de todos los pagos de una reserva.
-        
-        Args:
-            reserva_id: ID de la reserva
-            
-        Returns:
-            Lista de PagoDTO de la reserva
-            
-        Raises:
-            ValidacionError: Si los datos no son válidos
-        """
+        """Retorna el historial de todos los pagos de una reserva. Retorna Lista de PagoDTO de la reserva"""
         if reserva_id <= 0:
             raise ValidacionError("El ID de la reserva debe ser mayor a 0")
         
         return self.pago_dao.obtener_por_reserva(reserva_id)
     
     def generar_reporte_ventas(self, fecha_inicio: str, fecha_fin: str) -> dict:
-        """Genera un reporte de ventas con total y listado de pagos en un periodo.
-        
-        Args:
-            fecha_inicio: Fecha de inicio del período (formato: YYYY-MM-DD)
-            fecha_fin: Fecha de fin del período (formato: YYYY-MM-DD)
-            
-        Returns:
-            Diccionario con datos del reporte
-            
-        Raises:
-            ValidacionError: Si los datos no son válidos
-        """
+        """Genera un reporte de ventas con total y listado de pagos en un periodo. Retorna Diccionario con datos del reporte"""
         if not fecha_inicio or not fecha_fin:
             raise ValidacionError("Las fechas de inicio y fin son requeridas")
         
@@ -132,17 +90,7 @@ class PagoService:
         }
     
     def calcular_monto_reserva(self, reserva_id: int) -> float:
-        """Calcula el monto total que debe pagarse por una reserva.
-        
-        Args:
-            reserva_id: ID de la reserva
-            
-        Returns:
-            Monto total de la reserva
-            
-        Raises:
-            ValidacionError: Si los datos no son válidos
-        """
+        """Calcula el monto total que debe pagarse por una reserva. Retorna Monto total de la reserva"""
         if reserva_id <= 0:
             raise ValidacionError("El ID de la reserva debe ser mayor a 0")
         

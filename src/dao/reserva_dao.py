@@ -11,13 +11,13 @@ class ReservaDAO():
     #Maneja todas las operaciones de base de datos relacionadas con Reservas.
     
     def crear(self, reserva_dto: ReservaDTO) -> int: 
-        #Inserta una nueva reserva en estado 'pendiente'
+        """Inserta una nueva reserva en estado 'pendiente'. Retorna ID de la reserva creada"""
         sql = "INSERT INTO Reservas (fecha_reserva, estado, monto_total, numero_personas, usuario_id, paquete_id, destino_id) VALUES (%s,%s,%s,%s,%s,%s,%s)"
         params = (reserva_dto.fecha_reserva, reserva_dto.estado, reserva_dto.monto_total, reserva_dto.numero_personas, reserva_dto.usuario_id, reserva_dto.paquete_id, reserva_dto.destino_id)
         return ejecutar_insercion(sql, params)
     
     def obtener_por_id(self, id: int) -> ReservaDTO | None: 
-        #Busca reserva por ID con JOINs a cliente y paquete
+        """Busca reserva por ID con JOINs a cliente y paquete. Retorna ReservaDTO o None"""
         sql = "SELECT * FROM Reservas WHERE id=%s"
         params = (id,)
         reserva = ejecutar_consulta_uno(sql, params)
@@ -37,21 +37,21 @@ class ReservaDAO():
         )
     
     def actualizar(self, id: int, reserva_dto: ReservaDTO) -> bool: 
-        #Actualiza datos de la reserva
+        """Actualiza datos de la reserva. Retorna True si se actualizó"""
         sql = "UPDATE Reservas SET fecha_reserva=%s, estado=%s, monto_total=%s, numero_personas=%s, usuario_id=%s, paquete_id=%s, destino_id=%s WHERE id=%s"
         params = (reserva_dto.fecha_reserva, reserva_dto.estado, reserva_dto.monto_total, reserva_dto.numero_personas, reserva_dto.usuario_id, reserva_dto.paquete_id, reserva_dto.destino_id, id)
         filas = ejecutar_actualizacion(sql, params)
         return filas > 0
     
     def cambiar_estado(self, id: int, nuevo_estado: str) -> bool: 
-        #Cambia el estado de la reserva
+        """Cambia el estado de la reserva. Retorna True si se actualizó"""
         sql = "UPDATE Reservas SET estado=%s WHERE id=%s"
         params = (nuevo_estado, id)
         filas = ejecutar_actualizacion(sql, params)
         return filas > 0
     
     def listar_por_cliente(self, cliente_id: int) -> list[ReservaDTO]: 
-        #Retorna reservas de un cliente
+        """Retorna reservas de un cliente. Retorna Lista de ReservaDTO"""
         sql = "SELECT * FROM Reservas WHERE usuario_id=%s ORDER BY id ASC"
         params = (cliente_id,)
         reservas = ejecutar_consulta(sql, params)
@@ -74,7 +74,7 @@ class ReservaDAO():
         ]
     
     def listar_por_paquete(self, paquete_id: int) -> list[ReservaDTO]: 
-        #Retorna reservas de un paquete
+        """Retorna reservas de un paquete. Retorna Lista de ReservaDTO"""
         sql = "SELECT * FROM Reservas WHERE paquete_id=%s"
         params = (paquete_id,)
         reservas = ejecutar_consulta(sql, params)
@@ -97,7 +97,7 @@ class ReservaDAO():
         ]
     
     def listar_por_estado(self, estado: str) -> list[ReservaDTO]: 
-        #Retorna reservas filtradas por estado
+        """Retorna reservas filtradas por estado. Retorna Lista de ReservaDTO"""
         sql = "SELECT * FROM Reservas WHERE estado=%s ORDER BY id ASC"
         params = (estado,)
         reservas = ejecutar_consulta(sql, params)
@@ -120,23 +120,23 @@ class ReservaDAO():
         ]
     
     def confirmar(self, id: int) -> bool: 
-        #Cambia estado a 'confirmada'
+        """Cambia estado a 'confirmada'. Retorna True si se actualizó"""
         return self.cambiar_estado(id, 'CONFIRMADA')
     
     def marcar_como_pagada(self, id: int) -> bool: 
-        #Cambia estado a 'pagada'
+        """Cambia estado a 'pagada'. Retorna True si se actualizó"""
         return self.cambiar_estado(id, 'PAGADA')
     
     def cancelar(self, id: int) -> bool: 
-        #Cambia estado a 'cancelada' y restaura cupos
+        """Cambia estado a 'cancelada'. Retorna True si se actualizó"""
         return self.cambiar_estado(id, 'CANCELADA')
     
     def completar(self, id: int) -> bool: 
-        #Cambia estado a 'completada' (viaje finalizado)
+        """Cambia estado a 'completada'. Retorna True si se actualizó"""
         return self.cambiar_estado(id, 'COMPLETADA')
     
     def listar_por_destino(self, destino_id: int) -> list[ReservaDTO]: 
-        #Retorna reservas de un destino
+        """Retorna reservas de un destino. Retorna Lista de ReservaDTO"""
         sql = "SELECT * FROM Reservas WHERE destino_id=%s"
         params = (destino_id,)
         reservas = ejecutar_consulta(sql, params)
@@ -159,7 +159,7 @@ class ReservaDAO():
         ]
     
     def listar_todas(self) -> list[ReservaDTO]:
-        """Retorna todas las reservas del sistema."""
+        """Retorna todas las reservas del sistema. Retorna Lista de ReservaDTO"""
         sql = "SELECT * FROM Reservas ORDER BY id ASC"
         reservas = ejecutar_consulta(sql)
         

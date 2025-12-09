@@ -17,28 +17,14 @@ class UsuarioService:
         self.usuario_dao = UsuarioDAO()
     
     def obtener_usuario(self, usuario_id: int) -> UsuarioDTO | None:
-        """Obtiene un usuario por ID.
-        
-        Args:
-            usuario_id: ID del usuario
-            
-        Returns:
-            UsuarioDTO o None si no existe
-        """
+        """Obtiene un usuario por ID. Retorna UsuarioDTO o None si no existe"""
         if usuario_id <= 0:
             raise ValidacionError("El ID del usuario debe ser mayor a 0")
         
         return self.usuario_dao.obtener_por_id(usuario_id)
     
     def obtener_usuario_por_email(self, email: str) -> UsuarioDTO | None:
-        """Obtiene un usuario por email.
-        
-        Args:
-            email: Email del usuario
-            
-        Returns:
-            UsuarioDTO o None si no existe
-        """
+        """Obtiene un usuario por email. Retorna UsuarioDTO o None si no existe"""
         if not email or not email.strip():
             raise ValidacionError("El email no puede estar vacío")
         
@@ -49,18 +35,7 @@ class UsuarioService:
         usuario_id: int,
         nombre: str
     ) -> UsuarioDTO:
-        """Actualiza el perfil de un usuario.
-        
-        Args:
-            usuario_id: ID del usuario
-            nombre: Nuevo nombre
-            
-        Returns:
-            UsuarioDTO actualizado
-            
-        Raises:
-            ValidacionError: Si los datos no son válidos
-        """
+        """Actualiza el perfil de un usuario. Retorna UsuarioDTO actualizado"""
         # Validaciones
         if usuario_id <= 0:
             raise ValidacionError("El ID del usuario debe ser mayor a 0")
@@ -82,9 +57,5 @@ class UsuarioService:
         return usuario_existente
     
     def listar_todos_usuarios(self) -> list[UsuarioDTO]:
-        """Lista todos los usuarios.
-        
-        Returns:
-            Lista de UsuarioDTO
-        """
+        """Lista todos los usuarios. Retorna Lista de UsuarioDTO"""
         return self.usuario_dao.listar_todos()

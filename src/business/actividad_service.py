@@ -24,21 +24,7 @@ class ActividadService:
         precio_base: int,
         destino_id: int
     ) -> ActividadDTO:
-        """Crea una nueva actividad con validaciones.
-        
-        Args:
-            nombre: Nombre de la actividad
-            descripcion: Descripción de la actividad
-            duracion_horas: Duración en horas
-            precio_base: Precio base de la actividad
-            destino_id: ID del destino asociado
-            
-        Returns:
-            ActividadDTO con la actividad creada
-            
-        Raises:
-            ValidacionError: Si los datos no son válidos
-        """
+        """Crea una nueva actividad con validaciones. Retorna ActividadDTO con la actividad creada"""
         # Validaciones de negocio
         if not nombre or not nombre.strip():
             raise ValidacionError("El nombre de la actividad no puede estar vacío")
@@ -66,58 +52,29 @@ class ActividadService:
         return actividad
     
     def obtener_actividad(self, actividad_id: int) -> ActividadDTO | None:
-        """Obtiene una actividad por ID.
-        
-        Args:
-            actividad_id: ID de la actividad
-            
-        Returns:
-            ActividadDTO o None si no existe
-        """
+        """Obtiene una actividad por ID. Retorna ActividadDTO o None si no existe"""
         if actividad_id <= 0:
             raise ValidacionError("El ID de la actividad debe ser mayor a 0")
         
         return self.actividad_dao.obtener_por_id(actividad_id)
     
     def listar_todas_actividades(self) -> list[ActividadDTO]:
-        """Lista todas las actividades activas.
-        
-        Returns:
-            Lista de ActividadDTO
-        """
+        """Lista todas las actividades activas. Retorna Lista de ActividadDTO"""
         return self.actividad_dao.listar_todas()
     
     def listar_todas_actividades_admin(self) -> list[dict]:
-        """Lista TODAS las actividades incluyendo inactivas (para admin).
-        
-        Returns:
-            Lista de dicts con info de actividades
-        """
+        """Lista TODAS las actividades incluyendo inactivas (para admin). Retorna Lista de dicts con info de actividades"""
         return self.actividad_dao.listar_todas_admin()
     
     def listar_actividades_por_destino(self, destino_id: int) -> list[ActividadDTO]:
-        """Lista actividades activas de un destino específico.
-        
-        Args:
-            destino_id: ID del destino
-            
-        Returns:
-            Lista de ActividadDTO del destino
-        """
+        """Lista actividades activas de un destino específico. Retorna Lista de ActividadDTO del destino"""
         if destino_id <= 0:
             raise ValidacionError("El ID del destino debe ser mayor a 0")
         
         return self.actividad_dao.listar_por_destino(destino_id)
     
     def reactivar_actividad(self, actividad_id: int) -> bool:
-        """Reactiva una actividad desactivada.
-        
-        Args:
-            actividad_id: ID de la actividad a reactivar
-            
-        Returns:
-            True si se reactivó correctamente
-        """
+        """Reactiva una actividad desactivada. Retorna True si se reactivó correctamente"""
         if actividad_id <= 0:
             raise ValidacionError("El ID de la actividad debe ser mayor a 0")
         return self.actividad_dao.reactivar(actividad_id)
@@ -131,22 +88,7 @@ class ActividadService:
         precio_base: int,
         destino_id: int
     ) -> ActividadDTO:
-        """Actualiza una actividad existente.
-        
-        Args:
-            actividad_id: ID de la actividad a actualizar
-            nombre: Nuevo nombre
-            descripcion: Nueva descripción
-            duracion_horas: Nueva duración
-            precio_base: Nuevo precio base
-            destino_id: Nuevo ID de destino
-            
-        Returns:
-            ActividadDTO actualizada
-            
-        Raises:
-            ValidacionError: Si los datos no son válidos
-        """
+        """Actualiza una actividad existente. Retorna ActividadDTO actualizada"""
         # Validaciones
         if actividad_id <= 0:
             raise ValidacionError("El ID de la actividad debe ser mayor a 0")
@@ -182,17 +124,7 @@ class ActividadService:
         return actividad
     
     def eliminar_actividad(self, actividad_id: int) -> bool:
-        """Elimina una actividad.
-        
-        Args:
-            actividad_id: ID de la actividad a eliminar
-            
-        Returns:
-            True si se eliminó correctamente
-            
-        Raises:
-            ValidacionError: Si el ID no es válido
-        """
+        """Elimina una actividad. Retorna True si se eliminó correctamente"""
         if actividad_id <= 0:
             raise ValidacionError("El ID de la actividad debe ser mayor a 0")
         

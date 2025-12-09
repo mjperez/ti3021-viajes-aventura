@@ -6,8 +6,8 @@ Intermediario entre la UI y el DAO para mantener separación de capas.
 
 from datetime import datetime
 
-from src.dao.paquete_dao import PaqueteDAO
 from src.dao.paquete_actividad_dao import PaqueteActividadDAO
+from src.dao.paquete_dao import PaqueteDAO
 from src.dto.paquete_dto import PaqueteDTO
 from src.utils.exceptions import ValidacionError
 
@@ -31,24 +31,7 @@ class PaqueteService:
         politica_id: int,
         destino_id: int | None = None
     ) -> PaqueteDTO:
-        """Crea un nuevo paquete con validaciones.
-        
-        Args:
-            nombre: Nombre del paquete
-            descripcion: Descripción del paquete
-            fecha_inicio: Fecha de inicio del paquete
-            fecha_fin: Fecha de fin del paquete
-            precio_total: Precio total del paquete
-            cupos_disponibles: Cupos disponibles
-            politica_id: ID de la política de cancelación
-            destino_id: ID del destino a asociar (opcional)
-            
-        Returns:
-            PaqueteDTO con el paquete creado
-            
-        Raises:
-            ValidacionError: Si los datos no son válidos
-        """
+        """Crea un nuevo paquete con validaciones. Retorna PaqueteDTO con el paquete creado"""
         # Validaciones de negocio
         if not nombre or not nombre.strip():
             raise ValidacionError("El nombre del paquete no puede estar vacío")
@@ -89,53 +72,27 @@ class PaqueteService:
         return paquete
     
     def obtener_paquete(self, paquete_id: int) -> PaqueteDTO | None:
-        """Obtiene un paquete por ID.
-        
-        Args:
-            paquete_id: ID del paquete
-            
-        Returns:
-            PaqueteDTO o None si no existe
-        """
+        """Obtiene un paquete por ID. Retorna PaqueteDTO o None si no existe"""
         if paquete_id <= 0:
             raise ValidacionError("El ID del paquete debe ser mayor a 0")
         
         return self.paquete_dao.obtener_por_id(paquete_id)
     
     def listar_todos_paquetes(self) -> list[PaqueteDTO]:
-        """Lista todos los paquetes activos.
-        
-        Returns:
-            Lista de PaqueteDTO
-        """
+        """Lista todos los paquetes activos. Retorna Lista de PaqueteDTO"""
         return self.paquete_dao.listar_todos()
     
     def listar_todos_paquetes_admin(self) -> list[dict]:
-        """Lista TODOS los paquetes incluyendo inactivos (para admin).
-        
-        Returns:
-            Lista de dicts con info de paquetes
-        """
+        """Lista TODOS los paquetes incluyendo inactivos (para admin). Retorna Lista de dicts con info de paquetes"""
         return self.paquete_dao.listar_todos_admin()
     
     def listar_paquetes_disponibles(self) -> list[PaqueteDTO]:
-        """Lista paquetes activos con cupos disponibles.
-        
-        Returns:
-            Lista de PaqueteDTO con cupos > 0
-        """
+        """Lista paquetes activos con cupos disponibles. Retorna Lista de PaqueteDTO con cupos > 0"""
         todos = self.paquete_dao.listar_todos()
         return [p for p in todos if p.cupos_disponibles > 0]
     
     def reactivar_paquete(self, paquete_id: int) -> bool:
-        """Reactiva un paquete desactivado.
-        
-        Args:
-            paquete_id: ID del paquete a reactivar
-            
-        Returns:
-            True si se reactivó correctamente
-        """
+        """Reactiva un paquete desactivado. Retorna True si se reactivó correctamente"""
         if paquete_id <= 0:
             raise ValidacionError("El ID del paquete debe ser mayor a 0")
         return self.paquete_dao.reactivar(paquete_id)
@@ -151,24 +108,7 @@ class PaqueteService:
         cupos_disponibles: int,
         politica_id: int
     ) -> PaqueteDTO:
-        """Actualiza un paquete existente.
-        
-        Args:
-            paquete_id: ID del paquete a actualizar
-            nombre: Nuevo nombre
-            descripcion: Nueva descripción
-            fecha_inicio: Nueva fecha de inicio
-            fecha_fin: Nueva fecha de fin
-            precio_total: Nuevo precio total
-            cupos_disponibles: Nuevos cupos disponibles
-            politica_id: Nuevo ID de política
-            
-        Returns:
-            PaqueteDTO actualizado
-            
-        Raises:
-            ValidacionError: Si los datos no son válidos
-        """
+        """Actualiza un paquete existente. Retorna PaqueteDTO actualizado"""
         # Validaciones
         if paquete_id <= 0:
             raise ValidacionError("El ID del paquete debe ser mayor a 0")
@@ -208,17 +148,7 @@ class PaqueteService:
         return paquete
     
     def eliminar_paquete(self, paquete_id: int) -> bool:
-        """Elimina un paquete.
-        
-        Args:
-            paquete_id: ID del paquete a eliminar
-            
-        Returns:
-            True si se eliminó correctamente
-            
-        Raises:
-            ValidacionError: Si el ID no es válido
-        """
+        """Elimina un paquete. Retorna True si se eliminó correctamente"""
         if paquete_id <= 0:
             raise ValidacionError("El ID del paquete debe ser mayor a 0")
         
@@ -230,15 +160,15 @@ class PaqueteService:
         return self.paquete_dao.eliminar(paquete_id)
     
     def obtener_actividades_paquete(self, paquete_id: int) -> list:
-        """Obtiene las actividades de un paquete.
-        
-        Args:
-            paquete_id: ID del paquete
-            
-        Returns:
-            Lista de actividades asociadas al paquete
-        """
+        """Obtiene las actividades de un paquete. Retorna Lista de actividades asociadas al paquete"""
         if paquete_id <= 0:
             raise ValidacionError("El ID del paquete debe ser mayor a 0")
         
-        return self.paquete_actividad_dao.listar_actividades_por_paquete(paquete_id)
+        return self.paquete_dao.obtener_actividades_paquete(paquete_id)
+
+    def obtener_destinos_paquete(self, paquete_id: int) -> list[dict]:
+        """Obtiene los destinos de un paquete. Retorna Lista de destinos asociados"""
+        if paquete_id <= 0:
+            raise ValidacionError("El ID del paquete debe ser mayor a 0")
+        
+        return self.paquete_dao.listar_destinos_paquete(paquete_id)

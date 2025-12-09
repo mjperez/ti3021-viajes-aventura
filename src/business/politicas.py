@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+
 class PoliticaCancelacion(ABC):
     """Clase abstracta base para las políticas de cancelación."""
     
@@ -10,11 +11,12 @@ class PoliticaCancelacion(ABC):
 
     @abstractmethod
     def calcular_monto_reembolso(self, monto_total: int, dias_faltantes: int) -> int:
-        """Calcula el monto a reembolsar según la lógica de la política."""
+        """Calcula el monto a reembolsar según la lógica de la política. Retorna int con el monto"""
         pass
 
+    @abstractmethod
     def obtener_mensaje(self, dias_faltantes: int) -> str:
-        """Retorna un mensaje explicativo."""
+        """Retorna un mensaje explicativo. Retorna str con el mensaje"""
         pass
 
 

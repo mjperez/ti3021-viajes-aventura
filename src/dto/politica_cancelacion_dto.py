@@ -1,5 +1,5 @@
 class PoliticaCancelacionDTO:
-    # Clase que representa los datos de una política de cancelación.
+    """Transfer Object para Política de Cancelación. Representa las reglas de reembolso."""
     def __init__(self,id:int, nombre:str, dias_aviso:int, porcentaje_reembolso:int):
         self.id=id
         self.nombre=nombre

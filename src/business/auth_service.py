@@ -1,8 +1,9 @@
 from datetime import datetime
+
 import bcrypt
+
 from src.dao.usuario_dao import UsuarioDAO
 from src.dto.usuario_dto import UsuarioDTO
-from src.utils.exceptions import AutenticacionError, ValidacionError
 from src.utils.constants import (
     MSG_ERROR_CREDENCIALES_INVALIDAS,
     MSG_ERROR_EMAIL_DUPLICADO,
@@ -12,7 +13,9 @@ from src.utils.constants import (
     MSG_ERROR_USUARIO_NO_ENCONTRADO,
     ROL_USUARIO_DEFAULT,
 )
+from src.utils.exceptions import AutenticacionError, ValidacionError
 from src.utils.validators import validar_email, validar_password, validar_rut
+
 
 class AuthService:
     """Servicio de Autenticación.
@@ -24,16 +27,16 @@ class AuthService:
         self.usuario_dao = UsuarioDAO()
 
     def _hashear_password(self, password: str) -> str:
-        """Hashea la contraseña usando bcrypt. Método privado/interno."""
+        """Hashea la contraseña usando bcrypt. Retorna hash string"""
         hash_bytes = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
         return hash_bytes.decode('utf-8')
 
     def _verificar_password(self, password: str, hash_pw: str) -> bool:
-        """Verifica la contraseña. Método privado/interno."""
+        """Verifica la contraseña. Retorna True si coincide"""
         return bcrypt.checkpw(password.encode('utf-8'), hash_pw.encode('utf-8'))
 
-    def registrar_usuario(self, rut: str, email: str, password: str, nombre: str, rol: str = None) -> UsuarioDTO:
-        """Registra un nuevo usuario tras validar rut, email y password."""
+    def registrar_usuario(self, rut: str, email: str, password: str, nombre: str, rol: str | None = None) -> UsuarioDTO:
+        """Registra un nuevo usuario tras validar rut, email y password. Retorna UsuarioDTO creado"""
         if not validar_rut(rut):
             raise ValidacionError("RUT inválido")
 
@@ -59,7 +62,7 @@ class AuthService:
         return usuario_nuevo
 
     def login(self, email: str, passw: str) -> UsuarioDTO:
-        """Inicia sesión validando credenciales."""
+        """Inicia sesión validando credenciales. Retorna UsuarioDTO si es exitoso"""
         try:
             usuario = self.usuario_dao.obtener_por_email(email)
         except Exception:
@@ -70,7 +73,7 @@ class AuthService:
         raise AutenticacionError(MSG_ERROR_CREDENCIALES_INVALIDAS)
 
     def cambiar_password(self, usuario_id: int, password_actual: str, password_nueva: str) -> bool:
-        """Cambia la contraseña del usuario."""
+        """Cambia la contraseña del usuario. Retorna True si se actualizó"""
         try:
             usuario = self.usuario_dao.obtener_por_id(usuario_id)
         except Exception:

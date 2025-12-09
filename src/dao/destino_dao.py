@@ -18,13 +18,13 @@ class DestinoDAO():
     # Maneja todas las operaciones de base de datos relacionadas con Destinos.
 
     def crear(self, destino_dto: DestinoDTO) -> int: 
-        #Inserta un nuevo destino
+        """Inserta un nuevo destino. Retorna ID del destino creado"""
         sql = "INSERT INTO Destinos (nombre, descripcion, costo_base, cupos_disponibles, politica_id) VALUES (%s, %s, %s, %s, %s)"
         params=(destino_dto.nombre,destino_dto.descripcion,destino_dto.costo_base,destino_dto.cupos_disponibles,destino_dto.politica_id)
         return ejecutar_insercion(sql,params)
         
     def obtener_por_id(self, id: int) -> DestinoDTO | None:
-        """Busca destino activo por ID."""
+        """Busca destino activo por ID. Retorna DestinoDTO o None"""
         sql = "SELECT * FROM Destinos WHERE id = %s AND activo = 1"
         params = (id,)
         destino = ejecutar_consulta_uno(sql, params)
@@ -41,28 +41,28 @@ class DestinoDAO():
         
         ...
     def actualizar(self, id: int, destino_dto: DestinoDTO) -> bool: 
-        #Actualiza datos del destino
+        """Actualiza datos del destino. Retorna True si se actualizó"""
         sql = "UPDATE Destinos SET nombre=%s, descripcion=%s, costo_base=%s, cupos_disponibles=%s, politica_id=%s WHERE id=%s"
         params = (destino_dto.nombre, destino_dto.descripcion, destino_dto.costo_base, destino_dto.cupos_disponibles, destino_dto.politica_id, id)
         filas = ejecutar_actualizacion(sql, params)
         return filas > 0
     
     def eliminar(self, id: int) -> bool:
-        """Soft delete: desactiva el destino en lugar de eliminarlo."""
+        """Soft delete: desactiva el destino en lugar de eliminarlo. Retorna True si se eliminó"""
         sql = "UPDATE Destinos SET activo = FALSE WHERE id=%s"
         params = (id,)
         filas = ejecutar_actualizacion(sql, params)
         return filas > 0
     
     def reactivar(self, id: int) -> bool:
-        """Reactiva un destino desactivado."""
+        """Reactiva un destino desactivado. Retorna True si se reactivó"""
         sql = "UPDATE Destinos SET activo = TRUE WHERE id=%s"
         params = (id,)
         filas = ejecutar_actualizacion(sql, params)
         return filas > 0
     
     def listar_todos(self) -> list[DestinoDTO]:
-        """Retorna lista de todos los destinos activos (para clientes)."""
+        """Retorna lista de todos los destinos activos. Retorna Lista de DestinoDTO"""
         sql = "SELECT * FROM Destinos WHERE activo = 1 ORDER BY id ASC"
         destinos = ejecutar_consulta(sql)        
         if not destinos:
@@ -81,7 +81,7 @@ class DestinoDAO():
         ]
     
     def listar_todos_admin(self) -> list[dict]:
-        """Retorna lista de TODOS los destinos incluyendo inactivos (para admin)."""
+        """Retorna lista de TODOS los destinos incluyendo inactivos. Retorna Lista de dicts"""
         sql = "SELECT * FROM Destinos ORDER BY activo DESC, id ASC"
         destinos = ejecutar_consulta(sql)        
         if not destinos:
@@ -101,7 +101,7 @@ class DestinoDAO():
         ]
     
     def buscar_por_nombre(self, nombre: str) -> list[DestinoDTO]:
-        """Busca destinos activos por nombre (LIKE)."""
+        """Busca destinos activos por nombre (LIKE). Retorna Lista de DestinoDTO"""
         sql = "SELECT * FROM Destinos WHERE nombre LIKE %s AND activo = 1"
         params = (f"%{nombre}%",)
         destinos = ejecutar_consulta(sql, params)
@@ -122,14 +122,14 @@ class DestinoDAO():
         ]
     
     def reducir_cupo(self, id: int) -> bool:
-        """Reduce en 1 el cupo disponible del destino."""
+        """Reduce en 1 el cupo disponible del destino. Retorna True si tuvo éxito"""
         sql = "UPDATE Destinos SET cupos_disponibles = cupos_disponibles - 1 WHERE id=%s AND cupos_disponibles > 0"
         params = (id,)
         filas = ejecutar_actualizacion(sql, params)
         return filas > 0
     
     def aumentar_cupo(self, id: int) -> bool:
-        """Aumenta en 1 el cupo disponible del destino."""
+        """Aumenta en 1 el cupo disponible del destino. Retorna True si tuvo éxito"""
         sql = "UPDATE Destinos SET cupos_disponibles = cupos_disponibles + 1 WHERE id=%s"
         params = (id,)
         filas = ejecutar_actualizacion(sql, params)

@@ -2,8 +2,7 @@ from datetime import datetime
 
 
 class PagoDTO:
-    # Clase que representa los datos de un pago.
-    # Montos en pesos chilenos (enteros, sin decimales)
+    """Transfer Object para Pago. Representa los datos de un pago."""
     def __init__(self, id:int, monto:int, fecha_pago:datetime, metodo:str, reserva_id:int, estado:str):
         self.id=id
         self.monto=monto

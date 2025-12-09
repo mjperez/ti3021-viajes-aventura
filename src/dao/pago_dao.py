@@ -14,7 +14,7 @@ class PagoDAO():
     """Maneja todas las operaciones de base de datos relacionadas con Pagos."""
     
     def crear(self, pago_dto: PagoDTO) -> int:
-        """Inserta un nuevo pago."""
+        """Inserta un nuevo pago. Retorna ID del pago creado"""
         sql = """
             INSERT INTO Pagos (reserva_id, monto, metodo, estado, fecha_pago)
             VALUES (%s, %s, %s, %s, %s)
@@ -29,7 +29,7 @@ class PagoDAO():
         return ejecutar_insercion(sql, params)  # type: ignore
     
     def obtener_por_id(self, id: int) -> PagoDTO | None:
-        """Busca pago por ID."""
+        """Busca pago por ID. Retorna PagoDTO o None"""
         sql = "SELECT * FROM Pagos WHERE id = %s"
         result = ejecutar_consulta_uno(sql, (id,))  # type: ignore
         
@@ -46,7 +46,7 @@ class PagoDAO():
         )
     
     def obtener_por_reserva(self, reserva_id: int) -> list[PagoDTO]:
-        """Retorna pagos de una reserva."""
+        """Retorna pagos de una reserva. Retorna Lista de PagoDTO"""
         sql = "SELECT * FROM Pagos WHERE reserva_id = %s ORDER BY fecha_pago DESC"
         results = ejecutar_consulta(sql, (reserva_id,))  # type: ignore
         
@@ -66,7 +66,7 @@ class PagoDAO():
         ]
     
     def listar_todos(self) -> list[PagoDTO]:
-        """Retorna todos los pagos."""
+        """Retorna todos los pagos. Retorna Lista de PagoDTO"""
         sql = "SELECT * FROM Pagos ORDER BY id ASC"
         results = ejecutar_consulta(sql, ())  # type: ignore
         
@@ -86,13 +86,13 @@ class PagoDAO():
         ]
     
     def actualizar_estado(self, id: int, nuevo_estado: str) -> bool:
-        """Cambia el estado del pago."""
+        """Cambia el estado del pago. Retorna True si se actualizó"""
         sql = "UPDATE Pagos SET estado = %s WHERE id = %s"
         filas = ejecutar_actualizacion(sql, (nuevo_estado, id))  # type: ignore
         return filas > 0
     
     def registrar_pago_completado(self, reserva_id: int, monto: float, metodo: str) -> int:
-        """Procesa un pago exitoso."""
+        """Procesa un pago exitoso. Retorna ID del pago creado"""
         pago = PagoDTO(
             id=None,  # Se genera automáticamente
             reserva_id=reserva_id,
@@ -104,7 +104,7 @@ class PagoDAO():
         return self.crear(pago)
     
     def listar_por_fecha(self, fecha_inicio: str, fecha_fin: str) -> list[PagoDTO]:
-        """Retorna pagos en rango de fechas."""
+        """Retorna pagos en rango de fechas. Retorna Lista de PagoDTO"""
         sql = """
             SELECT * FROM Pagos 
             WHERE fecha_pago BETWEEN %s AND %s
@@ -128,7 +128,7 @@ class PagoDAO():
         ]
     
     def obtener_total_por_periodo(self, fecha_inicio: str, fecha_fin: str) -> float:
-        """Suma montos de pagos completados."""
+        """Suma montos de pagos completados. Retorna Monto total"""
         sql = """
             SELECT SUM(monto) as total 
             FROM Pagos 

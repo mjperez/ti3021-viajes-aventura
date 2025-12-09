@@ -16,44 +16,18 @@ class PoliticaCancelacionService:
         self.politica_dao = PoliticaCancelacionDAO()
     
     def obtener_politica(self, politica_id: int) -> PoliticaCancelacionDTO | None:
-        """Obtiene una política por ID.
-        
-        Args:
-            politica_id: ID de la política
-            
-        Returns:
-            PoliticaCancelacionDTO si existe
-            
-        Raises:
-            ValidacionError: Si el ID es inválido
-        """
+        """Obtiene una política por ID. Retorna PoliticaCancelacionDTO si existe"""
         if politica_id <= 0:
             raise ValidacionError("El ID de la política debe ser mayor a 0")
         
         return self.politica_dao.obtener_por_id(politica_id)
     
     def listar_todas_politicas(self) -> list[PoliticaCancelacionDTO]:
-        """Lista todas las políticas disponibles.
-        
-        Returns:
-            Lista de PoliticaCancelacionDTO
-        """
+        """Lista todas las políticas disponibles. Retorna Lista de PoliticaCancelacionDTO"""
         return self.politica_dao.listar_todas()
     
     def crear_politica(self, nombre: str, dias_aviso: int, porcentaje_reembolso: int) -> PoliticaCancelacionDTO:
-        """Crea una nueva política de cancelación.
-        
-        Args:
-            nombre: Nombre de la política
-            dias_aviso: Días de aviso requeridos
-            porcentaje_reembolso: Porcentaje de reembolso (0-100)
-            
-        Returns:
-            PoliticaCancelacionDTO con la política creada
-            
-        Raises:
-            ValidacionError: Si los datos son inválidos
-        """
+        """Crea una nueva política de cancelación. Retorna PoliticaCancelacionDTO con la política creada"""
         from src.utils.validators import (
             validar_dias_aviso,
             validar_porcentaje_reembolso,
@@ -71,20 +45,7 @@ class PoliticaCancelacionService:
         return self.politica_dao.crear(nombre.strip(), dias_aviso, porcentaje_reembolso)
     
     def actualizar_politica(self, id: int, nombre: str, dias_aviso: int, porcentaje_reembolso: int) -> PoliticaCancelacionDTO:
-        """Actualiza una política de cancelación existente.
-        
-        Args:
-            id: ID de la política a actualizar
-            nombre: Nuevo nombre
-            dias_aviso: Nuevos días de aviso
-            porcentaje_reembolso: Nuevo porcentaje de reembolso
-            
-        Returns:
-            PoliticaCancelacionDTO con los datos actualizados
-            
-        Raises:
-            ValidacionError: Si los datos son inválidos
-        """
+        """Actualiza una política de cancelación existente. Retorna PoliticaCancelacionDTO con los datos actualizados"""
         from src.utils.validators import (
             validar_dias_aviso,
             validar_porcentaje_reembolso,
@@ -110,17 +71,7 @@ class PoliticaCancelacionService:
         return self.politica_dao.actualizar(id, nombre.strip(), dias_aviso, porcentaje_reembolso)
     
     def eliminar_politica(self, id: int) -> bool:
-        """Elimina una política de cancelación.
-        
-        Args:
-            id: ID de la política a eliminar
-            
-        Returns:
-            True si se eliminó correctamente
-            
-        Raises:
-            ValidacionError: Si el ID es inválido o la política está en uso
-        """
+        """Elimina una política de cancelación. Retorna True si se eliminó correctamente"""
         if id <= 0:
             raise ValidacionError("El ID de la política debe ser mayor a 0")
         

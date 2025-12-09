@@ -21,14 +21,14 @@ from src.utils import (
 
 
 def mostrar_menu_principal(usuario: UsuarioDTO): 
-    '''Redirige al menú correspondiente según el rol del usuario.'''
+    """Redirige al menú correspondiente según el rol del usuario. Retorna None"""
     if usuario.rol == 'ADMIN':
         mostrar_menu_admin(usuario)
     elif usuario.rol == 'CLIENTE':
         mostrar_menu_cliente(usuario)
 
 def opcion_login(): 
-    '''Maneja el proceso de login'''
+    """Maneja el proceso de login. Retorna None"""
     limpiar_pantalla()
     print("=== VIAJES AVENTURA: LOGIN ===")
     email = input("Ingrese su email: ")
@@ -48,7 +48,7 @@ def opcion_login():
         pausar()
     
 def opcion_registro(): 
-    '''Maneja el proceso de registro de cliente'''
+    """Maneja el proceso de registro de cliente. Retorna None"""
     auth_service = AuthService()
     while True:
         limpiar_pantalla()

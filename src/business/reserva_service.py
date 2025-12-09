@@ -2,11 +2,16 @@
 
 Encapsula la lógica de negocio relacionada con reservas.
 Intermediario entre la UI y el DAO para mantener separación de capas.
-Reemplaza completamente a reserva_manager.py (eliminando redundancia).
+
 """
 
 from datetime import datetime, timedelta
 
+from src.business.politicas import (
+    PoliticaCancelacion,
+    PoliticaEstricta,
+    PoliticaFlexible,
+)
 from src.dao.destino_dao import DestinoDAO
 from src.dao.paquete_dao import PaqueteDAO
 from src.dao.reserva_dao import ReservaDAO
@@ -35,82 +40,39 @@ class ReservaService:
         self.destino_dao = destino_dao or DestinoDAO()
     
     def obtener_reserva(self, reserva_id: int) -> ReservaDTO | None:
-        """Obtiene una reserva por ID.
-        
-        Args:
-            reserva_id: ID de la reserva
-            
-        Returns:
-            ReservaDTO o None si no existe
-        """
+        """Obtiene una reserva por ID. Retorna ReservaDTO o None si no existe"""
         if reserva_id <= 0:
             raise ValidacionError("El ID de la reserva debe ser mayor a 0")
         
         return self.reserva_dao.obtener_por_id(reserva_id)
     
     def listar_reservas_cliente(self, cliente_id: int) -> list[ReservaDTO]:
-        """Lista todas las reservas de un cliente.
-        
-        Args:
-            cliente_id: ID del cliente
-            
-        Returns:
-            Lista de ReservaDTO del cliente
-        """
+        """Lista todas las reservas de un cliente. Retorna Lista de ReservaDTO del cliente"""
         if cliente_id <= 0:
             raise ValidacionError("El ID del cliente debe ser mayor a 0")
         
         return self.reserva_dao.listar_por_cliente(cliente_id)
     
     def listar_reservas_paquete(self, paquete_id: int) -> list[ReservaDTO]:
-        """Lista todas las reservas de un paquete.
-        
-        Args:
-            paquete_id: ID del paquete
-            
-        Returns:
-            Lista de ReservaDTO del paquete
-        """
+        """Lista todas las reservas de un paquete. Retorna Lista de ReservaDTO del paquete"""
         if paquete_id <= 0:
             raise ValidacionError("El ID del paquete debe ser mayor a 0")
         
         return self.reserva_dao.listar_por_paquete(paquete_id)
     
     def listar_reservas_destino(self, destino_id: int) -> list[ReservaDTO]:
-        """Lista todas las reservas de un destino.
-        
-        Args:
-            destino_id: ID del destino
-            
-        Returns:
-            Lista de ReservaDTO del destino
-        """
+        """Lista todas las reservas de un destino. Retorna Lista de ReservaDTO del destino"""
         if destino_id <= 0:
             raise ValidacionError("El ID del destino debe ser mayor a 0")
         
         return self.reserva_dao.listar_por_destino(destino_id)
     
     def listar_todas_reservas(self) -> list[ReservaDTO]:
-        """Lista todas las reservas del sistema.
-        
-        Returns:
-            Lista de todas las ReservaDTO
-        """
+        """Lista todas las reservas del sistema. Retorna Lista de todas las ReservaDTO"""
         return self.reserva_dao.listar_todas()
     
     def cambiar_estado_reserva(self, reserva_id: int, nuevo_estado: str) -> bool:
-        """Cambia el estado de una reserva validando transiciones.
-        
-        Args:
-            reserva_id: ID de la reserva
-            nuevo_estado: Nuevo estado (PENDIENTE, PAGADA, CONFIRMADA, CANCELADA, COMPLETADA)
-            
-        Returns:
-            True si se actualizó correctamente
-            
-        Raises:
-            ValidacionError: Si los datos no son válidos o transición no permitida
-        """
+        """Cambia el estado de una reserva validando transiciones. Retorna True si se actualizó correctamente"""
         if reserva_id <= 0:
             raise ValidacionError("El ID de la reserva debe ser mayor a 0")
         
@@ -146,19 +108,7 @@ class ReservaService:
             raise ValidacionError(f"Cambio de estado a '{nuevo_estado}' no implementado")
       
     def crear_reserva_paquete(self, usuario_id: int, paquete_id: int, num_personas: int) -> int:
-        """Crea una reserva de paquete y reduce cupos.
-        
-        Args:
-            usuario_id: ID del usuario
-            paquete_id: ID del paquete
-            num_personas: Número de personas
-            
-        Returns:
-            ID de la reserva creada
-            
-        Raises:
-            ValidacionError: Si los datos no son válidos
-        """
+        """Crea una reserva de paquete y reduce cupos. Retorna ID de la reserva creada"""
         # Validaciones
         if usuario_id <= 0:
             raise ValidacionError("El ID del usuario debe ser mayor a 0")
@@ -210,19 +160,7 @@ class ReservaService:
             raise ValidacionError(f"Error al crear reserva: {str(e)}")
     
     def crear_reserva_destino(self, usuario_id: int, destino_id: int, num_personas: int) -> int:
-        """Crea una reserva de destino individual y reduce cupos.
-        
-        Args:
-            usuario_id: ID del usuario
-            destino_id: ID del destino
-            num_personas: Número de personas
-            
-        Returns:
-            ID de la reserva creada
-            
-        Raises:
-            ValidacionError: Si los datos no son válidos
-        """
+        """Crea una reserva de destino individual y reduce cupos. Retorna ID de la reserva creada"""
         # Validaciones
         if usuario_id <= 0:
             raise ValidacionError("El ID del usuario debe ser mayor a 0")
@@ -274,26 +212,7 @@ class ReservaService:
             raise ValidacionError(f"Error al crear reserva de destino: {str(e)}")
     
     def cancelar_reserva(self, reserva_id: int) -> dict:
-        """Cancela una reserva aplicando política de cancelación.
-        
-        Verifica la política de cancelación del paquete o destino y calcula reembolso
-        según días de aviso y porcentaje establecido. Las reservas CONFIRMADAS pueden
-        cancelarse pero se aplica la política de reembolso.
-        
-        Args:
-            reserva_id: ID de la reserva
-            
-        Returns:
-            Diccionario con información del reembolso:
-            - cancelada: bool
-            - monto_total: float
-            - porcentaje_reembolso: float
-            - monto_reembolso: float
-            - mensaje: str
-            
-        Raises:
-            ValidacionError: Si los datos no son válidos o transición no permitida
-        """
+        """Cancela una reserva aplicando política de cancelación. Retorna Diccionario con información del reembolso"""
         if reserva_id <= 0:
             raise ValidacionError("El ID de la reserva debe ser mayor a 0")
         
@@ -355,7 +274,7 @@ class ReservaService:
             dias_aviso = politica['dias_aviso']
             porcentaje_configurado = politica['porcentaje_reembolso']
             
-            politica_obj = None
+            politica_obj: PoliticaCancelacion | None = None
             if nombre_politica == "Flexible":
                 politica_obj = PoliticaFlexible(nombre_politica, dias_aviso, porcentaje_configurado)
             elif nombre_politica == "Estricta":
@@ -421,19 +340,7 @@ class ReservaService:
         }
     
     def confirmar_reserva(self, reserva_id: int) -> bool:
-        """Confirma una reserva pagada (admin aprueba después del pago).
-        
-        Flujo: PENDIENTE -> (cliente paga) -> PAGADA -> (admin confirma) -> CONFIRMADA
-        
-        Args:
-            reserva_id: ID de la reserva
-            
-        Returns:
-            True si se confirmó correctamente
-            
-        Raises:
-            ValidacionError: Si los datos no son válidos
-        """
+        """Confirma una reserva pagada (admin aprueba después del pago). Retorna True si se confirmó correctamente"""
         if reserva_id <= 0:
             raise ValidacionError("El ID de la reserva debe ser mayor a 0")
         

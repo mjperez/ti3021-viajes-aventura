@@ -91,61 +91,22 @@ def _ejecutar_query(query: str, params=None, fetch_mode='all'):
         cursor.close()
 
 
-def ejecutar_consulta(query: str, params=None) -> list[dict] | None:
-    """
-    Ejecuta SELECT que retorna MÚLTIPLES filas.
-    
-    Args:
-        query: Consulta SQL con placeholders %s
-        params: Tupla de parámetros para el query
-    
-    Returns:
-        Lista de diccionarios (cada dict es una fila) o lista vacía si no hay resultados.
-        Ejemplo: [{'id': 1, 'nombre': 'París'}, {'id': 2, 'nombre': 'Roma'}]
-    """
+
+def ejecutar_consulta(query: str, params=None) -> list:
+    """Ejecuta SELECT que retorna MÚLTIPLES filas. Retorna Lista de diccionarios"""
     return _ejecutar_query(query, params, fetch_mode='all')  # type: ignore
 
 
 def ejecutar_consulta_uno(query: str, params=None) -> dict | None:
-    """
-    Ejecuta SELECT que retorna UNA SOLA fila.
-    
-    Args:
-        query: Consulta SQL con placeholders %s
-        params: Tupla de parámetros para el query
-    
-    Returns:
-        Diccionario con los campos de la fila o None si no existe.
-        Ejemplo: {'id': 1, 'nombre': 'París', 'costo_base': 1200.00}
-    """
+    """Ejecuta SELECT que retorna UNA SOLA fila. Retorna Diccionario con los campos"""
     return _ejecutar_query(query, params, fetch_mode='one')  # type: ignore
 
 
 def ejecutar_insercion(query: str, params=None) -> int:
-    """
-    Ejecuta INSERT en la base de datos.
-    
-    Args:
-        query: Consulta INSERT con placeholders %s
-        params: Tupla de valores para insertar
-    
-    Returns:
-        ID autogenerado (lastrowid) del registro insertado.
-        Ejemplo: 5 (el nuevo ID del destino insertado)
-    """
+    """Ejecuta INSERT en la base de datos. Retorna ID autogenerado del registro"""
     return _ejecutar_query(query, params, fetch_mode='none')  # type: ignore
 
 
 def ejecutar_actualizacion(query: str, params=None) -> int:
-    """
-    Ejecuta UPDATE o DELETE en la base de datos.
-    
-    Args:
-        query: Consulta UPDATE/DELETE con placeholders %s
-        params: Tupla de valores para la operación
-    
-    Returns:
-        Número de filas afectadas (rowcount).
-        Ejemplo: 1 si actualizó/eliminó 1 fila, 0 si no encontró nada
-    """
+    """Ejecuta UPDATE o DELETE en la base de datos. Retorna Número de filas afectadas"""
     return _ejecutar_query(query, params, fetch_mode='none')  # type: ignore

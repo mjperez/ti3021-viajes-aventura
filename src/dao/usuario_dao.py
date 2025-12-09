@@ -13,7 +13,7 @@ class UsuarioDAO:
         pass
     
     def crear(self, usuario_dto: UsuarioDTO) -> int:
-        # INSERT y retornar lastrowid
+        """Inserta un nuevo usuario. Retorna ID del usuario creado"""
         sql = "INSERT INTO Usuarios (rut, email, password_hash, nombre, rol, fecha_registro) VALUES (%s,%s,%s,%s,%s,%s)"
 
         params = (
@@ -27,7 +27,7 @@ class UsuarioDAO:
         return ejecutar_insercion(sql,params)
     
     def obtener_por_id(self, id: int) -> UsuarioDTO | None:
-        # SELECT por ID
+        """Busca usuario por ID. Retorna UsuarioDTO o None"""
         sql = "SELECT * FROM Usuarios WHERE id=%s"
         params=(id,)
 
@@ -46,8 +46,27 @@ class UsuarioDAO:
 
         return None
     
+    def obtener_por_rut(self, rut: str) -> UsuarioDTO | None:
+        """Busca usuario por RUT. Retorna UsuarioDTO o None"""
+        sql = "SELECT * FROM Usuarios WHERE rut=%s"
+        params=(rut,)
+
+        usuario = ejecutar_consulta_uno(sql, params)
+
+        if usuario:
+            return UsuarioDTO(
+                id=usuario['id'],
+                rut=usuario['rut'],
+                email=usuario['email'],
+                password_hash=usuario['password_hash'],
+                nombre=usuario['nombre'],
+                rol=usuario['rol'],
+                fecha_registro=usuario['fecha_registro']
+            )
+        return None
+    
     def obtener_por_email(self, email: str) -> UsuarioDTO | None:
-        # SELECT por email (para login)
+        """Busca usuario por email. Retorna UsuarioDTO o None"""
         sql = "SELECT * FROM Usuarios WHERE email=%s"
         params=(email,)
 
@@ -66,7 +85,7 @@ class UsuarioDAO:
         return None
     
     def listar_todos(self) -> list[UsuarioDTO]:
-        # SELECT * y retornar lista de DTOs
+        """Lista todos los usuarios (admin). Retorna Lista de UsuarioDTO"""
         sql = "SELECT * FROM Usuarios"
         rows = ejecutar_consulta(sql)
         usuarios = []
@@ -90,7 +109,7 @@ class UsuarioDAO:
         return usuarios
     
     def actualizar(self, usuario_dto: UsuarioDTO) -> bool:
-        # UPDATE y retornar True si tuvo éxito
+        """Actualiza datos del usuario. Retorna True si se actualizó"""
         sql = "UPDATE Usuarios SET rut = %s, email = %s, password_hash = %s, nombre = %s, rol = %s, fecha_registro = %s WHERE id = %s"
         params= (usuario_dto.rut, usuario_dto.email, usuario_dto.password_hash, usuario_dto.nombre, usuario_dto.rol, usuario_dto.fecha_registro, usuario_dto.id)
 
@@ -99,7 +118,7 @@ class UsuarioDAO:
 
     
     def eliminar(self, id: int) -> bool:
-        # DELETE y retornar True si tuvo éxito
+        """Elimina un usuario. Retorna True si se eliminó"""
         sql = "DELETE FROM Usuarios WHERE id = %s"
         params = (id,)
 
@@ -107,6 +126,7 @@ class UsuarioDAO:
         return filas > 0
 
     def listar_por_rol(self, rol:str) -> list[UsuarioDTO]: 
+        """Lista usuarios por rol. Retorna Lista de UsuarioDTO"""
         sql = "SELECT * FROM Usuarios WHERE rol = %s"
         params = (rol,)
         usuarios = []
@@ -129,7 +149,7 @@ class UsuarioDAO:
         return usuarios
 
     def verificar_email_existe(self, email:str) -> bool: 
-        #Valida si el email ya está registrado
+        """Valida si el email ya está registrado. Retorna True si existe"""
         sql = "SELECT * FROM Usuarios WHERE email = %s"
         params = (email,)
 

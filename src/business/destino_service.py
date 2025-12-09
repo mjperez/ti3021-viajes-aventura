@@ -10,10 +10,10 @@ from src.utils.exceptions import ValidacionError
 
 
 class DestinoService:
-    '''Servicio para gestión de destinos.'''
+    """Servicio para gestión de destinos."""
     
     def __init__(self, destino_dao: DestinoDAO | None = None):
-        '''Inicializa el servicio con su DAO. Permite inyección de dependencias.'''
+        """Inicializa el servicio con su DAO. Permite inyección de dependencias."""
         self.destino_dao = destino_dao or DestinoDAO()
     
     def crear_destino(
@@ -25,7 +25,7 @@ class DestinoService:
         cupos_disponibles: int = 50,
         politica_id: int = 1
     ) -> DestinoDTO:
-        '''Crea un nuevo destino con validaciones. Retorna DestinoDTO con el destino creado'''
+        """Crea un nuevo destino con validaciones. Retorna DestinoDTO con el destino creado"""
         # Validaciones de negocio
         if not nombre or not nombre.strip():
             raise ValidacionError("El nombre del destino no puede estar vacío")
@@ -55,27 +55,27 @@ class DestinoService:
         return destino
     
     def obtener_destino(self, destino_id: int) -> DestinoDTO | None:
-        '''Obtiene un destino por su ID. Retorna DestinoDTO o None si no existe'''
+        """Obtiene un destino por su ID. Retorna DestinoDTO o None si no existe"""
         if destino_id <= 0:
             raise ValidacionError("El ID del destino debe ser mayor a 0")
         
         return self.destino_dao.obtener_por_id(destino_id)
     
     def listar_todos_destinos(self) -> list[DestinoDTO]:
-        '''Lista todos los destinos activos. Retorna lista de DestinoDTO'''
+        """Lista todos los destinos activos. Retorna lista de DestinoDTO"""
         return self.destino_dao.listar_todos()
     
     def listar_todos_destinos_admin(self) -> list[dict]:
-        '''Lista TODOS los destinos incluyendo inactivos (para admin). Retorna lista de dicts'''
+        """Lista TODOS los destinos incluyendo inactivos (para admin). Retorna lista de dicts"""
         return self.destino_dao.listar_todos_admin()
     
     def listar_destinos_disponibles(self) -> list[DestinoDTO]:
-        '''Lista destinos activos con cupos disponibles. Retorna lista de DestinoDTO'''
+        """Lista destinos activos con cupos disponibles. Retorna lista de DestinoDTO"""
         todos = self.destino_dao.listar_todos()
         return [d for d in todos if d.cupos_disponibles > 0]
     
     def reactivar_destino(self, destino_id: int) -> bool:
-        '''Reactiva un destino desactivado. Retorna True si se reactivó correctamente'''
+        """Reactiva un destino desactivado. Retorna True si se reactivó correctamente"""
         if destino_id <= 0:
             raise ValidacionError("El ID del destino debe ser mayor a 0")
         return self.destino_dao.reactivar(destino_id)
@@ -90,7 +90,7 @@ class DestinoService:
         cupos_disponibles: int,
         politica_id: int | None
     ) -> DestinoDTO:
-        '''Actualiza un destino existente con validaciones. Retorna el DestinoDTO actualizado'''
+        """Actualiza un destino existente con validaciones. Retorna el DestinoDTO actualizado"""
         # Validaciones
         if destino_id <= 0:
             raise ValidacionError("El ID del destino debe ser mayor a 0")
@@ -130,7 +130,7 @@ class DestinoService:
         return destino
     
     def eliminar_destino(self, destino_id: int) -> bool:
-        '''Elimina un destino por su ID. Retorna True si se eliminó correctamente'''
+        """Elimina un destino por su ID. Retorna True si se eliminó correctamente"""
         if destino_id <= 0:
             raise ValidacionError("El ID del destino debe ser mayor a 0")
         
@@ -142,7 +142,7 @@ class DestinoService:
         return self.destino_dao.eliminar(destino_id)
     
     def buscar_destinos_por_nombre(self, nombre: str) -> list[DestinoDTO]:
-        '''Busca destinos por nombre (parcial, case-insensitive). Retorna lista de DestinoDTO'''
+        """Busca destinos por nombre (parcial, case-insensitive). Retorna lista de DestinoDTO"""
         if not nombre or not nombre.strip():
             raise ValidacionError("El nombre no puede estar vacío")
         

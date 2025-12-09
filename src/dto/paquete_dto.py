@@ -2,9 +2,8 @@ from datetime import datetime
 
 
 class PaqueteDTO:
-    # Clase que representa los datos de un paquete turistico.
-    # Precios en pesos chilenos (enteros, sin decimales)
-    def __init__(self, id:int | None, nombre:str, fecha_inicio: datetime, fecha_fin:datetime, precio_total:int, cupos_disponibles:int, politica_id: int, descripcion:str=None):
+    """Transfer Object para Paquete. Representa los datos de un paquete turístico."""
+    def __init__(self, id:int | None, nombre:str, fecha_inicio: datetime, fecha_fin:datetime, precio_total:int, cupos_disponibles:int, politica_id: int, descripcion:str | None = None):
         self.id=id
         self.nombre=nombre
         self.descripcion=descripcion

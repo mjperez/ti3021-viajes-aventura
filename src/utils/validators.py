@@ -12,20 +12,15 @@ from itertools import cycle  # crea una lista infinita que se repite.
 
 from src.utils import (
     EMAIL_MAX_LENGTH,
-    ESTADOS_PAGO,
     ESTADOS_RESERVA,
     FORMATO_FECHA_CHILENO,
     FORMATO_FECHA_ISO,
-    MAX_PERSONAS_RESERVA,
-    METODOS_PAGO,
     MIN_MONTO,
-    MIN_PERSONAS_RESERVA,
     PASSWORD_MIN_LENGTH,
     REGEX_EMAIL,
     REGEX_PASSWORD,
     REGEX_RUT,
     REGEX_TELEFONO_CHILE,
-    ROLES_USUARIO,
 )
 
 
@@ -118,27 +113,7 @@ def validar_telefono(telefono:str) -> bool:
         return False
     return re.match(REGEX_TELEFONO_CHILE,telefono) is not None
 
-def validar_enum(valor:str,opciones:list) -> bool:
-    #valida que valor este en la lista de opciones
-    if not valor or not opciones:
-        return False
-    return valor.upper() in [str(opc).upper() for opc in opciones]
 
-def validar_estado_pago(estado:str)->bool:
-    return validar_enum(estado,ESTADOS_PAGO)
-
-def validar_metodo_pago(metodo:str)->bool:
-    return validar_enum(metodo,METODOS_PAGO)
-
-def validar_rol_usuario(rol:str)->bool:
-    return validar_enum(rol,ROLES_USUARIO)
-
-def validar_numero_personas(numero:int)-> bool:
-    try:
-        n = int(numero)
-        return MIN_PERSONAS_RESERVA <= n <= MAX_PERSONAS_RESERVA
-    except (ValueError,TypeError):
-        return False
 
 def validar_dias_aviso(dias: int) -> bool:
     """Valida que los días de aviso sean válidos (0-365)."""

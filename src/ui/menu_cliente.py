@@ -141,9 +141,9 @@ def ver_destinos_disponibles():
 
 def ver_paquetes_disponibles():
     """Lista paquetes con cupos disponibles y sus actividades."""
-    from src.dao.paquete_actividad_dao import PaqueteActividadDAO
+
     paquete_service = PaqueteService()
-    paquete_actividad_dao = PaqueteActividadDAO()
+
     limpiar_pantalla()
     print("=== PAQUETES DISPONIBLES ===\n")
     
@@ -154,39 +154,7 @@ def ver_paquetes_disponibles():
         else:
             mostrar_tabla_paquetes(paquetes, con_iva=True)
             
-            # Opción para ver actividades de un paquete
-            print("\n¿Ver actividades incluidas en un paquete?")
-            ver_detalles = input("Ingrese ID del paquete (Enter para omitir): ")
-            
-            if ver_detalles:
-                try:
-                    paquete_id = int(ver_detalles)
-                    paquete = paquete_service.obtener_paquete(paquete_id)
-                    if paquete:
-                        limpiar_pantalla()
-                        print(f"=== PAQUETE: {paquete.nombre} ===\n")
-                        print(f"Descripción: {paquete.descripcion}")
-                        print(f"Fechas: {paquete.fecha_inicio} al {paquete.fecha_fin}")
-                        print(f"Precio base: ${int(paquete.precio_total):,}".replace(",", "."))
-                        print(f"Cupos disponibles: {paquete.cupos_disponibles}")
-                        
-                        # Mostrar actividades incluidas
-                        actividades = paquete_actividad_dao.listar_actividades_por_paquete(paquete_id)
-                        if actividades:
-                            print("\n📋 ACTIVIDADES INCLUIDAS:")
-                            print("-"*60)
-                            total_actividades = 0
-                            for a in actividades:
-                                print(f"  • {a['nombre']} - ${int(a['precio_base']):,} ({a['duracion_horas']}h)".replace(",", "."))
-                                total_actividades += a['precio_base']
-                            print("-"*60)
-                            print(f"  Valor total actividades: ${total_actividades:,}".replace(",", "."))
-                        else:
-                            print("\n📋 Este paquete no tiene actividades asociadas.")
-                    else:
-                        print("Paquete no encontrado.")
-                except ValueError:
-                    print("ID inválido.")
+
     except Exception as e:
         print(f"ERROR: Error al cargar paquetes: {e}")
     pausar()
@@ -359,7 +327,7 @@ def ver_mis_reservas(cliente_id: int):
         if not reservas:
             print("No tienes reservas registradas.")
         else:
-            mostrar_tabla_reservas(reservas)
+            mostrar_tabla_reservas(reservas, mostrar_cliente=False)
             
             # Opciones adicionales
             print("\nOpciones:")

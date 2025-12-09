@@ -1,8 +1,10 @@
 from dataclasses import dataclass
 from datetime import datetime
 
+
 @dataclass
 class UsuarioDTO:
+    """Transfer Object para Usuario. Representa los datos de un usuario del sistema."""
     id: int | None
     rut: str
     email: str
