@@ -33,6 +33,7 @@ entity "Destinos" as destinos {
     * costo_base : INT
     cupos_disponibles : INT
     * politica_id : INT <<FK>>
+    * activo : BOOLEAN
 }
 
 entity "Actividades" as actividades {
@@ -43,6 +44,7 @@ entity "Actividades" as actividades {
     * duracion_horas : INT
     * precio_base : INT
     * destino_id : INT <<FK>>
+    * activo : BOOLEAN
 }
 
 entity "Paquetes" as paquetes {
@@ -55,6 +57,7 @@ entity "Paquetes" as paquetes {
     * precio_total : INT
     cupos_disponibles : INT
     * politica_id : INT <<FK>>
+    * activo : BOOLEAN
 }
 
 entity "Paquete_Destino" as paquete_destino {
@@ -62,6 +65,11 @@ entity "Paquete_Destino" as paquete_destino {
     * **destino_id** : INT <<PK,FK>>
     --
     orden_visita : INT
+}
+
+entity "Paquete_Actividad" as paquete_actividad {
+    * **paquete_id** : INT <<PK,FK>>
+    * **actividad_id** : INT <<PK,FK>>
 }
 
 entity "Reservas" as reservas {
@@ -104,6 +112,10 @@ destinos ||--o{ actividades : "contiene"
 paquetes ||--o{ paquete_destino : "incluye"
 destinos ||--o{ paquete_destino : "pertenece a"
 
+' Relación N:M entre Paquetes y Actividades
+paquetes ||--o{ paquete_actividad : "incluye"
+actividades ||--o{ paquete_actividad : "pertenece a"
+
 ' Una reserva puede tener un paquete (opcional)
 paquetes ||--o{ reservas : "reservado en"
 
@@ -126,6 +138,12 @@ note right of paquete_destino
   Tabla intermedia para
   relación N:M entre
   Paquetes y Destinos
+end note
+
+note right of paquete_actividad
+  Tabla intermedia para
+  relación N:M entre
+  Paquetes y Actividades
 end note
 
 note bottom of politicas

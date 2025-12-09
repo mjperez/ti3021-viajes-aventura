@@ -10,7 +10,7 @@ rectangle "Sistema Viajes Aventura" {
     usecase "Listar paquetes" as UC1
     usecase "Agregar paquete" as UC2
     usecase "Editar paquete" as UC3
-    usecase "Eliminar paquete" as UC4
+    usecase "Desactivar paquete (Soft Delete)" as UC4
     usecase "Asociar destinos al paquete" as UC5
     usecase "Definir fechas del paquete" as UC6
     usecase "Asignar política de cancelación" as UC7

@@ -7,6 +7,7 @@ Intermediario entre la UI y el DAO para mantener separación de capas.
 from datetime import datetime
 
 from src.dao.paquete_dao import PaqueteDAO
+from src.dao.paquete_actividad_dao import PaqueteActividadDAO
 from src.dto.paquete_dto import PaqueteDTO
 from src.utils.exceptions import ValidacionError
 
@@ -17,6 +18,7 @@ class PaqueteService:
     def __init__(self, paquete_dao: PaqueteDAO | None = None):
         """Inicializa el servicio con su DAO. Permite inyección de dependencias."""
         self.paquete_dao = paquete_dao or PaqueteDAO()
+        self.paquete_actividad_dao = PaqueteActividadDAO()
     
     def crear_paquete(
         self,
@@ -234,9 +236,9 @@ class PaqueteService:
             paquete_id: ID del paquete
             
         Returns:
-            Lista de actividades con información de destinos
+            Lista de actividades asociadas al paquete
         """
         if paquete_id <= 0:
             raise ValidacionError("El ID del paquete debe ser mayor a 0")
         
-        return self.paquete_dao.obtener_actividades_paquete(paquete_id)
+        return self.paquete_actividad_dao.listar_actividades_por_paquete(paquete_id)

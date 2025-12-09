@@ -12,19 +12,20 @@ start
 repeat
     switch (Módulo)
         case (Destinos)
-            :Listar/Agregar/Editar/Eliminar;
+            :Listar/Agregar/Editar/Eliminar/Reactivar;
         case (Actividades)
-            :Listar/Agregar/Editar/Eliminar;
+            :Listar/Agregar/Editar/Eliminar/Reactivar;
         case (Paquetes)
-            :Listar/Agregar/Editar/Eliminar;
+            :Listar/Agregar/Editar/Eliminar/Reactivar;
+            :Gestionar Actividades del Paquete;
         case (Reservas)
             :Ver/Confirmar/Cancelar;
         case (Usuarios)
             :Ver usuarios y sus reservas;
         case (Políticas)
-            :Gestionar políticas cancelación;
-        case (Reportes)
-            :Ventas/Clientes/Reservas;
+            :Ver Políticas (Solo Lectura);
+        case (Dashboard)
+            :Ver Estadísticas y KPI;
         case (Cerrar Sesión)
             break
     endswitch

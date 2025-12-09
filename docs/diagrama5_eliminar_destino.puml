@@ -24,7 +24,7 @@ if (¿Destino existe?) then (sí)
     
     if (¿Confirmado?) then (sí)
         |Sistema|
-        :Eliminar registro de base de datos;
+        :Desactivar destino (Soft Delete);
         :Mostrar mensaje de éxito;
     else (no)
         :Cancelar operación;

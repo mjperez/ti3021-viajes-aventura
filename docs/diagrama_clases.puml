@@ -90,6 +90,7 @@ package "Capa de Servicios (Business)" #LightBlue {
         + obtener_paquete(id): PaqueteDTO
         + listar_todos_paquetes(): list
         + eliminar_paquete(id): bool
+        + reactivar_paquete(id): bool
     }
     
     class DestinoService {
@@ -99,6 +100,17 @@ package "Capa de Servicios (Business)" #LightBlue {
         + obtener_destino(id): DestinoDTO
         + listar_todos_destinos(): list
         + eliminar_destino(id): bool
+    }
+
+    class ActividadService {
+        - actividad_dao: ActividadDAO
+        --
+        + crear_actividad(...): ActividadDTO
+        + obtener_actividad(id): ActividadDTO
+        + listar_todas_actividades(): list
+        + listar_actividades_por_destino(id): list
+        + eliminar_actividad(id): bool
+        + reactivar_actividad(id): bool
     }
 }
 
@@ -139,6 +151,13 @@ package "Capa DTO (Data Transfer Objects)" #LightGreen {
         + costo_base: int
         + politica_id: int
     }
+
+    class ActividadDTO <<DTO>> {
+        + id: int
+        + nombre: str
+        + precio_base: int
+        + destino_id: int
+    }
 }
 
 ' ========== DAOs ==========
@@ -160,12 +179,29 @@ package "Capa DAO (Data Access Objects)" #LightPink {
         + crear(dto): int
         + obtener_por_id(id): DTO
         + listar_todos(): list
+        + eliminar(id): bool
+        + reactivar(id): bool
     }
     
     class DestinoDAO <<DAO>> {
         + crear(dto): int
         + obtener_por_id(id): DTO
         + listar_todos(): list
+        + eliminar(id): bool
+    }
+
+    class ActividadDAO <<DAO>> {
+        + crear(dto): int
+        + obtener_por_id(id): DTO
+        + listar_todas(): list
+        + eliminar(id): bool
+        + reactivar(id): bool
+    }
+
+    class PaqueteActividadDAO <<DAO>> {
+        + agregar_actividad(paquete_id, actividad_id): bool
+        + eliminar_actividad(paquete_id, actividad_id): bool
+        + listar_actividades_por_paquete(paquete_id): list
     }
 }
 
@@ -179,9 +215,13 @@ ReservaService --> ReservaDAO
 ReservaService ..> ReservaDTO
 
 PaqueteService --> PaqueteDAO
+PaqueteService --> PaqueteActividadDAO
 PaqueteService ..> PaqueteDTO
 
 DestinoService --> DestinoDAO
 DestinoService ..> DestinoDTO
+
+ActividadService --> ActividadDAO
+ActividadService ..> ActividadDTO
 
 @enduml

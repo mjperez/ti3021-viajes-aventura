@@ -41,13 +41,27 @@ switch (Acción a realizar)
         |Sistema|
         :Actualizar en BD;
         
+    case (Gestionar Actividades)
+        |Administrador|
+        :Seleccionar paquete por ID;
+        :Seleccionar operación Add/Remove;
+        
+        |Sistema|
+        :Mostrar actividades disponibles;
+        
+        |Administrador|
+        :Seleccionar ID actividad;
+        
+        |Sistema|
+        :Actualizar relación Paquete-Actividad;
+        
     case (Eliminar)
         |Administrador|
         :Seleccionar paquete por ID;
         :Confirmar eliminación;
         
         |Sistema|
-        :Eliminar de BD;
+        :Desactivar paquete (Soft Delete);
 endswitch
 
 stop

@@ -16,7 +16,8 @@ endif
 repeat
     switch (Opción)
         case (Ver Destinos/Paquetes)
-            :Mostrar catálogo;
+            :Ver catálogo y actividades;
+            :Ver detalle de Paquete;
         case (Hacer Reserva)
             :Elegir destino o paquete;
             :Indicar personas;

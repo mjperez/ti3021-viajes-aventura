@@ -10,7 +10,7 @@ rectangle "Sistema Viajes Aventura" {
     usecase "Listar destinos" as UC1
     usecase "Agregar destino" as UC2
     usecase "Editar destino" as UC3
-    usecase "Eliminar destino" as UC4
+    usecase "Desactivar destino (Soft Delete)" as UC4
     usecase "Buscar destino por nombre" as UC5
     usecase "Asignar política de cancelación" as UC6
 }
